@@ -12,12 +12,14 @@
 /*!
  *  \addtogroup ocv
  *  @{
+ *  //ocv mean "opencv"
  */
 namespace ocv{
 
 /*!
  *  \addtogroup qt
  *  @{
+ *  //handle the chores related with opencv and qt
  */
 namespace qt{
 
