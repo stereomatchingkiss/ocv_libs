@@ -11,10 +11,6 @@
 namespace ocv
 {	
 
-/**
- * @brief encapsulation of cv::caclHist, all of the meaning of the parameters are same as the cv::caclHist, but these api
- * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, {{ {0, 180}, {0, 256} }});
- */
 void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray output, std::initializer_list<int> channels,
                     std::initializer_list<int> hist_sizes, std::initializer_list<float[2]> ranges,
                     cv::InputArray mask = cv::Mat(), bool uniform = true,
@@ -63,6 +59,9 @@ void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray outpu
                     cv::InputArray mask = cv::Mat(), bool uniform = true,
                     bool accumulate = false)
 {
+    if(N != ranges.size()){
+        throw std::out_of_range("N != ranges.size()");
+    }
     std::array<float const*, N> d_ranges;
     for(size_t i = 0; i != N; ++i){
         d_ranges[i] = *(std::begin(ranges) + i);
@@ -103,6 +102,16 @@ cv::MatND calc_histogram(std::initializer_list<cv::Mat> images, std::initializer
 
     return output;
 }
+
+void rgb_histogram(cv::Mat const &input, cv::Mat &output,
+                   std::initializer_list<int> hist_sizes,
+                   std::initializer_list<float[2]> ranges = std::initializer_list<float[2]>({ {0,256}, {0,256}, {0,256} }),
+                   cv::InputArray mask = cv::Mat());
+
+cv::Mat rgb_histogram(cv::Mat const &input,
+                      std::initializer_list<int> hist_sizes,
+                      std::initializer_list<float[2]> ranges = std::initializer_list<float[2]>({ {0,256}, {0,256}, {0,256} }),
+                      cv::InputArray mask = cv::Mat());
 
 }
 

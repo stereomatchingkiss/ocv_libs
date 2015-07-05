@@ -13,6 +13,8 @@ CONFIG += shared static
 
 include(cv_boost_libs.pri)
 
-SOURCES += qt/mat_and_qimage.cpp
+SOURCES += qt/mat_and_qimage.cpp \
+    core/histogram.cpp
 
-HEADERS += qt/mat_and_qimage.hpp
+HEADERS += qt/mat_and_qimage.hpp \
+    core/histogram.hpp
