@@ -1,12 +1,12 @@
-CV_PATH = ../3rdLibs/opencv/opencv-3.0.0/build
-BOOST_PATH = ../3rdLibs/boost/boost_1_58_0
+CV_PATH = $$PWD/../3rdLibs/opencv/opencv-3.0.0/build
+BOOST_PATH = $$PWD/../3rdLibs/boost/boost_1_58_0
 
 INCLUDEPATH += $${CV_PATH}/include
 INCLUDEPATH += $${BOOST_PATH}
 
 LIB_SUFFIX = a
 
-win32-msvc{
+win32-msvc*{
 
   LIB_SUFFIX = lib
 
@@ -14,7 +14,7 @@ win32-msvc{
 
   CONFIG(debug, debug|release) {
     LIBS += $${CV_PATH}/x86/vc12/lib/opencv_world300d.$${LIB_SUFFIX}
-  } else {
+  } else {    
     LIBS += $${CV_PATH}/x86/vc12/lib/opencv_world300.$${LIB_SUFFIX}
   } #config end
 
