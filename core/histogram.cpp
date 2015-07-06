@@ -6,7 +6,7 @@ namespace ocv
 /**
  * @brief encapsulation of cv::caclHist, all of the meaning of the parameters are same as\n
  * the cv::caclHist.\n
- * ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, {{ {0, 180}, {0, 256} }});
+ * ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, { {0, 180}, {0, 256} });
  * @param images input images list
  * @param output  Output histogram, which is a dense or sparse\n
  * dimensional(equal to channels.size()) array.

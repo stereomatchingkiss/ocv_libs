@@ -18,7 +18,7 @@ void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray outpu
 
 /**
  * @brief encapsulation of cv::caclHist, all of the meaning of the parameters are same as the cv::caclHist, but these api
- * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, {{ {0, 180}, {0, 256} }});
+ * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, { {0, 180}, {0, 256} });
  *
  * @return histogram
  */
@@ -36,7 +36,7 @@ cv::Mat calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_l
 
 /**
  * @brief encapsulation of cv::caclHist, all of the meaning of the parameters are same as the cv::caclHist, but these api
- * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, {{ {0, 180}, {0, 256} }});This api
+ * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, { {0, 180}, {0, 256} });This api
  * could reduce the times of memory allocation when compare to non-template version
  */
 template<size_t N>
@@ -72,7 +72,7 @@ void calc_histogram(std::initializer_list<cv::Mat> images, cv::Mat &output, std:
 
 /**
  * @brief encapsulation of cv::caclHist, all of the meaning of the parameters are same as the cv::caclHist, but these api
- * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, {{ {0, 180}, {0, 256} }});This api
+ * are easier to use. ex : cv::Mat hist = calc_histogram({hsv}, {0, 1}, {180, 256}, { {0, 180}, {0, 256} });This api
  * could reduce the times of memory allocation when compare to non-template version
  *
  * @return histogram
