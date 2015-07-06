@@ -23,12 +23,12 @@ void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray outpu
  * @return histogram
  */
 inline
-cv::MatND calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_list<int> channels,
-                         std::initializer_list<int> hist_sizes, std::initializer_list<float[2]> ranges,
-                         cv::InputArray mask = cv::Mat(), bool uniform = true,
-                         bool accumulate = false)
+cv::Mat calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_list<int> channels,
+                       std::initializer_list<int> hist_sizes, std::initializer_list<float[2]> ranges,
+                       cv::InputArray mask = cv::Mat(), bool uniform = true,
+                       bool accumulate = false)
 {
-    cv::MatND output;
+    cv::Mat output;
     calc_histogram(images, output, channels, hist_sizes, ranges, mask, uniform, accumulate);
 
     return output;
@@ -40,7 +40,7 @@ cv::MatND calc_histogram(std::initializer_list<cv::Mat> images, std::initializer
  * could reduce the times of memory allocation when compare to non-template version
  */
 template<size_t N>
-void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray output, std::initializer_list<int> channels,
+void calc_histogram(std::initializer_list<cv::Mat> images, cv::Mat &output, std::initializer_list<int> channels,
                     std::initializer_list<int> hist_sizes, std::array<float[2], N> const &ranges,
                     cv::InputArray mask = cv::Mat(), bool uniform = true,
                     bool accumulate = false)
@@ -54,7 +54,7 @@ void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray outpu
 }
 
 template<size_t N>
-void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray output, std::initializer_list<int> channels,
+void calc_histogram(std::initializer_list<cv::Mat> images, cv::Mat &output, std::initializer_list<int> channels,
                     std::initializer_list<int> hist_sizes, std::initializer_list<float[2]> ranges,
                     cv::InputArray mask = cv::Mat(), bool uniform = true,
                     bool accumulate = false)
@@ -79,12 +79,12 @@ void calc_histogram(std::initializer_list<cv::Mat> images, cv::OutputArray outpu
  */
 template<size_t N>
 inline
-cv::MatND calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_list<int> channels,
+cv::Mat calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_list<int> channels,
                          std::initializer_list<int> hist_sizes, std::array<float[2], N> const &ranges,
                          cv::InputArray mask = cv::Mat(), bool uniform = true,
                          bool accumulate = false)
 {
-    cv::MatND output;
+    cv::Mat output;
     calc_histogram<N>(images, output, channels, hist_sizes, ranges, mask, uniform, accumulate);
 
     return output;
@@ -92,26 +92,16 @@ cv::MatND calc_histogram(std::initializer_list<cv::Mat> images, std::initializer
 
 template<size_t N>
 inline
-cv::MatND calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_list<int> channels,
-                         std::initializer_list<int> hist_sizes, std::initializer_list<float[2]> ranges,
-                         cv::InputArray mask = cv::Mat(), bool uniform = true,
-                         bool accumulate = false)
+cv::Mat calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_list<int> channels,
+                       std::initializer_list<int> hist_sizes, std::initializer_list<float[2]> ranges,
+                       cv::InputArray mask = cv::Mat(), bool uniform = true,
+                       bool accumulate = false)
 {
-    cv::MatND output;
+    cv::Mat output;
     calc_histogram<N>(images, output, channels, hist_sizes, ranges, mask, uniform, accumulate);
 
     return output;
 }
-
-void rgb_histogram(cv::Mat const &input, cv::Mat &output,
-                   std::initializer_list<int> hist_sizes,
-                   std::initializer_list<float[2]> ranges = std::initializer_list<float[2]>({ {0,256}, {0,256}, {0,256} }),
-                   cv::InputArray mask = cv::Mat());
-
-cv::Mat rgb_histogram(cv::Mat const &input,
-                      std::initializer_list<int> hist_sizes,
-                      std::initializer_list<float[2]> ranges = std::initializer_list<float[2]>({ {0,256}, {0,256}, {0,256} }),
-                      cv::InputArray mask = cv::Mat());
 
 }
 

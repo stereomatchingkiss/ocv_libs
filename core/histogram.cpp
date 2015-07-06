@@ -37,9 +37,9 @@ void calc_histogram(std::initializer_list<cv::Mat> images,
                     std::initializer_list<int> channels,
                     std::initializer_list<int> hist_sizes,
                     std::initializer_list<float[2]> ranges,
-cv::InputArray mask,
-bool uniform,
-bool accumulate)
+                    cv::InputArray mask,
+                    bool uniform,
+                    bool accumulate)
 {
     size_t const sizes = ranges.size();
     std::vector<float const*> d_ranges(sizes);
@@ -49,37 +49,6 @@ bool accumulate)
 
     cv::calcHist(std::begin(images), images.size(), std::begin(channels), mask, output,
                  channels.size(), std::begin(hist_sizes), &d_ranges[0], uniform ,accumulate);
-}
-
-/**
- * @brief rgb_histogram calculate the histograms of rgb,\n
- * the meaning of the parameters are same as calc_histogram
- */
-void rgb_histogram(const cv::Mat &input, cv::Mat &output,
-                   std::initializer_list<int> hist_sizes,
-                   std::initializer_list<float[2]> ranges,
-                   cv::InputArray mask)
-{
-    if(input.channels() < 3){
-        throw std::underflow_error("input.channels() < 3");
-    }
-    calc_histogram<3>({input}, output, {0, 1, 2}, hist_sizes,
-    ranges, mask);
-}
-
-/**
- * @brief rgb_histogram overload of rgb_histogram
- * @return rgb histogram
- */
-cv::Mat rgb_histogram(const cv::Mat &input,
-                      std::initializer_list<int> hist_sizes,
-                      std::initializer_list<float[2]> ranges,
-                      cv::InputArray mask)
-{
-    cv::Mat output;
-    rgb_histogram(input, output, hist_sizes, ranges, mask);
-
-    return output;
 }
 
 }

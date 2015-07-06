@@ -1,4 +1,4 @@
-#include "read_img.hpp"
+#include "io_img.hpp"
 
 #include "mat_and_qimage.hpp"
 
