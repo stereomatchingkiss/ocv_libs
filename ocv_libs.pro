@@ -19,4 +19,6 @@ SOURCES += qt/mat_and_qimage.cpp \
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
-    qt/io_img.hpp
+    qt/io_img.hpp \
+    core/for_each.hpp \
+    core/utility.hpp
