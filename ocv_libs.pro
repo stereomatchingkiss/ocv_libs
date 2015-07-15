@@ -15,10 +15,12 @@ include(cv_boost_libs.pri)
 
 SOURCES += qt/mat_and_qimage.cpp \
     core/histogram.cpp \
-    qt/io_img.cpp
+    qt/io_img.cpp \
+    core/wavelet_transform.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
     qt/io_img.hpp \
     core/for_each.hpp \
-    core/utility.hpp
+    core/utility.hpp \
+    core/wavelet_transform.hpp
