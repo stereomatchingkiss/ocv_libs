@@ -72,6 +72,7 @@ void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
     }else{
         dst.create(src.rows, src.cols, CV_32F);
     }
+    src.convertTo(src, CV_32F);
     int width = src.cols;
     int height = src.rows;
     for (int k = 0; k < n_iter; ++k){
