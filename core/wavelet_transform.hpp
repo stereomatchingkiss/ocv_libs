@@ -14,7 +14,7 @@ enum class HaarShrink{
     GARROT
 };
 
-void haar_wavelet(cv::Mat &src, cv::Mat &dst,int n_iter);
+void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter);
 
 void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
                       int n_iter,

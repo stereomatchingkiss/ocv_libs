@@ -65,27 +65,28 @@ float garrot_shrink(float d, float T)
 //--------------------------------
 void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
 {
-    float c,dh,dv,dd;
-    assert( src.type() == CV_32FC1 );
-    assert( dst.type() == CV_32FC1 );
+    cv::Mat temp_dst;
+    if(src.data == dst.data){
+        temp_dst.create(src.rows, src.cols, CV_32F);
+        dst = temp_dst;
+    }else{
+        dst.create(src.rows, src.cols, CV_32F);
+    }
     int width = src.cols;
     int height = src.rows;
-    for (int k = 0; k < n_iter; ++k)
-    {
-        for (int y=0;y<(height>>(k+1));y++)
-        {
-            for (int x=0; x<(width>>(k+1));x++)
-            {
-                c = (src.at<float>(2*y,2*x)+src.at<float>(2*y,2*x+1)+src.at<float>(2*y+1,2*x)+src.at<float>(2*y+1,2*x+1))*0.5f;
+    for (int k = 0; k < n_iter; ++k){
+        for (int y = 0; y < (height>>(k+1)); ++y){
+            for (int x=0; x<(width>>(k+1)); ++x){
+                auto const c = (src.at<float>(2*y,2*x)+src.at<float>(2*y,2*x+1)+src.at<float>(2*y+1,2*x)+src.at<float>(2*y+1,2*x+1))*0.5f;
                 dst.at<float>(y,x) = c;
 
-                dh = (src.at<float>(2*y,2*x)+src.at<float>(2*y+1,2*x)-src.at<float>(2*y,2*x+1)-src.at<float>(2*y+1,2*x+1))*0.5f;
+                auto const dh = (src.at<float>(2*y,2*x)+src.at<float>(2*y+1,2*x)-src.at<float>(2*y,2*x+1)-src.at<float>(2*y+1,2*x+1))*0.5f;
                 dst.at<float>(y,x+(width>>(k+1))) = dh;
 
-                dv = (src.at<float>(2*y,2*x)+src.at<float>(2*y,2*x+1)-src.at<float>(2*y+1,2*x)-src.at<float>(2*y+1,2*x+1))*0.5f;
+                auto const dv = (src.at<float>(2*y,2*x)+src.at<float>(2*y,2*x+1)-src.at<float>(2*y+1,2*x)-src.at<float>(2*y+1,2*x+1))*0.5f;
                 dst.at<float>(y+(height>>(k+1)),x) = dv;
 
-                dd = (src.at<float>(2*y,2*x)-src.at<float>(2*y,2*x+1)-src.at<float>(2*y+1,2*x)+src.at<float>(2*y+1,2*x+1))*0.5f;
+                auto const dd = (src.at<float>(2*y,2*x)-src.at<float>(2*y,2*x+1)-src.at<float>(2*y+1,2*x)+src.at<float>(2*y+1,2*x+1))*0.5f;
                 dst.at<float>(y+(height>>(k+1)),x+(width>>(k+1)))=dd;
             }
         }
@@ -100,9 +101,14 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
                       int n_iter, HaarShrink shrinkage_type,
                       float shrinkage_t)
 {
-    float c,dh,dv,dd;
-    CV_Assert( src.type() == CV_32FC1 );
-    CV_Assert( dst.type() == CV_32FC1 );
+    cv::Mat temp_dst;
+    if(src.data == dst.data){
+        temp_dst.create(src.rows, src.cols, CV_32F);
+        dst = temp_dst;
+    }else{
+        dst.create(src.rows, src.cols, CV_32F);
+    }
+    src.convertTo(src, CV_32F);
     int width = src.cols;
     int height = src.rows;
     //--------------------------------
@@ -114,10 +120,10 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
         {
             for (int x= 0; x < (width>>k); ++x)
             {
-                c = src.at<float>(y,x);
-                dh = src.at<float>(y,x+(width>>k));
-                dv = src.at<float>(y+(height>>k),x);
-                dd = src.at<float>(y+(height>>k),x+(width>>k));
+                float c = src.at<float>(y,x);
+                float dh = src.at<float>(y,x+(width>>k));
+                float dv = src.at<float>(y+(height>>k),x);
+                float dd = src.at<float>(y+(height>>k),x+(width>>k));
 
                 // (shrinkage)
                 switch(shrinkage_type)
