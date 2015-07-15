@@ -60,9 +60,13 @@ float garrot_shrink(float d, float T)
 
 }
 
-//--------------------------------
-// Wavelet transform
-//--------------------------------
+/**
+ * @brief do the haar wavelet transform
+ * @param src src of the image need to transform, this image\n
+ * will be altered, beware
+ * @param dst the output of the image after haar wavelet transform
+ * @param n_iter number of iteration(level)
+ */
 void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
 {
     cv::Mat temp_dst;
@@ -95,9 +99,13 @@ void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
     }
 }
 
-//--------------------------------
-//Inverse wavelet transform
-//--------------------------------
+/**
+ * @brief do the inverse haar wavelet transform
+ * @param src src of the image need to restore, this image\n
+ * will be altered, beware
+ * @param dst the output of the image after haar wavelet transform
+ * @param n_iter number of iteration(level)
+ */
 void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
                       int n_iter, HaarShrink shrinkage_type,
                       float shrinkage_t)
