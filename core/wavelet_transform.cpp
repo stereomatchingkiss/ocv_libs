@@ -172,11 +172,11 @@ std::vector<cv::Rect> haar_wavelet_region(cv::Size2i const &size,
 {
     if(n_iter >= 1 && size.area() > 1){
         std::vector<cv::Rect> result;
-        auto const Func = [&result](int const Width, int const Height)
+        auto const Func = [&result](int width, int height)
         {
-            result.emplace_back(Width, 0, Width, Height);
-            result.emplace_back(0, Height, Width, Height);
-            result.emplace_back(Width, Height, Width, Height);
+            result.emplace_back(width, 0, width, height);
+            result.emplace_back(0, height, width, height);
+            result.emplace_back(width, height, width, height);
         };
         if(n_iter == 1){
             auto const Width = size.width / 2;
