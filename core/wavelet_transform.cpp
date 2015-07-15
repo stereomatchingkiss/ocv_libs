@@ -63,7 +63,7 @@ float garrot_shrink(float d, float T)
 //--------------------------------
 // Wavelet transform
 //--------------------------------
-void haar_wavelet(cv::Mat const &src, cv::Mat &dst, int n_iter)
+void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
 {
     float c,dh,dv,dd;
     assert( src.type() == CV_32FC1 );
@@ -96,8 +96,8 @@ void haar_wavelet(cv::Mat const &src, cv::Mat &dst, int n_iter)
 //--------------------------------
 //Inverse wavelet transform
 //--------------------------------
-void haar_wavelet_inv(cv::Mat const &src, cv::Mat &dst,
-                      int n_iter, Haar shrinkage_type,
+void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
+                      int n_iter, HaarShrink shrinkage_type,
                       float shrinkage_t)
 {
     float c,dh,dv,dd;
@@ -122,17 +122,17 @@ void haar_wavelet_inv(cv::Mat const &src, cv::Mat &dst,
                 // (shrinkage)
                 switch(shrinkage_type)
                 {
-                case Haar::HARD:
+                case HaarShrink::HARD:
                     dh = hard_shrink(dh,shrinkage_t);
                     dv = hard_shrink(dv,shrinkage_t);
                     dd = hard_shrink(dd,shrinkage_t);
                     break;
-                case Haar::SOFT:
+                case HaarShrink::SOFT:
                     dh = soft_shrink(dh,shrinkage_t);
                     dv = soft_shrink(dv,shrinkage_t);
                     dd = soft_shrink(dd,shrinkage_t);
                     break;
-                case Haar::GARROT:
+                case HaarShrink::GARROT:
                     dh = garrot_shrink(dh,shrinkage_t);
                     dv = garrot_shrink(dv,shrinkage_t);
                     dd = garrot_shrink(dd,shrinkage_t);

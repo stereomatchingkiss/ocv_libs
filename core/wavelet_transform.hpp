@@ -14,9 +14,9 @@ enum class HaarShrink{
     GARROT
 };
 
-void haar_wavelet(cv::Mat const &src, cv::Mat &dst,int n_iter);
+void haar_wavelet(cv::Mat &src, cv::Mat &dst,int n_iter);
 
-void haar_wavelet_inv(cv::Mat const &src, cv::Mat &dst,
+void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
                       int n_iter,
                       HaarShrink shrinkage_type = HaarShrink::GARROT,
                       float shrinkage_t = 50);
