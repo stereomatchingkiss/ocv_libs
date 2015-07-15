@@ -167,6 +167,15 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
     }
 }
 
+/**
+ * @brief get the regions separated by haar wavelet transform.\n
+ * If the n_iter == 1, return value will contain(by order) LL,HL,LH,HH.\n
+ * If the n_iter == 2, return value will contain(by order)\N
+ * LL2,HL2,LH2,HH2,HL,LH,HH and so on
+ * @param size width and height of the image want to do haar wavelet transform
+ * @param n_iter number of iteration
+ * @return the regions separated by haar wavelet transform
+ */
 std::vector<cv::Rect> haar_wavelet_region(cv::Size2i const &size,
                                           int n_iter)
 {
