@@ -167,4 +167,40 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
     }
 }
 
+std::vector<cv::Rect> haar_wavelet_region(cv::Size2i const &size,
+                                          int n_iter)
+{
+    if(n_iter >= 1 && size.area() > 1){
+        std::vector<cv::Rect> result;
+        auto const Func = [&result](int const Width, int const Height)
+        {
+            result.emplace_back(Width, 0, Width, Height);
+            result.emplace_back(0, Height, Width, Height);
+            result.emplace_back(Width, Height, Width, Height);
+        };
+        if(n_iter == 1){
+            auto const Width = size.width / 2;
+            auto const Height = size.height / 2;
+            if(Width > 0 && Height > 0){
+                result.emplace_back(0, 0, Width, Height);
+                Func(Width, Height);
+            }
+        }else{
+            auto const Width = size.width >> n_iter;
+            auto const Height = size.height >> n_iter;
+            if(Width > 0 && Height > 0){
+                result.emplace_back(0, 0, Width, Height);
+                Func(Width, Height);
+                for(int i = n_iter - 1; i > 0; --i){
+                    Func(size.width >> i, size.height >> i);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    return {};
+}
+
 }

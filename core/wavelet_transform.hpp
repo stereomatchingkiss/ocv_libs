@@ -20,6 +20,10 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
                       int n_iter,
                       HaarShrink shrinkage_type = HaarShrink::GARROT,
                       float shrinkage_t = 50);
+
+std::vector<cv::Rect> haar_wavelet_region(cv::Size2i const &size,
+                                          int n_iter);
+
 }
 
 #endif // WAVELET_TRANSFORM_HPP
