@@ -33,6 +33,36 @@ template<typename T, typename UnaryFunc, typename Mat>
 UnaryFunc for_each_channels(Mat &&input, UnaryFunc func);
 
 /**
+ *@brief process the each block of the image
+ *@param input the input image
+ *@param block the size of the subimage
+ *@param func functor accept three parameters.\n
+ * col : x-axis position of the image(not block)\n
+ * row : y-axis position of the image(not block)\n
+ * subimage : the subimage of image
+ *@param stride the step when sliding the subimage
+ */
+template<typename TriFunc>
+TriFunc
+for_each_block(cv::Mat const &input,
+               cv::Size2i const &block,
+               TriFunc func,
+               cv::Size2i const &stride = {1, 1})
+{
+    for(int row = 0; row < input.rows - block.height;
+        row += stride.height){
+        for(int col = 0; col < input.cols - block.width;
+            col += stride.width){
+            func(row, col, input(cv::Rect{col, row,
+                                          block.width,
+                                          block.height}));
+        }
+    }
+
+    return func;
+}
+
+/**
  *@brief apply stl like for_each algorithm on a channel
  *
  * @param T : the type of the channel(ex, uchar, float, double and so on)
