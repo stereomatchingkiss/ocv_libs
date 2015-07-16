@@ -41,6 +41,20 @@ float garrot_shrink(float d, float T)
     return std::abs(d) > T ? d - ((T * T) / d) : 0;
 }
 
+bool realloc_if_same(cv::Mat &src, cv::Mat &dst, int type)
+{
+    cv::Mat temp_dst;
+    if(src.data == dst.data){
+        temp_dst.create(src.rows, src.cols, type);
+        dst = temp_dst;
+        return true;
+    }else{
+        dst.create(src.rows, src.cols, type);
+    }
+
+    return false;
+}
+
 }
 
 /**
@@ -52,15 +66,7 @@ float garrot_shrink(float d, float T)
  */
 void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
 {
-    cv::Mat temp_dst;
-    bool is_same_addr = false;
-    if(src.data == dst.data){
-        temp_dst.create(src.rows, src.cols, CV_32F);
-        dst = temp_dst;
-        is_same_addr = true;
-    }else{
-        dst.create(src.rows, src.cols, CV_32F);
-    }
+    bool IsSameAddr = realloc_if_same(src, dst, CV_32F);
     src.convertTo(src, CV_32F);
     int const Width = src.cols;
     int const Height = src.rows;
@@ -82,7 +88,7 @@ void haar_wavelet(cv::Mat &src, cv::Mat &dst, int n_iter)
         }
         dst.copyTo(src);
     }
-    if(is_same_addr){
+    if(IsSameAddr){
         src = dst;
     }
 }
@@ -98,15 +104,7 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
                       int n_iter, HaarShrink shrinkage_type,
                       float shrinkage_t)
 {
-    cv::Mat temp_dst;
-    bool is_same_addr = false;
-    if(src.data == dst.data){
-        temp_dst.create(src.rows, src.cols, CV_32F);
-        dst = temp_dst;
-        is_same_addr = true;
-    }else{
-        dst.create(src.rows, src.cols, CV_32F);
-    }
+    bool IsSameAddr = realloc_if_same(src, dst, CV_32F);
     src.convertTo(src, CV_32F);
     int const Width = src.cols;
     int const Height = src.rows;
@@ -155,7 +153,7 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
         cv::Mat D = dst(cv::Rect(0,0,Width>>(k-1),Height>>(k-1)));
         D.copyTo(C);
     }
-    if(is_same_addr){
+    if(IsSameAddr){
         src = dst;
     }
 }
