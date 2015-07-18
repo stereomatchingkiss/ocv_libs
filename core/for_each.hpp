@@ -49,9 +49,9 @@ for_each_block(cv::Mat const &input,
                TriFunc func,
                cv::Size2i const &stride = {1, 1})
 {
-    for(int row = 0; row < input.rows - block.height - stride.height;
+    for(int row = 0; row <= input.rows - block.height;
         row += stride.height){
-        for(int col = 0; col < input.cols - block.width - stride.width;
+        for(int col = 0; col <= input.cols - block.width;
             col += stride.width){
             func(row, col, input(cv::Rect{col, row,
                                           block.width,
