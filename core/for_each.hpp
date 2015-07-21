@@ -33,7 +33,7 @@ template<typename T, typename UnaryFunc, typename Mat>
 UnaryFunc for_each_channels(Mat &&input, UnaryFunc func);
 
 /**
- *@brief process the each block of the image
+ *@brief process each block of the image
  *@param input the input image
  *@param block the size of the subimage
  *@param func functor accept three parameters.\n
@@ -42,11 +42,11 @@ UnaryFunc for_each_channels(Mat &&input, UnaryFunc func);
  * subimage : the subimage of image
  *@param stride the step when sliding the subimage
  */
-template<typename TriFunc>
-TriFunc
+template<typename TerFunc>
+TerFunc
 for_each_block(cv::Mat const &input,
                cv::Size2i const &block,
-               TriFunc func,
+               TerFunc func,
                cv::Size2i const &stride = {1, 1})
 {
     for(int row = 0; row <= input.rows - block.height;
@@ -56,6 +56,48 @@ for_each_block(cv::Mat const &input,
             func(row, col, input(cv::Rect{col, row,
                                           block.width,
                                           block.height}));
+        }
+    }
+
+    return func;
+}
+
+/**
+ *@brief process each block of the images
+ *@param input_1 first input image
+ *@param input_2 second input image
+ *@param block the size of the subimage
+ *@param func functor accept four parameters.\n
+ * col : x-axis position of the image(not block)\n
+ * row : y-axis position of the image(not block)\n
+ * subimage_1 : the subimage of first input image
+ * subimage_2 : the subimage of second input image
+ *@param stride the step when sliding the subimage
+ */
+template<typename QuatFunc>
+QuatFunc
+for_each_block(cv::Mat const &input_1,
+               cv::Mat const &input_2,
+               cv::Size2i const &block,
+               QuatFunc func,
+               cv::Size2i const &stride = {1, 1})
+{
+    CV_Assert(input_1.rows / stride.height ==
+              input_2.rows / stride.height);
+    CV_Assert(input_1.cols / stride.width ==
+              input_2.cols / stride.width);
+
+    for(int row = 0; row <= input_1.rows - block.height;
+        row += stride.height){
+        for(int col = 0; col <= input_1.cols - block.width;
+            col += stride.width){
+            func(row, col,
+                 input_1(cv::Rect{col, row,
+                                  block.width,
+                                  block.height}),
+                 input_2(cv::Rect{col, row,
+                                  block.width,
+                                  block.height}));
         }
     }
 
