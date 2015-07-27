@@ -7,14 +7,62 @@ namespace ocv{ namespace qt{
 namespace
 {
 
-inline QImage mat_to_qimage_ref_policy(cv::Mat &mat, QImage::Format format)
+/**
+ * @brief copy QImage into cv::Mat
+ */
+struct mat_to_qimage_cpy_policy
 {
-    return QImage(mat.data, mat.cols, mat.rows, mat.step, format);
-}
+    static QImage start(cv::Mat const &mat, QImage::Format format)
+    {
+        return QImage(mat.data, mat.cols, mat.rows, mat.step, format).copy();
+    }
+};
 
-inline QImage mat_to_qimage_cpy_policy(cv::Mat const &mat, QImage::Format format)
+struct mat_to_qimage_ref_policy
 {
-    return QImage(mat.data, mat.cols, mat.rows, mat.step, format).copy();
+    static QImage start(cv::Mat &mat, QImage::Format format)
+    {
+        return QImage(mat.data, mat.cols, mat.rows, mat.step, format);
+    }
+};
+
+/**
+ * @brief generic class for reducing duplicate codes
+ */
+template<typename Policy>
+struct mat_to_qimage
+{
+    template<typename Image>
+    static QImage run(Image &&mat, bool swap);
+};
+
+template<typename Policy>
+template<typename Image>
+QImage mat_to_qimage<Policy>::run(Image &&mat, bool swap)
+{
+    if(!mat.empty()){
+        switch(mat.type()){
+
+        case CV_8UC3 :{
+            if(swap){
+                return Policy::start(mat, QImage::Format_RGB888).rgbSwapped();
+            }else{
+                return Policy::start(mat, QImage::Format_RGB888);
+            }
+        }
+
+        case CV_8U :{
+            return Policy::start(mat, QImage::Format_Indexed8);
+        }
+
+        case CV_8UC4 :{
+           return Policy::start(mat, QImage::Format_ARGB32);
+        }
+
+        }
+    }
+
+    return {};
 }
 
 /**
@@ -66,7 +114,7 @@ cv::Mat qimage_to_mat<Policy>::run(Image &&img, bool swap)
 
     switch (img.format()) {
     case QImage::Format_RGB888:{
-        cv::Mat result = Policy::start(img, CV_8UC3);
+        auto result = Policy::start(img, CV_8UC3);
         if(swap){
             cv::cvtColor(result, result, CV_RGB2BGR);
         }
@@ -84,7 +132,7 @@ cv::Mat qimage_to_mat<Policy>::run(Image &&img, bool swap)
         break;
     }
 
-    return cv::Mat();
+    return {};
 }
 
 } //end of namespace
@@ -97,29 +145,8 @@ cv::Mat qimage_to_mat<Policy>::run(Image &&img, bool swap)
  */
 QImage mat_to_qimage_cpy(cv::Mat const &mat, bool swap)
 {
-    if(!mat.empty()){
-        switch(mat.type()){
-
-        case CV_8UC3 :{
-            if(swap){
-                return mat_to_qimage_cpy_policy(mat, QImage::Format_RGB888).rgbSwapped();
-            }else{
-                return mat_to_qimage_cpy_policy(mat, QImage::Format_RGB888);
-            }
-        }
-
-        case CV_8U :{
-            return mat_to_qimage_cpy_policy(mat, QImage::Format_Indexed8);
-        }
-
-        case CV_8UC4 :{            
-           return mat_to_qimage_cpy_policy(mat, QImage::Format_ARGB32);
-        }
-
-        }
-    }
-
-    return QImage();
+    //return {};
+    return mat_to_qimage<mat_to_qimage_cpy_policy>::run(mat, swap);
 }
 
 /**
@@ -132,29 +159,7 @@ QImage mat_to_qimage_cpy(cv::Mat const &mat, bool swap)
  */
 QImage mat_to_qimage_ref(cv::Mat &mat, bool swap)
 {
-    if(!mat.empty()){
-        switch(mat.type()){
-
-        case CV_8UC3 :{
-            if(swap){
-                cv::cvtColor(mat, mat, CV_BGR2RGB);
-            }
-
-            return mat_to_qimage_ref_policy(mat, QImage::Format_RGB888);
-        }
-
-        case CV_8U :{
-            return mat_to_qimage_ref_policy(mat, QImage::Format_Indexed8);
-        }
-
-        case CV_8UC4 :{            
-            return mat_to_qimage_ref_policy(mat, QImage::Format_ARGB32);
-        }
-
-        }
-    }
-
-    return QImage();
+    return mat_to_qimage<mat_to_qimage_ref_policy>::run(mat, swap);
 }
 
 /**
