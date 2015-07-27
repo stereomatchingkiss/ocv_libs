@@ -141,7 +141,7 @@ cv::Mat qimage_to_mat<Policy>::run(Image &&img, bool swap)
  *@brief copy cv::Mat into QImage
  *
  *@param mat : input mat
- *@param swap : true : swap RGB to BGR; false, do nothing
+ *@param swap : true : swap BGR to RGB; false, do nothing
  */
 QImage mat_to_qimage_cpy(cv::Mat const &mat, bool swap)
 {
@@ -155,7 +155,7 @@ QImage mat_to_qimage_cpy(cv::Mat const &mat, bool swap)
  * the jobs.
  *
  *@param mat : input mat
- *@param swap : true : swap RGB to BGR; false, do nothing
+ *@param swap : true : swap BGR to RGB; false, do nothing
  */
 QImage mat_to_qimage_ref(cv::Mat &mat, bool swap)
 {
