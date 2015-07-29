@@ -47,7 +47,7 @@ TerFunc
 for_each_block(cv::Mat const &input,
                cv::Size2i const &block,
                TerFunc func,
-               cv::Size2i const &stride = block)
+               cv::Size2i const &stride)
 {
     for(int row = 0; row <= input.rows - block.height;
         row += stride.height){
@@ -60,6 +60,15 @@ for_each_block(cv::Mat const &input,
     }
 
     return func;
+}
+
+template<typename TerFunc>
+inline TerFunc
+for_each_block(cv::Mat const &input,
+               cv::Size2i const &block,
+               TerFunc func)
+{
+    return for_each_block(input, block, func, block);
 }
 
 /**
