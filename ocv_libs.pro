@@ -11,7 +11,8 @@ CONFIG += c++11
 CONFIG -= dll
 CONFIG += shared static
 
-include(cv_boost_libs.pri)
+include(../pri/boost_vc2013_32.pri)
+include(../pri/cv_dev_vc2013_32.pri)
 
 SOURCES += qt/mat_and_qimage.cpp \
     core/histogram.cpp \
