@@ -39,6 +39,8 @@ public:
     void set_epsillon(double epsillon);
 
 private:
+    void initialize(cv::Mat const &theta);
+
     double epsillon_;
 
     cv::Mat gradient_;
@@ -63,13 +65,7 @@ cv::Mat const &gradient_checking::
 compute_gradient(const cv::Mat &theta,
                  UnaryFunc cost_function)
 {
-    CV_Assert(theta.channels() == 1 &&
-              theta.rows == 1);
-
-    theta.copyTo(theta_minus_);
-    theta.copyTo(theta_plus_);
-    theta_minus_.convertTo(theta_minus_, CV_64F);
-    theta_plus_.convertTo(theta_plus_, CV_64F);
+    initialize(theta);
     double *gradient_ptr = gradient_.ptr<double>(0);
     double *minus_ptr = theta_minus_.ptr<double>(0);
     double *plus_ptr = theta_plus_.ptr<double>(0);
