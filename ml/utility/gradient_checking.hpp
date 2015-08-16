@@ -56,6 +56,7 @@ private:
  * the (theta[i] + epsillon) or (theta[i] - epsillon)
  *@pre <strong class = "paramname">theta</strong> must be\n
  * one channel and one row
+ *@return the gradients
  */
 template<typename UnaryFunc>
 cv::Mat const &gradient_checking::
