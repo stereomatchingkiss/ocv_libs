@@ -32,11 +32,14 @@ class gradient_checking
 public:
     gradient_checking();
 
+    bool compare_gradient(cv::Mat const &gradient) const;
+
     template<typename UnaryFunc>
     cv::Mat const& compute_gradient(cv::Mat const &theta,
                                     UnaryFunc func);
 
     void set_epsillon(double epsillon);
+    void set_inaccuracy(double inaccuracy);
 
 private:
     void initialize(cv::Mat const &theta);
@@ -44,6 +47,8 @@ private:
     double epsillon_;
 
     cv::Mat gradient_;
+
+    double inaccuracy_;
 
     cv::Mat theta_buffer_;
 };
