@@ -69,7 +69,7 @@ compute_gradient(const cv::Mat &theta,
     double *gradient_ptr = gradient_.ptr<double>(0);
     double *theta_ptr = theta.ptr<double>(0);
     for(int i = 0; i != theta.cols; ++i){
-        *buffer_ptr = *theta_ptr - epsillon_;
+        *buffer_ptr = *theta_ptr + epsillon_;
         double const Plus = cost_function(theta_buffer_);
         *buffer_ptr = *theta_ptr - epsillon_;
         double const Minus = cost_function(theta_buffer_);
