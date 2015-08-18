@@ -19,7 +19,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     qt/io_img.cpp \
     core/wavelet_transform.cpp \
     ml/utility/gradient_checking.cpp \
-    ml/deep_learning/autoencoder.cpp
+    ml/deep_learning/autoencoder.cpp \
+    ml/utility/feature_scaling.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -28,4 +29,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     core/utility.hpp \
     core/wavelet_transform.hpp \
     ml/utility/gradient_checking.hpp \
-    ml/deep_learning/autoencoder.hpp
+    ml/deep_learning/autoencoder.hpp \
+    ml/utility/feature_scaling.hpp
