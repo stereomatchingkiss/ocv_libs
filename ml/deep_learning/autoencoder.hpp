@@ -30,6 +30,7 @@ public:
     autoencoder(autoencoder &&) = delete;
 
     void set_beta(double beta);
+    void set_eps(double eps);
     void set_hidden_layer_size(cv::AutoBuffer<int> const &size);
     void set_lambda(double lambda);
     void set_learning_rate(double lrate);
@@ -38,19 +39,7 @@ public:
 
     void train(cv::Mat const &input);
 
-private:        
-    struct params
-    {
-        params();
-
-        double beta_;
-        cv::AutoBuffer<int> hidden_size_;
-        double lambda_;
-        double lrate_; //learning rate
-        int max_iter_;
-        double sparse_;
-    };
-
+private:
     struct encoder_struct
     {
         encoder_struct(int input_size, int hidden_size,
@@ -65,6 +54,19 @@ private:
         cv::Mat b1_grad_;
         cv::Mat b2_grad_;
         double cost_;
+    };
+
+    struct params
+    {
+        params();
+
+        double beta_;
+        double eps_;
+        cv::AutoBuffer<int> hidden_size_;
+        double lambda_;
+        double lrate_; //learning rate
+        int max_iter_;
+        double sparse_;
     };
 
     std::vector<encoder_struct> encoders_;

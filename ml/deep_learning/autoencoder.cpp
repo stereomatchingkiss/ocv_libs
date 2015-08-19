@@ -44,6 +44,7 @@ void autoencoder::set_sparse(double sparse)
 
 autoencoder::params::params() :
     beta_(3),
+    eps_(5e-5),
     lambda_(3e-3),
     lrate_(2e-2),
     max_iter_(80000),
