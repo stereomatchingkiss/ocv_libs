@@ -3,6 +3,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "ml/utility/activation.hpp"
+
 /*! \file propagation.hpp
     \brief collection of propagation algorithms
 */
@@ -39,7 +41,7 @@ void forward_propagation(cv::Mat const &input,
                          cv::Mat const &weight,
                          cv::Mat const &bias,
                          cv::Mat &output,
-                         UnaryFunc func)
+                         UnaryFunc func = sigmoid)
 {
     if(!input.empty() && !weight.empty() &&
             !bias.empty()){
