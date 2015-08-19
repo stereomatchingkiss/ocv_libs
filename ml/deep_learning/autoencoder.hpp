@@ -4,7 +4,8 @@
 #include <opencv2/core.hpp>
 
 /*! \file autoencoder.hpp
-    \brief implement the algorithm--autoencoder
+    \brief implement the algorithm--autoencoder based on\n
+    the description of UFLDL
 */
 
 /*!
@@ -40,6 +41,12 @@ public:
     void train(cv::Mat const &input);
 
 private:
+    struct activation
+    {
+        cv::Mat hidden_;
+        cv::Mat output_;
+    };
+
     struct encoder_struct
     {
         encoder_struct(int input_size, int hidden_size,
@@ -69,8 +76,21 @@ private:
         double sparse_;
     };
 
+    void encoder_cost(cv::Mat const &input,
+                      encoder_struct &es);
+
+    void get_activation(cv::Mat const &input,
+                        encoder_struct const &es);
+
+    activation act_;
     std::vector<encoder_struct> encoders_;
     params params_;
+    cv::Mat pj_; //the average activation of hidden units
+    cv::Mat sparse_error_;
+    cv::Mat sparse_error_buffer_;
+    cv::Mat sqr_error_;
+    cv::Mat w1_pow_;
+    cv::Mat w2_pow_;
 };
 
 } /*! @} End of Doxygen Groups*/
