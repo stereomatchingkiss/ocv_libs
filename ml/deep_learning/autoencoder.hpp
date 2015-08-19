@@ -24,6 +24,11 @@ class autoencoder
 public:
     explicit autoencoder(cv::AutoBuffer<int> const &hidden_size);
 
+    autoencoder& operator=(autoencoder const&) = delete;
+    autoencoder& operator=(autoencoder &&) = delete;
+    autoencoder(autoencoder const&) = delete;
+    autoencoder(autoencoder &&) = delete;
+
     void set_beta(double beta);
     void set_hidden_layer_size(cv::AutoBuffer<int> const &size);
     void set_lambda(double lambda);
@@ -33,7 +38,7 @@ public:
 
     void train(cv::Mat const &input);
 
-private:
+private:        
     struct params
     {
         params();
@@ -46,6 +51,23 @@ private:
         double sparse_;
     };
 
+    struct encoder_struct
+    {
+        encoder_struct(int input_size, int hidden_size,
+                       double cost = 0);
+
+        cv::Mat w1_;
+        cv::Mat w2_;
+        cv::Mat b1_;
+        cv::Mat b2_;
+        cv::Mat w1_grad_;
+        cv::Mat w2_grad_;
+        cv::Mat b1_grad_;
+        cv::Mat b2_grad_;
+        double cost_;
+    };
+
+    std::vector<encoder_struct> encoders_;
     params params_;
 };
 

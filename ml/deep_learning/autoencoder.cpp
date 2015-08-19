@@ -1,5 +1,7 @@
 #include "autoencoder.hpp"
 
+#include "core/utility.hpp"
+
 namespace ocv{
 
 namespace ml{
@@ -48,6 +50,27 @@ autoencoder::params::params() :
     sparse_(0.1)
 {
 
+}
+
+autoencoder::encoder_struct::
+encoder_struct(int input_size, int hidden_size, double cost) :
+    cost_(cost)
+{
+    w1_.create(hidden_size, input_size, CV_64F);
+    w2_.create(input_size, hidden_size, CV_64F);
+    b1_.create(hidden_size, 1, CV_64F);
+    b2_.create(input_size, 1, CV_64F);
+
+    generate_random_value<double>(w1_, 0.12);
+    generate_random_value<double>(w2_, 0.12);
+    generate_random_value<double>(b1_, 0.12);
+    generate_random_value<double>(b2_, 0.12);
+
+    w1_grad_ = cv::Mat::zeros(hidden_size, input_size, CV_64F);
+    w2_grad_ = cv::Mat::zeros(input_size, hidden_size, CV_64F);
+    b1_grad_ = cv::Mat::zeros(hidden_size, 1, CV_64F);
+    b2_grad_ = cv::Mat::zeros(input_size, 1, CV_64F);
+    cost_ = 0;
 }
 
 }}
