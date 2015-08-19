@@ -108,6 +108,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     cv::log(sparse_error_buffer_, sparse_error_buffer_);
     sparse_error_buffer_ *= (1 - params_.sparse_);
 
+    //sparse * log(sparse/pj) + (1 - sparse) * log[(1 - sparse)/(1 - pj)]
     sparse_error_ += sparse_error_buffer_;
     es.cost_ = SquareError + WeightError +
             sum(sparse_error_)[0] * params_.beta_;
@@ -115,7 +116,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 
 void
 autoencoder::get_activation(cv::Mat const &input,
-                            autoencoder::encoder_struct const &es)
+                            encoder_struct const &es)
 {
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
