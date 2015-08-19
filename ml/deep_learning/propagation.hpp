@@ -36,12 +36,12 @@ namespace ml{
  * output should be double(CV_64F).\n
  * weight.cols == input.rows && bias.rows == weight.rows
  */
-template<typename UnaryFunc>
+template<typename UnaryFunc = sigmoid>
 void forward_propagation(cv::Mat const &input,
                          cv::Mat const &weight,
                          cv::Mat const &bias,
                          cv::Mat &output,
-                         UnaryFunc func = sigmoid)
+                         UnaryFunc func = sigmoid())
 {
     if(!input.empty() && !weight.empty() &&
             !bias.empty()){
@@ -51,7 +51,7 @@ void forward_propagation(cv::Mat const &input,
 
         cv::multiply(weight, input, output);
         for(int i = 0; i != output.cols; ++i){
-            output.cols(i) += bias;
+            output.col(i) += bias;
         }
         func(output);
     }
