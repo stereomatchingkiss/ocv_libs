@@ -9,6 +9,8 @@
 
 #include <opencv2/core/core.hpp>
 
+#include "for_each.hpp"
+
 namespace ocv
 {
 
@@ -149,6 +151,18 @@ std::vector<T> copy_to_one_dim_array_ch(cv::Mat const &src, int channel)
     copy_to_one_dim_array_ch<T>(src, std::begin(result), channel);
 
     return result;
+}
+
+template<typename T>
+void generate_random_value(cv::Mat &inout, T epsillon)
+{
+    for_each_channels<T>(inout, [](T &value)
+    {
+        value = cv::randu<T>();
+    });
+
+    inout *= (2 * epsillon);
+    inout -= epsillon;
 }
 
 }
