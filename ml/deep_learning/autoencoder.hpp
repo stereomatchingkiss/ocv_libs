@@ -78,6 +78,8 @@ private:
 
     void encoder_cost(cv::Mat const &input,
                       encoder_struct &es);
+    void encoder_gradient(cv::Mat const &input,
+                          encoder_struct &es);
 
     void get_activation(cv::Mat const &input,
                         encoder_struct const &es);

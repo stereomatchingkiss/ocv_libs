@@ -80,6 +80,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     auto const NSamples = input.cols;
 
     //square error of back propagation(first half)
+    //sqr_error = sum(pow((output - input), 2) / 2.0） / NSamples
     cv::subtract(act_.output_, input, sqr_error_);
     cv::pow(sqr_error_, 2.0, sqr_error_);
     sqr_error_ /= 2.0;
@@ -90,8 +91,10 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     pj_ /= NSamples;
 
     // the second part is weight decay part
-    cv::pow(es.w1_, 2.0, w1_pow_);
-    cv::pow(es.w2_, 2.0, w2_pow_);
+    //cv::pow(es.w1_, 2.0, w1_pow_);
+    //cv::pow(es.w2_, 2.0, w2_pow_);
+    cv::multiply(es.w1_, es.w1_, w1_pow_);
+    cv::multiply(es.w2_, es.w2_, w2_pow_);
     double const WeightError = (cv::sum(w1_pow_)[0] + cv::sum(w2_pow_)[0]) *
             (params_.lambda_ / 2.0);
 
@@ -102,9 +105,8 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     sparse_error_buffer_ *= params_.sparse_;
     sparse_error_buffer_.copyTo(sparse_error_);
 
-    //(1 - sparse) * log[(1 - sparse)/(1 - pj)]
-    cv::subtract(1, pj_, pj_);
-    cv::divide(1 - params_.sparse_, pj_, sparse_error_buffer_);
+    //(1 - sparse) * log[(1 - sparse)/(1 - pj)]    
+    cv::divide(1 - params_.sparse_, 1 - pj_, sparse_error_buffer_);
     cv::log(sparse_error_buffer_, sparse_error_buffer_);
     sparse_error_buffer_ *= (1 - params_.sparse_);
 
@@ -112,6 +114,38 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     sparse_error_ += sparse_error_buffer_;
     es.cost_ = SquareError + WeightError +
             sum(sparse_error_)[0] * params_.beta_;
+}
+
+void autoencoder::encoder_gradient(cv::Mat const &input,
+                                   encoder_struct &es)
+{
+    auto const NSamples = input.cols;
+    cv::Mat delta3 = act_.output_ - input;
+    cv::multiply(delta3, dsigmoid_func(act_.output_), delta3);
+
+    cv::Mat temp2 = -params_.sparse_ / pj_ +
+            (1.0 - params_.sparse_) / (1.0 - pj_);
+    temp2 *= params_.beta_;
+    //cv::Mat delta2 = es.w2_.t() * delta3 +
+    //        cv::repeat(temp2, 1, NSamples);
+    cv::Mat delta2 = es.w2_.t() * delta3;
+    for(int i = 0; i != delta2.cols; ++i){
+        delta2.col(i) += temp2;
+    }
+    cv::multiply(delta2, dsigmoid_func(act_.hidden_), delta2);
+
+    cv::Mat nablaW1 = delta2 * input.t();
+    cv::Mat nablaW2 = delta3 * act_.hidden_.t();
+    cv::Mat nablab1 = delta2;
+    cv::Mat nablab2 = delta3;
+    es.w1_grad_ = nablaW1 / NSamples +
+            params_.lambda_ * es.w1_;
+    es.w2_grad_ = nablaW2 / NSamples +
+            params_.lambda_ * es.w2_;
+    cv::reduce(nablab1, es.b1_grad_, 1, CV_REDUCE_SUM);
+    cv::reduce(nablab2, es.b2_grad_, 1, CV_REDUCE_SUM);
+    es.b1_grad_ /= NSamples;
+    es.b2_grad_ /= NSamples;//*/
 }
 
 void
