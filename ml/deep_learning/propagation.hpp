@@ -44,7 +44,8 @@ void forward_propagation(cv::Mat const &input,
                          UnaryFunc func = sigmoid())
 {
     if(!input.empty() && !weight.empty() &&
-            !bias.empty()){                        
+            !bias.empty()){
+        //output = weight * input;
         cv::gemm(weight, input, 1.0, cv::Mat(),
                  0.0, output);
         for(int i = 0; i != output.cols; ++i){
