@@ -23,12 +23,30 @@ namespace ml{
 class autoencoder
 {
 public:
+    struct layer_struct
+    {
+        layer_struct(int input_size, int hidden_size,
+                       double cost = 0);
+
+        cv::Mat w1_;
+        cv::Mat w2_;
+        cv::Mat b1_;
+        cv::Mat b2_;
+        cv::Mat w1_grad_;
+        cv::Mat w2_grad_;
+        cv::Mat b1_grad_;
+        cv::Mat b2_grad_;
+        double cost_;
+    };
+
     explicit autoencoder(cv::AutoBuffer<int> const &hidden_size);
 
     autoencoder& operator=(autoencoder const&) = delete;
     autoencoder& operator=(autoencoder &&) = delete;
     autoencoder(autoencoder const&) = delete;
     autoencoder(autoencoder &&) = delete;
+
+    //std::vector<layer_struct> const& get_layer_struct() const;
 
     void set_beta(double beta);
     void set_eps(double eps);
@@ -57,22 +75,6 @@ private:
         cv::Mat w2_pow_;
     };
 
-    struct encoder_struct
-    {
-        encoder_struct(int input_size, int hidden_size,
-                       double cost = 0);
-
-        cv::Mat w1_;
-        cv::Mat w2_;
-        cv::Mat b1_;
-        cv::Mat b2_;
-        cv::Mat w1_grad_;
-        cv::Mat w2_grad_;
-        cv::Mat b1_grad_;
-        cv::Mat b2_grad_;
-        double cost_;
-    };
-
     struct params
     {
         params();
@@ -87,16 +89,16 @@ private:
     };
 
     void encoder_cost(cv::Mat const &input,
-                      encoder_struct &es);
+                      layer_struct &es);
     void encoder_gradient(cv::Mat const &input,
-                          encoder_struct &es);
+                          layer_struct &es);
 
     void get_activation(cv::Mat const &input,
-                        encoder_struct const &es);
+                        layer_struct const &es);
 
     activation act_;
     buffer buffer_;
-    std::vector<encoder_struct> encoders_;
+    std::vector<layer_struct> layers_;
     params params_;
 };
 

@@ -74,7 +74,7 @@ void autoencoder::set_sparse(double sparse)
 }
 
 void autoencoder::encoder_cost(const cv::Mat &input,
-                               encoder_struct &es)
+                               layer_struct &es)
 {
     get_activation(input, es);
     auto const NSamples = input.cols;
@@ -108,7 +108,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     buffer_.sparse_error_buffer_ *= params_.sparse_;
     buffer_.sparse_error_buffer_.copyTo(buffer_.sparse_error_);
 
-    //(1 - sparse) * log[(1 - sparse)/(1 - pj)]    
+    //(1 - sparse) * log[(1 - sparse)/(1 - pj)]
     cv::divide(1 - params_.sparse_, 1 - buffer_.pj_,
                buffer_.sparse_error_buffer_);
     cv::log(buffer_.sparse_error_buffer_, buffer_.sparse_error_buffer_);
@@ -121,7 +121,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 }
 
 void autoencoder::encoder_gradient(cv::Mat const &input,
-                                   encoder_struct &es)
+                                   layer_struct &es)
 {
     auto const NSamples = input.cols;
     cv::Mat delta3 = act_.output_ - input;
@@ -154,7 +154,7 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
 
 void
 autoencoder::get_activation(cv::Mat const &input,
-                            encoder_struct const &es)
+                            layer_struct const &es)
 {
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
@@ -171,8 +171,8 @@ autoencoder::params::params() :
 
 }
 
-autoencoder::encoder_struct::
-encoder_struct(int input_size, int hidden_size, double cost) :
+autoencoder::layer_struct::
+layer_struct(int input_size, int hidden_size, double cost) :
     cost_(cost)
 {
     w1_.create(hidden_size, input_size, CV_64F);
