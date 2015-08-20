@@ -33,7 +33,7 @@ namespace ml{
  *@param func unary functor which apply the activation on\n
  * the output
  *@pre input, weight and bias cannot be empty, the type of the\n
- * output should be double(CV_64F).\n
+ * input, weight, bias and output should be double(CV_64F).\n
  * weight.cols == input.rows && bias.rows == weight.rows
  */
 template<typename UnaryFunc = sigmoid>
@@ -44,12 +44,9 @@ void forward_propagation(cv::Mat const &input,
                          UnaryFunc func = sigmoid())
 {
     if(!input.empty() && !weight.empty() &&
-            !bias.empty()){
-        CV_Assert(output.type() == CV_64F);
-        CV_Assert(weight.cols == input.rows &&
-                  bias.rows == weight.rows);
-
-        cv::multiply(weight, input, output);
+            !bias.empty()){                        
+        cv::gemm(weight, input, 1.0, cv::Mat(),
+                 0.0, output);
         for(int i = 0; i != output.cols; ++i){
             output.col(i) += bias;
         }
