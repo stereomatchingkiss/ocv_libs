@@ -47,6 +47,16 @@ private:
         cv::Mat output_;
     };
 
+    struct buffer
+    {
+        cv::Mat pj_; //the average activation of hidden units
+        cv::Mat sparse_error_;
+        cv::Mat sparse_error_buffer_;
+        cv::Mat sqr_error_;
+        cv::Mat w1_pow_;
+        cv::Mat w2_pow_;
+    };
+
     struct encoder_struct
     {
         encoder_struct(int input_size, int hidden_size,
@@ -85,14 +95,9 @@ private:
                         encoder_struct const &es);
 
     activation act_;
+    buffer buffer_;
     std::vector<encoder_struct> encoders_;
     params params_;
-    cv::Mat pj_; //the average activation of hidden units
-    cv::Mat sparse_error_;
-    cv::Mat sparse_error_buffer_;
-    cv::Mat sqr_error_;
-    cv::Mat w1_pow_;
-    cv::Mat w2_pow_;
 };
 
 } /*! @} End of Doxygen Groups*/

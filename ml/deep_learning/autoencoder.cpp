@@ -81,39 +81,43 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 
     //square error of back propagation(first half)
     //sqr_error = sum(pow((output - input), 2) / 2.0） / NSamples
-    cv::subtract(act_.output_, input, sqr_error_);
-    cv::pow(sqr_error_, 2.0, sqr_error_);
-    sqr_error_ /= 2.0;
-    double const SquareError = sum(sqr_error_)[0] / NSamples;
+    cv::subtract(act_.output_, input, buffer_.sqr_error_);
+    cv::pow(buffer_.sqr_error_, 2.0, buffer_.sqr_error_);
+    buffer_.sqr_error_ /= 2.0;
+    double const SquareError = sum(buffer_.sqr_error_)[0] / NSamples;
 
     // now calculate pj which is the average activation of hidden units
-    cv::reduce(act_.hidden_, pj_, 1, CV_REDUCE_SUM);
-    pj_ /= NSamples;
+    cv::reduce(act_.hidden_, buffer_.pj_, 1, CV_REDUCE_SUM);
+    buffer_.pj_ /= NSamples;
 
     // the second part is weight decay part
     //cv::pow(es.w1_, 2.0, w1_pow_);
     //cv::pow(es.w2_, 2.0, w2_pow_);
-    cv::multiply(es.w1_, es.w1_, w1_pow_);
-    cv::multiply(es.w2_, es.w2_, w2_pow_);
-    double const WeightError = (cv::sum(w1_pow_)[0] + cv::sum(w2_pow_)[0]) *
+    cv::multiply(es.w1_, es.w1_, buffer_.w1_pow_);
+    cv::multiply(es.w2_, es.w2_, buffer_.w2_pow_);
+    double const WeightError =
+            (cv::sum(buffer_.w1_pow_)[0] + cv::sum(buffer_.w2_pow_)[0]) *
             (params_.lambda_ / 2.0);
 
     //the third part of overall cost function is the sparsity part
     //sparse * log(sparse/pj);
-    cv::divide(params_.sparse_, pj_, sparse_error_buffer_);
-    cv::log(sparse_error_buffer_, sparse_error_buffer_);
-    sparse_error_buffer_ *= params_.sparse_;
-    sparse_error_buffer_.copyTo(sparse_error_);
+    cv::divide(params_.sparse_, buffer_.pj_,
+               buffer_.sparse_error_buffer_);
+    cv::log(buffer_.sparse_error_buffer_,
+            buffer_.sparse_error_buffer_);
+    buffer_.sparse_error_buffer_ *= params_.sparse_;
+    buffer_.sparse_error_buffer_.copyTo(buffer_.sparse_error_);
 
     //(1 - sparse) * log[(1 - sparse)/(1 - pj)]    
-    cv::divide(1 - params_.sparse_, 1 - pj_, sparse_error_buffer_);
-    cv::log(sparse_error_buffer_, sparse_error_buffer_);
-    sparse_error_buffer_ *= (1 - params_.sparse_);
+    cv::divide(1 - params_.sparse_, 1 - buffer_.pj_,
+               buffer_.sparse_error_buffer_);
+    cv::log(buffer_.sparse_error_buffer_, buffer_.sparse_error_buffer_);
+    buffer_.sparse_error_buffer_ *= (1 - params_.sparse_);
 
     //sparse * log(sparse/pj) + (1 - sparse) * log[(1 - sparse)/(1 - pj)]
-    sparse_error_ += sparse_error_buffer_;
+    buffer_.sparse_error_ += buffer_.sparse_error_buffer_;
     es.cost_ = SquareError + WeightError +
-            sum(sparse_error_)[0] * params_.beta_;
+            sum(buffer_.sparse_error_)[0] * params_.beta_;
 }
 
 void autoencoder::encoder_gradient(cv::Mat const &input,
@@ -123,8 +127,8 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     cv::Mat delta3 = act_.output_ - input;
     cv::multiply(delta3, dsigmoid_func(act_.output_), delta3);
 
-    cv::Mat temp2 = -params_.sparse_ / pj_ +
-            (1.0 - params_.sparse_) / (1.0 - pj_);
+    cv::Mat temp2 = -params_.sparse_ / buffer_.pj_ +
+            (1.0 - params_.sparse_) / (1.0 - buffer_.pj_);
     temp2 *= params_.beta_;
     //cv::Mat delta2 = es.w2_.t() * delta3 +
     //        cv::repeat(temp2, 1, NSamples);
