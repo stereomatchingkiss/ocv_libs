@@ -19,15 +19,42 @@ namespace ocv{
  */
 namespace ml{
 
+struct dsigmoid
+{
+    void operator()(cv::Mat &inout) const
+    {
+        cv::multiply(1.0 - inout, inout, inout);
+    }
+
+    void operator()(cv::Mat const &input,
+                    cv::Mat &output) const
+    {
+        cv::multiply(1.0 - input, input, output);
+    }
+};
+
+cv::Mat dsigmoid_func(cv::Mat const &input)
+{
+    cv::Mat output;
+    dsigmoid()(input, output);
+
+    return output;
+}
+
 struct sigmoid
 {
     void operator()(cv::Mat &inout) const
     {
-        inout *= -1.0;
-        cv::exp(inout, inout);
-        inout += 1.0;
-        //inout = 1.0 / inout;
-        cv::divide(1.0, inout, inout);
+        operator()(inout, inout);
+    }
+
+    void operator()(cv::Mat const &input,
+                    cv::Mat &output) const
+    {
+        cv::multiply(input, -1.0, output);
+        cv::exp(output, output);
+        output += 1.0;
+        cv::divide(1.0, output, output);
     }
 };
 
