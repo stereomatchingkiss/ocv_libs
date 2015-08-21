@@ -3,6 +3,8 @@
 #include "core/utility.hpp"
 #include "ml/deep_learning/propagation.hpp"
 
+#include <Eigen/Dense>
+
 #include <random>
 
 namespace ocv{
@@ -88,27 +90,32 @@ void autoencoder::set_sparse(double sparse)
 void autoencoder::train(const cv::Mat &input)
 {
     double last_cost = std::numeric_limits<double>::max();
-    std::random_device rd;
-    std::default_random_engine re(rd());
     int const MinSize = 1000;
     int const Batch = input.cols >= MinSize ? input.cols / 100 : input.cols;
     int const RandomSize = input.cols >= MinSize ?
                 input.cols - input.cols / Batch - 1:
                 0;
+    std::random_device rd;
+    std::default_random_engine re(rd());
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
-    for(int i = 0; i < params_.hidden_size_.size(); ++i)
-    {
+    for(int i = 0; i < params_.hidden_size_.size(); ++i){
         layer_struct ls(input.cols, params_.hidden_size_[i]);
-        for(int j = 0; j != params_.max_iter_; ++j)
-        {
+        for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
                                       Batch, input.rows);
             encoder_cost(input(ROI), ls);
             encoder_gradient(input(ROI), ls);
-            if(std::abs(last_cost - ls.cost_) < params_.eps_){
+            if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
+                    ls.cost_ <= 0.0){
                 break;
             }
+
+            last_cost = ls.cost_;
+            update_weight_and_bias(ls.w1_, ls.w1_grad_);
+            update_weight_and_bias(ls.w2_, ls.w2_grad_);
+            update_weight_and_bias(ls.b1_, ls.b1_grad_);
+            update_weight_and_bias(ls.b2_, ls.b2_grad_);
         }
         layers_.push_back(ls);
     }
@@ -201,6 +208,28 @@ autoencoder::get_activation(cv::Mat const &input,
 {
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+}
+
+void autoencoder::
+update_weight_and_bias(const cv::Mat &weight,
+                       const cv::Mat &bias)
+{
+    //opencv do not have an easy way to optimize the codes
+    //like mat_a = mat_a - constant * mat_b,without eigen
+    //with eigen, we do not need to optimize the matrix operation
+    using namespace Eigen;
+    typedef Eigen::Map<Eigen::Matrix<double,
+            Eigen::Dynamic,
+            Eigen::Dynamic,Eigen::RowMajor> >
+            CV2Eigen;
+
+    CV2Eigen eweight(reinterpret_cast<double*>(weight.data),
+                     weight.rows, weight.cols);
+    CV2Eigen ebias(reinterpret_cast<double*>(bias.data),
+                   bias.rows, bias.cols);
+
+    eweight = eweight.array() -
+            params_.lrate_ * ebias.array();
 }
 
 autoencoder::params::params() :

@@ -15,6 +15,7 @@ INCLUDEPATH += ..
 
 include(../pri/boost.pri)
 include(../pri/cv_dev.pri)
+include(../pri/eigen.pri)
 
 SOURCES += qt/mat_and_qimage.cpp \
     core/histogram.cpp \
@@ -22,7 +23,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/wavelet_transform.cpp \
     ml/utility/gradient_checking.cpp \
     ml/deep_learning/autoencoder.cpp \
-    ml/utility/feature_scaling.cpp
+    ml/utility/feature_scaling.cpp \
+    ml/deep_learning/network_layer.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -38,4 +40,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/bufferpool.impl.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/directx.inc.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/gl_core_3_1.hpp \
-    ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp
+    ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \
+    ml/deep_learning/network_layer.hpp

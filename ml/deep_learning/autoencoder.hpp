@@ -26,7 +26,7 @@ public:
     struct layer_struct
     {
         layer_struct(int input_size, int hidden_size,
-                       double cost = 0);
+                     double cost = 0);
 
         cv::Mat w1_;
         cv::Mat w2_;
@@ -99,6 +99,9 @@ private:
 
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
+
+    void update_weight_and_bias(cv::Mat const &weight,
+                                cv::Mat const &bias);
 
     activation act_;
     buffer buffer_;
