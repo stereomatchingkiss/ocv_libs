@@ -46,7 +46,7 @@ public:
     autoencoder(autoencoder const&) = delete;
     autoencoder(autoencoder &&) = delete;
 
-    //std::vector<layer_struct> const& get_layer_struct() const;
+    std::vector<layer_struct> const& get_layer_struct() const;
 
     void set_beta(double beta);
     void set_eps(double eps);

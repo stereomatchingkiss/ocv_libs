@@ -14,6 +14,12 @@ autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
     set_hidden_layer_size(hidden_size);
 }
 
+const std::vector<autoencoder::layer_struct> &
+autoencoder::get_layer_struct() const
+{
+    return layers_;
+}
+
 /**
  * @brief set the beta of autoencoder
  * @param beta the weight of the sparsity penalty term.\n
