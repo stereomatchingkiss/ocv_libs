@@ -11,6 +11,20 @@ namespace ocv{
 
 namespace ml{
 
+namespace{
+
+//opencv do not have an easy way to optimize the codes
+//like mat_a = mat_a - constant * mat_b,with eigen
+//we can optimize the matrix operation at ease
+using namespace Eigen;
+typedef Eigen::Map<Eigen::Matrix<double,
+Eigen::Dynamic,
+Eigen::Dynamic,Eigen::RowMajor> >
+CV2Eigen;
+
+
+}
+
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
 {
     set_hidden_layer_size(hidden_size);
@@ -112,10 +126,10 @@ void autoencoder::train(const cv::Mat &input)
             }
 
             last_cost = ls.cost_;
-            update_weight_and_bias(ls.w1_, ls.w1_grad_);
-            update_weight_and_bias(ls.w2_, ls.w2_grad_);
-            update_weight_and_bias(ls.b1_, ls.b1_grad_);
-            update_weight_and_bias(ls.b2_, ls.b2_grad_);
+            update_weight_and_bias(ls.w1_grad_, ls.w1_);
+            update_weight_and_bias(ls.w2_grad_, ls.w2_);
+            update_weight_and_bias(ls.b1_grad_, ls.b1_);
+            update_weight_and_bias(ls.b2_grad_, ls.b2_);
         }
         layers_.push_back(ls);
     }
@@ -177,16 +191,7 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     cv::Mat delta3 = act_.output_ - input;
     cv::multiply(delta3, dsigmoid_func(act_.output_), delta3);
 
-    cv::Mat temp2 = -params_.sparse_ / buffer_.pj_ +
-            (1.0 - params_.sparse_) / (1.0 - buffer_.pj_);
-    temp2 *= params_.beta_;
-    //cv::Mat delta2 = es.w2_.t() * delta3 +
-    //        cv::repeat(temp2, 1, NSamples);
-    cv::Mat delta2 = es.w2_.t() * delta3;
-    for(int i = 0; i != delta2.cols; ++i){
-        delta2.col(i) += temp2;
-    }
-    cv::multiply(delta2, dsigmoid_func(act_.hidden_), delta2);
+    cv::Mat delta2 = get_delta_2(delta3, es);
 
     //cv::Mat nablaW1 = delta2 * input.t();
     //cv::Mat nablaW2 = delta3 * act_.hidden_.t();
@@ -196,16 +201,48 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
              0.0, nablaW1, cv::GEMM_2_T);
     cv::gemm(delta3, act_.hidden_, 1.0, cv::Mat(),
              0.0, nablaW2, cv::GEMM_2_T);
+
+    //es.w1_grad_ = nablaW1 / NSamples +
+    //        params_.lambda_ * es.w1_;
+    update_weight_gradient(nablaW1, es.w1_,
+                           NSamples, es.w1_grad_);
+    update_weight_gradient(nablaW2, es.w2_,
+                           NSamples, es.w2_grad_);
+
     cv::Mat nablab1 = delta2;
     cv::Mat nablab2 = delta3;
-    es.w1_grad_ = nablaW1 / NSamples +
-            params_.lambda_ * es.w1_;
-    es.w2_grad_ = nablaW2 / NSamples +
-            params_.lambda_ * es.w2_;
     cv::reduce(nablab1, es.b1_grad_, 1, CV_REDUCE_SUM);
     cv::reduce(nablab2, es.b2_grad_, 1, CV_REDUCE_SUM);
     es.b1_grad_ /= NSamples;
     es.b2_grad_ /= NSamples;//*/
+}
+
+cv::Mat autoencoder::get_delta_2(cv::Mat const &delta_3,
+                                 layer_struct const &es)
+{
+    //cv::Mat delta2 = es.w2_.t() * delta3 +
+    //        cv::repeat(temp2, 1, NSamples);
+    cv::Mat delta2;
+    cv::gemm(es.w2_, delta_3, 1.0, cv::Mat(), 0.0,
+             delta2, cv::GEMM_1_T);
+
+    buffer_.delta_buffer_.create(delta2.rows, 1, CV_64F);
+    CV2Eigen epj(reinterpret_cast<double*>(buffer_.pj_.data),
+                 buffer_.pj_.rows,
+                 buffer_.pj_.cols);
+    CV2Eigen ebuffer(reinterpret_cast<double*>(buffer_.delta_buffer_.data),
+                     buffer_.delta_buffer_.rows,
+                     buffer_.delta_buffer_.cols);
+
+    ebuffer = params_.beta_ *
+            (-params_.sparse_ / epj.array() +
+            (1.0 - params_.sparse_) / (1.0 - epj.array()));
+    for(int i = 0; i != delta2.cols; ++i){
+        delta2.col(i) += buffer_.delta_buffer_;
+    }
+    cv::multiply(delta2, dsigmoid_func(act_.hidden_), delta2);
+
+    return delta2;
 }
 
 void
@@ -217,18 +254,26 @@ autoencoder::get_activation(cv::Mat const &input,
 }
 
 void autoencoder::
-update_weight_and_bias(const cv::Mat &weight,
-                       const cv::Mat &bias)
+update_weight_gradient(const cv::Mat &input_1,
+                       const cv::Mat &input_2,
+                       int nsample,
+                       cv::Mat &output)
 {
-    //opencv do not have an easy way to optimize the codes
-    //like mat_a = mat_a - constant * mat_b,with eigen
-    //we can optimize the matrix operation at ease
-    using namespace Eigen;
-    typedef Eigen::Map<Eigen::Matrix<double,
-            Eigen::Dynamic,
-            Eigen::Dynamic,Eigen::RowMajor> >
-            CV2Eigen;
+    CV2Eigen eout(reinterpret_cast<double*>(output.data),
+                  output.rows, output.cols);
+    CV2Eigen ein_1(reinterpret_cast<double*>(input_1.data),
+                   input_1.rows, input_1.cols);
+    CV2Eigen ein_2(reinterpret_cast<double*>(input_2.data),
+                   input_2.rows, input_2.cols);
 
+    eout = ein_1.array() / nsample +
+            params_.lambda_ * ein_2.array();
+}
+
+void autoencoder::
+update_weight_and_bias(const cv::Mat &bias,
+                       cv::Mat &weight)
+{
     CV2Eigen eweight(reinterpret_cast<double*>(weight.data),
                      weight.rows, weight.cols);
     CV2Eigen ebias(reinterpret_cast<double*>(bias.data),

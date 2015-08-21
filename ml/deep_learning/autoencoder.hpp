@@ -71,6 +71,7 @@ private:
     {
         void clear();
 
+        cv::Mat delta_buffer_;
         cv::Mat pj_; //the average activation of hidden units
         cv::Mat sparse_error_;
         cv::Mat sparse_error_buffer_;
@@ -97,11 +98,17 @@ private:
     void encoder_gradient(cv::Mat const &input,
                           layer_struct &es);
 
+    cv::Mat get_delta_2(cv::Mat const &delta_3,
+                        layer_struct const &es);
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
 
-    void update_weight_and_bias(cv::Mat const &weight,
-                                cv::Mat const &bias);
+    void update_weight_gradient(cv::Mat const& input_1,
+                                cv::Mat const& input_2,
+                                int nsample,
+                                cv::Mat &output);
+    void update_weight_and_bias(cv::Mat const &bias,
+                                cv::Mat &weight);
 
     activation act_;
     buffer buffer_;
