@@ -11,6 +11,9 @@ CONFIG += c++11
 CONFIG -= dll
 CONFIG += shared static
 
+msvc:QMAKE_CXXFLAGS_RELEASE += /openmp
+gcc:QMAKE_CXXFLAGS_RELEASE += -fopenmp
+
 INCLUDEPATH += ..
 
 include(../pri/boost.pri)
