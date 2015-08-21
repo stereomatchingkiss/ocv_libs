@@ -73,6 +73,21 @@ void autoencoder::set_sparse(double sparse)
     params_.sparse_ = sparse;
 }
 
+/**
+ * @brief autoencoder::train
+ * @param input
+ */
+void autoencoder::train(const cv::Mat &input)
+{
+    for(int i = 0; i < params_.hidden_size_.size(); ++i)
+    {
+        layer_struct ls(input.cols, params_.hidden_size_[i]);
+        encoder_cost(input, ls);
+        encoder_gradient(input, ls);
+        layers_.push_back(ls);
+    }
+}
+
 void autoencoder::encoder_cost(const cv::Mat &input,
                                layer_struct &es)
 {
