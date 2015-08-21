@@ -61,12 +61,16 @@ public:
 private:
     struct activation
     {
+        void clear();
+
         cv::Mat hidden_;
         cv::Mat output_;
     };
 
     struct buffer
     {
+        void clear();
+
         cv::Mat pj_; //the average activation of hidden units
         cv::Mat sparse_error_;
         cv::Mat sparse_error_buffer_;

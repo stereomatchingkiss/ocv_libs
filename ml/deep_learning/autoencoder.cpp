@@ -112,6 +112,8 @@ void autoencoder::train(const cv::Mat &input)
         }
         layers_.push_back(ls);
     }
+    act_.clear();
+    buffer_.clear();
 }
 
 void autoencoder::encoder_cost(const cv::Mat &input,
@@ -231,6 +233,22 @@ layer_struct(int input_size, int hidden_size, double cost) :
     b1_grad_ = cv::Mat::zeros(hidden_size, 1, CV_64F);
     b2_grad_ = cv::Mat::zeros(input_size, 1, CV_64F);
     cost_ = 0;
+}
+
+void autoencoder::buffer::clear()
+{
+    pj_.release();
+    sparse_error_.release();
+    sparse_error_buffer_.release();
+    sqr_error_.release();
+    w1_pow_.release();
+    w2_pow_.release();
+}
+
+void autoencoder::activation::clear()
+{
+    hidden_.release();
+    output_.release();
 }
 
 }}
