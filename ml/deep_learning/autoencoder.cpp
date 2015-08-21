@@ -3,6 +3,8 @@
 #include "core/utility.hpp"
 #include "ml/deep_learning/propagation.hpp"
 
+#include <random>
+
 namespace ocv{
 
 namespace ml{
@@ -79,11 +81,29 @@ void autoencoder::set_sparse(double sparse)
  */
 void autoencoder::train(const cv::Mat &input)
 {
+    double last_cost = std::numeric_limits<double>::max();
+    std::random_device rd;
+    std::default_random_engine re(rd());
+    int const MinSize = 1000;
+    int const Batch = input.cols >= MinSize ? input.cols / 100 : input.cols;
+    int const RandomSize = input.cols >= MinSize ?
+                input.cols - input.cols / Batch - 1:
+                0;
+    std::uniform_int_distribution<int>
+            uni_int(0, RandomSize);
     for(int i = 0; i < params_.hidden_size_.size(); ++i)
     {
         layer_struct ls(input.cols, params_.hidden_size_[i]);
-        encoder_cost(input, ls);
-        encoder_gradient(input, ls);
+        for(int j = 0; j != params_.max_iter_; ++j)
+        {
+            auto const ROI = cv::Rect(uni_int(re), 0,
+                                      Batch, input.rows);
+            encoder_cost(input(ROI), ls);
+            encoder_gradient(input(ROI), ls);
+            if(std::abs(last_cost - ls.cost_) < params_.eps_){
+                break;
+            }
+        }
         layers_.push_back(ls);
     }
 }
