@@ -188,8 +188,14 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     }
     cv::multiply(delta2, dsigmoid_func(act_.hidden_), delta2);
 
-    cv::Mat nablaW1 = delta2 * input.t();
-    cv::Mat nablaW2 = delta3 * act_.hidden_.t();
+    //cv::Mat nablaW1 = delta2 * input.t();
+    //cv::Mat nablaW2 = delta3 * act_.hidden_.t();
+    cv::Mat nablaW1;
+    cv::Mat nablaW2;
+    cv::gemm(delta2, input, 1.0, cv::Mat(),
+             0.0, nablaW1, cv::GEMM_2_T);
+    cv::gemm(delta3, act_.hidden_, 1.0, cv::Mat(),
+             0.0, nablaW2, cv::GEMM_2_T);
     cv::Mat nablab1 = delta2;
     cv::Mat nablab2 = delta3;
     es.w1_grad_ = nablaW1 / NSamples +
@@ -215,8 +221,8 @@ update_weight_and_bias(const cv::Mat &weight,
                        const cv::Mat &bias)
 {
     //opencv do not have an easy way to optimize the codes
-    //like mat_a = mat_a - constant * mat_b,without eigen
-    //with eigen, we do not need to optimize the matrix operation
+    //like mat_a = mat_a - constant * mat_b,with eigen
+    //we can optimize the matrix operation at ease
     using namespace Eigen;
     typedef Eigen::Map<Eigen::Matrix<double,
             Eigen::Dynamic,
