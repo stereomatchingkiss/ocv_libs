@@ -303,6 +303,8 @@ layer_struct(int input_size, int hidden_size, double cost) :
 
 void autoencoder::buffer::clear()
 {
+    delta2_.release();
+    delta3_.release();
     delta_buffer_.release();
     pj_.release();
 }
