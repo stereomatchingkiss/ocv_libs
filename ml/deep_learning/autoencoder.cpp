@@ -103,6 +103,7 @@ void autoencoder::set_sparse(double sparse)
  */
 void autoencoder::train(const cv::Mat &input)
 {
+    layers_.clear();
     double last_cost = std::numeric_limits<double>::max();
     int const MinSize = 1000;
     int const Batch = input.cols >= MinSize ? input.cols / 100 : input.cols;
