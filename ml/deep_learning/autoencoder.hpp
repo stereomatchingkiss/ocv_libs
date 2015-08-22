@@ -98,10 +98,6 @@ private:
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
 
-    void update_weight_gradient(cv::Mat const& input_1,
-                                cv::Mat const& input_2,
-                                int nsample,
-                                cv::Mat &output);
     void update_weight_and_bias(cv::Mat const &bias,
                                 cv::Mat &weight);
 

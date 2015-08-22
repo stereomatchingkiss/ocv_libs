@@ -196,24 +196,25 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
 
     //cv::Mat nablaW1 = delta2 * input.t();
     //cv::Mat nablaW2 = delta3 * act_.hidden_.t();
-    cv::Mat nablaW1;
-    cv::Mat nablaW2;
-    cv::gemm(delta2, input, 1.0, cv::Mat(),
-             0.0, nablaW1, cv::GEMM_2_T);
-    cv::gemm(delta3, act_.hidden_, 1.0, cv::Mat(),
-             0.0, nablaW2, cv::GEMM_2_T);
-
     //es.w1_grad_ = nablaW1 / NSamples +
     //        params_.lambda_ * es.w1_;
-    update_weight_gradient(nablaW1, es.w1_,
-                           NSamples, es.w1_grad_);
-    update_weight_gradient(nablaW2, es.w2_,
-                           NSamples, es.w2_grad_);
 
-    cv::Mat nablab1 = delta2;
-    cv::Mat nablab2 = delta3;
-    cv::reduce(nablab1, es.b1_grad_, 1, CV_REDUCE_SUM);
-    cv::reduce(nablab2, es.b2_grad_, 1, CV_REDUCE_SUM);
+    CV2EIGEND(edelta2, delta2);
+    CV2EIGEND(edelta3, delta3);
+    CV2EIGEND(ew1, es.w1_);
+    CV2EIGEND(ew2, es.w2_);
+    CV2EIGEND(einput, input);
+    CV2EIGEND(ehidden, act_.hidden_);
+    CV2EIGEND(ew1g, es.w1_grad_);
+    CV2EIGEND(ew2g, es.w2_grad_);
+
+    ew1g = (edelta2 * einput.transpose()).array() / NSamples +
+            params_.lambda_ * ew1.array();
+    ew2g = (edelta3 * ehidden.transpose()).array() / NSamples +
+            params_.lambda_ * ew2.array();
+
+    cv::reduce(delta2, es.b1_grad_, 1, CV_REDUCE_SUM);
+    cv::reduce(delta3, es.b2_grad_, 1, CV_REDUCE_SUM);
     es.b1_grad_ /= NSamples;
     es.b2_grad_ /= NSamples;//*/
 }
@@ -248,20 +249,6 @@ autoencoder::get_activation(cv::Mat const &input,
 {
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
-}
-
-void autoencoder::
-update_weight_gradient(const cv::Mat &input_1,
-                       const cv::Mat &input_2,
-                       int nsample,
-                       cv::Mat &output)
-{    
-    CV2EIGEND(eout, output);
-    CV2EIGEND(ein_1, input_1);
-    CV2EIGEND(ein_2, input_2);
-
-    eout = ein_1.array() / nsample +
-            params_.lambda_ * ein_2.array();
 }
 
 void autoencoder::
