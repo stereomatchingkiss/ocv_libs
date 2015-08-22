@@ -71,8 +71,10 @@ private:
     {
         void clear();
 
+        cv::Mat delta2_;
+        cv::Mat delta3_;
         cv::Mat delta_buffer_;
-        cv::Mat pj_; //the average activation of hidden units        
+        cv::Mat pj_; //the average activation of hidden units
     };
 
     struct params
@@ -93,8 +95,8 @@ private:
     void encoder_gradient(cv::Mat const &input,
                           layer_struct &es);
 
-    cv::Mat get_delta_2(cv::Mat const &delta_3,
-                        layer_struct const &es);
+    void get_delta_2(cv::Mat const &delta_3,
+                     layer_struct const &es);
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
 

@@ -189,23 +189,23 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
                                    layer_struct &es)
 {
     auto const NSamples = input.cols;
-    cv::Mat delta3 = act_.output_ - input;
-    //cv::multiply(1.0 - input, input, output) == dsigmoid
-    //cv::multiply(delta3, dsigmoid_func(act_.output_), delta3);
+    buffer_.delta3_.create(input.rows, input.cols, CV_64F);
 
-    CV2EIGEND(edelta3, delta3);
+    CV2EIGEND(edelta3, buffer_.delta3_);
     CV2EIGEND(eact_output, act_.output_);
     CV2EIGEND(einput, input);
-    edelta3 = edelta3.array() * ((1.0 - einput.array()) * einput.array());
+    edelta3 = eact_output - einput;
+    edelta3 = edelta3.array() *
+            ((1.0 - eact_output.array()) * eact_output.array());
 
-    cv::Mat delta2 = get_delta_2(delta3, es);
+    get_delta_2(buffer_.delta3_, es);
 
     //cv::Mat nablaW1 = delta2 * input.t();
     //cv::Mat nablaW2 = delta3 * act_.hidden_.t();
     //es.w1_grad_ = nablaW1 / NSamples +
     //        params_.lambda_ * es.w1_;
 
-    CV2EIGEND(edelta2, delta2);
+    CV2EIGEND(edelta2, buffer_.delta2_);
     CV2EIGEND(ew1, es.w1_);
     CV2EIGEND(ew2, es.w2_);
     CV2EIGEND(ehidden, act_.hidden_);
@@ -217,39 +217,37 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     ew2g = (edelta3 * ehidden.transpose()).array() / NSamples +
             params_.lambda_ * ew2.array();
 
-    cv::reduce(delta2, es.b1_grad_, 1, CV_REDUCE_SUM);
-    cv::reduce(delta3, es.b2_grad_, 1, CV_REDUCE_SUM);
+    cv::reduce(buffer_.delta2_, es.b1_grad_, 1, CV_REDUCE_SUM);
+    cv::reduce(buffer_.delta3_, es.b2_grad_, 1, CV_REDUCE_SUM);
     es.b1_grad_ /= NSamples;
     es.b2_grad_ /= NSamples;//*/
 }
 
-cv::Mat autoencoder::get_delta_2(cv::Mat const &delta_3,
-                                 layer_struct const &es)
+void autoencoder::get_delta_2(cv::Mat const &delta_3,
+                              layer_struct const &es)
 {
     //cv::Mat delta2 = es.w2_.t() * delta3 +
     //        cv::repeat(buffer, 1, NSamples);
 
-    cv::Mat delta2(es.w2_.cols, delta_3.cols, CV_64F);
-    CV2EIGEND(edelta2, delta2);
+    buffer_.delta2_.create(es.w2_.cols, delta_3.cols, CV_64F);
+    CV2EIGEND(edelta2, buffer_.delta2_);
     CV2EIGEND(edelta3, delta_3);
     CV2EIGEND(ew2, es.w2_);
     edelta2 = ew2.transpose() * edelta3;
 
-    buffer_.delta_buffer_.create(delta2.rows, 1, CV_64F);
+    buffer_.delta_buffer_.create(buffer_.delta2_.rows, 1, CV_64F);
     CV2EIGEND(epj, buffer_.pj_);
     CV2EIGEND(ebuffer, buffer_.delta_buffer_);
 
     ebuffer = params_.beta_ *
             (-params_.sparse_ / epj.array() +
              (1.0 - params_.sparse_) / (1.0 - epj.array()));
-    for(int i = 0; i != delta2.cols; ++i){
-        delta2.col(i) += buffer_.delta_buffer_;
+    for(int i = 0; i != buffer_.delta2_.cols; ++i){
+        buffer_.delta2_.col(i) += buffer_.delta_buffer_;
     }    
 
     CV2EIGEND(ehidden, act_.hidden_);
     edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());
-
-    return delta2;
 }
 
 void
