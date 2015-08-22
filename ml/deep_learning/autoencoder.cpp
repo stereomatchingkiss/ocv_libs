@@ -17,12 +17,14 @@ namespace{
 //like mat_a = mat_a - constant * mat_b,with eigen
 //we can optimize the matrix operation at ease
 using namespace Eigen;
-typedef Eigen::Map<Eigen::Matrix<double,
+
+template<typename T = double>
+using CV2Eigen =
+Eigen::Map<Eigen::Matrix<T,
 Eigen::Dynamic,
-Eigen::Dynamic,Eigen::RowMajor> >
-CV2Eigen;
+Eigen::Dynamic,Eigen::RowMajor> >;
 
-
+using CV2EigenD = CV2Eigen<double>;
 }
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
@@ -147,7 +149,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     //square error of back propagation(first half)
     //sqr_error = sum(pow((output - input), 2) / 2.0） / NSamples
     cv::subtract(act_.output_, input, buffer_.sqr_error_);
-    cv::pow(buffer_.sqr_error_, 2.0, buffer_.sqr_error_);
+    cv::multiply(buffer_.sqr_error_, buffer_.sqr_error_, buffer_.sqr_error_);
     buffer_.sqr_error_ /= 2.0;
     double const SquareError = sum(buffer_.sqr_error_)[0] / NSamples;
 
@@ -228,16 +230,16 @@ cv::Mat autoencoder::get_delta_2(cv::Mat const &delta_3,
              delta2, cv::GEMM_1_T);
 
     buffer_.delta_buffer_.create(delta2.rows, 1, CV_64F);
-    CV2Eigen epj(reinterpret_cast<double*>(buffer_.pj_.data),
-                 buffer_.pj_.rows,
-                 buffer_.pj_.cols);
-    CV2Eigen ebuffer(reinterpret_cast<double*>(buffer_.delta_buffer_.data),
-                     buffer_.delta_buffer_.rows,
-                     buffer_.delta_buffer_.cols);
+    CV2EigenD epj(reinterpret_cast<double*>(buffer_.pj_.data),
+                  buffer_.pj_.rows,
+                  buffer_.pj_.cols);
+    CV2EigenD ebuffer(reinterpret_cast<double*>(buffer_.delta_buffer_.data),
+                      buffer_.delta_buffer_.rows,
+                      buffer_.delta_buffer_.cols);
 
     ebuffer = params_.beta_ *
             (-params_.sparse_ / epj.array() +
-            (1.0 - params_.sparse_) / (1.0 - epj.array()));
+             (1.0 - params_.sparse_) / (1.0 - epj.array()));
     for(int i = 0; i != delta2.cols; ++i){
         delta2.col(i) += buffer_.delta_buffer_;
     }
@@ -260,12 +262,12 @@ update_weight_gradient(const cv::Mat &input_1,
                        int nsample,
                        cv::Mat &output)
 {
-    CV2Eigen eout(reinterpret_cast<double*>(output.data),
-                  output.rows, output.cols);
-    CV2Eigen ein_1(reinterpret_cast<double*>(input_1.data),
-                   input_1.rows, input_1.cols);
-    CV2Eigen ein_2(reinterpret_cast<double*>(input_2.data),
-                   input_2.rows, input_2.cols);
+    CV2EigenD eout(reinterpret_cast<double*>(output.data),
+                   output.rows, output.cols);
+    CV2EigenD ein_1(reinterpret_cast<double*>(input_1.data),
+                    input_1.rows, input_1.cols);
+    CV2EigenD ein_2(reinterpret_cast<double*>(input_2.data),
+                    input_2.rows, input_2.cols);
 
     eout = ein_1.array() / nsample +
             params_.lambda_ * ein_2.array();
@@ -275,10 +277,10 @@ void autoencoder::
 update_weight_and_bias(const cv::Mat &bias,
                        cv::Mat &weight)
 {
-    CV2Eigen eweight(reinterpret_cast<double*>(weight.data),
-                     weight.rows, weight.cols);
-    CV2Eigen ebias(reinterpret_cast<double*>(bias.data),
-                   bias.rows, bias.cols);
+    CV2EigenD eweight(reinterpret_cast<double*>(weight.data),
+                      weight.rows, weight.cols);
+    CV2EigenD ebias(reinterpret_cast<double*>(bias.data),
+                    bias.rows, bias.cols);
 
     eweight = eweight.array() -
             params_.lrate_ * ebias.array();
