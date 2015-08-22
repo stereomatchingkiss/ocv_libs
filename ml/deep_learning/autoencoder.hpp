@@ -72,12 +72,7 @@ private:
         void clear();
 
         cv::Mat delta_buffer_;
-        cv::Mat pj_; //the average activation of hidden units
-        cv::Mat sparse_error_;
-        cv::Mat sparse_error_buffer_;
-        cv::Mat sqr_error_;
-        cv::Mat w1_pow_;
-        cv::Mat w2_pow_;
+        cv::Mat pj_; //the average activation of hidden units        
     };
 
     struct params

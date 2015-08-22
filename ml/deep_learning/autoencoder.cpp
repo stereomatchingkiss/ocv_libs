@@ -153,54 +153,36 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     auto const NSamples = input.cols;
 
     //square error of back propagation(first half)
-    //sqr_error = sum(pow((output - input), 2) / 2.0） / NSamples
-    //CV2EIGEND(eout, act_.output_);
-    //CV2EIGEND(ein, input);
-    //double const SquareError =
-    //        ((eout.array() - ein.array()).pow(2.0) / 2.0).sum() / NSamples;
-
-    cv::subtract(act_.output_, input, buffer_.sqr_error_);
-    cv::multiply(buffer_.sqr_error_, buffer_.sqr_error_, buffer_.sqr_error_);
-    buffer_.sqr_error_ /= 2.0;
-    double const SquareError = sum(buffer_.sqr_error_)[0] / NSamples;
+    CV2EIGEND(eout, act_.output_);
+    CV2EIGEND(ein, input);
+    double const SquareError =
+            ((eout.array() - ein.array()).pow(2.0) / 2.0).sum() / NSamples;
 
     // now calculate pj which is the average activation of hidden units
     cv::reduce(act_.hidden_, buffer_.pj_, 1, CV_REDUCE_SUM);
     buffer_.pj_ /= NSamples;
 
     // the second part is weight decay part
-    //CV2EIGEND(w1, es.w1_);
-    //CV2EIGEND(w2, es.w2_);
+    CV2EIGEND(w1, es.w1_);
+    CV2EIGEND(w2, es.w2_);
 
-    //double const WeightError =
-    //        ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
-    //        (params_.lambda_ / 2.0);
-
-    cv::multiply(es.w1_, es.w1_, buffer_.w1_pow_);
-    cv::multiply(es.w2_, es.w2_, buffer_.w2_pow_);
     double const WeightError =
-            (cv::sum(buffer_.w1_pow_)[0] + cv::sum(buffer_.w2_pow_)[0]) *
+            ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
             (params_.lambda_ / 2.0);
 
     //the third part of overall cost function is the sparsity part
     //sparse * log(sparse/pj);
-    cv::divide(params_.sparse_, buffer_.pj_,
-               buffer_.sparse_error_buffer_);
-    cv::log(buffer_.sparse_error_buffer_,
-            buffer_.sparse_error_buffer_);
-    buffer_.sparse_error_buffer_ *= params_.sparse_;
-    buffer_.sparse_error_buffer_.copyTo(buffer_.sparse_error_);
 
-    //(1 - sparse) * log[(1 - sparse)/(1 - pj)]
-    cv::divide(1 - params_.sparse_, 1 - buffer_.pj_,
-               buffer_.sparse_error_buffer_);
-    cv::log(buffer_.sparse_error_buffer_, buffer_.sparse_error_buffer_);
-    buffer_.sparse_error_buffer_ *= (1 - params_.sparse_);
+    CV2EIGEND(epj, buffer_.pj_);
+    double const Sparse = params_.sparse_;
 
-    //sparse * log(sparse/pj) + (1 - sparse) * log[(1 - sparse)/(1 - pj)]
-    buffer_.sparse_error_ += buffer_.sparse_error_buffer_;
-    es.cost_ = SquareError + WeightError +
-            sum(buffer_.sparse_error_)[0] * params_.beta_;
+    //beta * sum(sparse * log[sparse/pj] +
+    //           (1 - sparse) * log[(1-sparse)/(1-pj)])
+    double const SparseError =
+            ( (Sparse * (Sparse / epj.array()).log()) +
+            (1- Sparse) * ((1 - Sparse) / (1 - epj.array())).log()).sum() *
+            params_.beta_;
+    es.cost_ = SquareError + WeightError + SparseError;
 }
 
 void autoencoder::encoder_gradient(cv::Mat const &input,
@@ -329,11 +311,6 @@ void autoencoder::buffer::clear()
 {
     delta_buffer_.release();
     pj_.release();
-    sparse_error_.release();
-    sparse_error_buffer_.release();
-    sqr_error_.release();
-    w1_pow_.release();
-    w2_pow_.release();
 }
 
 void autoencoder::activation::clear()
