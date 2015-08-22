@@ -3,7 +3,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "ml/utility/activation.hpp"
+#include "../utility/activation.hpp"
 
 /*! \file propagation.hpp
     \brief collection of propagation algorithms
