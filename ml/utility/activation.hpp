@@ -33,14 +33,6 @@ struct dsigmoid
     }
 };
 
-cv::Mat dsigmoid_func(cv::Mat const &input)
-{
-    cv::Mat output;
-    dsigmoid()(input, output);
-
-    return output;
-}
-
 struct sigmoid
 {
     void operator()(cv::Mat &inout) const
