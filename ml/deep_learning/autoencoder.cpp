@@ -25,6 +25,12 @@ Eigen::Dynamic,
 Eigen::Dynamic,Eigen::RowMajor> >;
 
 using CV2EigenD = CV2Eigen<double>;
+
+#define CV2EIGEND(Name, Input) \
+    CV2EigenD Name(reinterpret_cast<double*>(Input.data), \
+    Input.rows, \
+    Input.cols) \
+
 }
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
@@ -148,6 +154,11 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 
     //square error of back propagation(first half)
     //sqr_error = sum(pow((output - input), 2) / 2.0） / NSamples
+    //CV2EIGEND(eout, act_.output_);
+    //CV2EIGEND(ein, input);
+    //double const SquareError =
+    //        ((eout.array() - ein.array()).pow(2.0) / 2.0).sum() / NSamples;
+
     cv::subtract(act_.output_, input, buffer_.sqr_error_);
     cv::multiply(buffer_.sqr_error_, buffer_.sqr_error_, buffer_.sqr_error_);
     buffer_.sqr_error_ /= 2.0;
@@ -158,8 +169,13 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     buffer_.pj_ /= NSamples;
 
     // the second part is weight decay part
-    //cv::pow(es.w1_, 2.0, w1_pow_);
-    //cv::pow(es.w2_, 2.0, w2_pow_);
+    //CV2EIGEND(w1, es.w1_);
+    //CV2EIGEND(w2, es.w2_);
+
+    //double const WeightError =
+    //        ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
+    //        (params_.lambda_ / 2.0);
+
     cv::multiply(es.w1_, es.w1_, buffer_.w1_pow_);
     cv::multiply(es.w2_, es.w2_, buffer_.w2_pow_);
     double const WeightError =
@@ -230,12 +246,8 @@ cv::Mat autoencoder::get_delta_2(cv::Mat const &delta_3,
              delta2, cv::GEMM_1_T);
 
     buffer_.delta_buffer_.create(delta2.rows, 1, CV_64F);
-    CV2EigenD epj(reinterpret_cast<double*>(buffer_.pj_.data),
-                  buffer_.pj_.rows,
-                  buffer_.pj_.cols);
-    CV2EigenD ebuffer(reinterpret_cast<double*>(buffer_.delta_buffer_.data),
-                      buffer_.delta_buffer_.rows,
-                      buffer_.delta_buffer_.cols);
+    CV2EIGEND(epj, buffer_.pj_);
+    CV2EIGEND(ebuffer, buffer_.delta_buffer_);
 
     ebuffer = params_.beta_ *
             (-params_.sparse_ / epj.array() +
@@ -261,13 +273,10 @@ update_weight_gradient(const cv::Mat &input_1,
                        const cv::Mat &input_2,
                        int nsample,
                        cv::Mat &output)
-{
-    CV2EigenD eout(reinterpret_cast<double*>(output.data),
-                   output.rows, output.cols);
-    CV2EigenD ein_1(reinterpret_cast<double*>(input_1.data),
-                    input_1.rows, input_1.cols);
-    CV2EigenD ein_2(reinterpret_cast<double*>(input_2.data),
-                    input_2.rows, input_2.cols);
+{    
+    CV2EIGEND(eout, output);
+    CV2EIGEND(ein_1, input_1);
+    CV2EIGEND(ein_2, input_2);
 
     eout = ein_1.array() / nsample +
             params_.lambda_ * ein_2.array();
@@ -276,11 +285,9 @@ update_weight_gradient(const cv::Mat &input_1,
 void autoencoder::
 update_weight_and_bias(const cv::Mat &bias,
                        cv::Mat &weight)
-{
-    CV2EigenD eweight(reinterpret_cast<double*>(weight.data),
-                      weight.rows, weight.cols);
-    CV2EigenD ebias(reinterpret_cast<double*>(bias.data),
-                    bias.rows, bias.cols);
+{    
+    CV2EIGEND(eweight, weight);
+    CV2EIGEND(ebias, bias);
 
     eweight = eweight.array() -
             params_.lrate_ * ebias.array();
