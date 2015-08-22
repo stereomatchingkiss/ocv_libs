@@ -26,6 +26,7 @@ public:
     struct layer_struct
     {
         layer_struct(int input_size, int hidden_size,
+                     int mat_type,
                      double cost = 0);
 
         cv::Mat w1_;

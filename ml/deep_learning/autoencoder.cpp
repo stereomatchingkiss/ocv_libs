@@ -1,7 +1,7 @@
 #include "autoencoder.hpp"
 
-#include "core/utility.hpp"
-#include "ml/deep_learning/propagation.hpp"
+#include "../../core/utility.hpp"
+#include "propagation.hpp"
 
 #include <Eigen/Dense>
 
@@ -127,7 +127,8 @@ void autoencoder::train(const cv::Mat &input)
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
-        layer_struct ls(input.cols, params_.hidden_size_[i]);
+        layer_struct ls(input.cols, params_.hidden_size_[i],
+                        mat_type_);
         for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
                                       Batch, input.rows);
@@ -283,23 +284,24 @@ autoencoder::params::params() :
 }
 
 autoencoder::layer_struct::
-layer_struct(int input_size, int hidden_size, double cost) :
+layer_struct(int input_size, int hidden_size,
+             int mat_type, double cost) :
     cost_(cost)
 {
-    w1_.create(hidden_size, input_size, mat_type_);
-    w2_.create(input_size, hidden_size, mat_type_);
-    b1_.create(hidden_size, 1, mat_type_);
-    b2_.create(input_size, 1, mat_type_);
+    w1_.create(hidden_size, input_size, mat_type);
+    w2_.create(input_size, hidden_size, mat_type);
+    b1_.create(hidden_size, 1, mat_type);
+    b2_.create(input_size, 1, mat_type);
 
     generate_random_value<double>(w1_, 0.12);
     generate_random_value<double>(w2_, 0.12);
     generate_random_value<double>(b1_, 0.12);
     generate_random_value<double>(b2_, 0.12);
 
-    w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type_);
-    w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type_);
-    b1_grad_ = cv::Mat::zeros(hidden_size, 1, mat_type_);
-    b2_grad_ = cv::Mat::zeros(input_size, 1, mat_type_);
+    w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type);
+    w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type);
+    b1_grad_ = cv::Mat::zeros(hidden_size, 1, mat_type);
+    b2_grad_ = cv::Mat::zeros(input_size, 1, mat_type);
     cost_ = 0;
 }
 
