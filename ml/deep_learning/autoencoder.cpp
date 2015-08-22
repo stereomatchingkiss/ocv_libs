@@ -68,6 +68,11 @@ autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
     set_hidden_layer_size(hidden_size);
 }
 
+const cv::Mat &autoencoder::get_activation() const
+{
+    return activation_;
+}
+
 const std::vector<autoencoder::layer_struct> &
 autoencoder::get_layer_struct() const
 {
@@ -148,26 +153,34 @@ void autoencoder::train(const cv::Mat &input)
     mat_type_ = input.type();
     double last_cost = std::numeric_limits<double>::max();
     int const MinSize = 1000;
-    int const Batch = input.cols >= MinSize ? input.cols / 10 : input.cols;
+    std::random_device rd;
+    std::default_random_engine re(rd());
+    int const Batch = input.cols >= MinSize ?
+                input.cols / 10 : input.cols;
     int const RandomSize = input.cols >= MinSize ?
                 input.cols - input.cols / Batch - 1:
                 0;
-    std::random_device rd;
-    std::default_random_engine re(rd());
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
-        layer_struct ls(input.rows, params_.hidden_size_[i],
-                        mat_type_);        
+        cv::Mat temp_input = i == 0 ? input : activation_;
+        layer_struct ls(temp_input.rows, params_.hidden_size_[i],
+                        mat_type_);
+        //std::cout<<"i = "<<i<<"\n";
+        //std::cout<<"random = "<<RandomSize<<"\n";
         for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
-                                      Batch, input.rows);
-            encoder_cost(input(ROI), ls);
-            encoder_gradient(input(ROI), ls);
+                                      Batch, temp_input.rows);
+            //std::cout<<"ROI = "<<i<<"\n";
+            //std::cout<<temp_input(ROI)<<"\n";
+            encoder_cost(temp_input(ROI), ls);
+            //std::cout<<"momo\n";
+            encoder_gradient(temp_input(ROI), ls);
             /*if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
             }*/
+            //std::cout<<"mimi\n";
 
             last_cost = ls.cost_;
             update_weight_and_bias(ls.w1_grad_, ls.w1_);
@@ -180,6 +193,17 @@ void autoencoder::train(const cv::Mat &input)
             output_file(ls.b1_);
             output_file(ls.b2_);
         }
+
+        activation_.create(ls.w1_.rows, temp_input.cols, mat_type_);
+        CV2EIGEND(eact, activation_);
+        CV2EIGEND(ew1, ls.w1_);
+        CV2EIGEND(etemp_input, temp_input);
+        eact.noalias() = ew1 * etemp_input;
+        for(int i = 0; i != activation_.cols; ++i){
+            activation_.col(i) += ls.b1_;
+        }
+        eact = 1.0 / (1.0 + (-1.0 * eact.array()).exp());
+        //std::cout<<activation_<<"\n";
         layers_.push_back(ls);
     }
     act_.clear();
@@ -190,7 +214,9 @@ void autoencoder::train(const cv::Mat &input)
 void autoencoder::encoder_cost(const cv::Mat &input,
                                layer_struct &es)
 {
+    //std::cout<<"encoder cost start\n";
     get_activation(input, es);
+    //std::cout<<"activation pass\n";
     /*std::cout<<act_.hidden_.size()<<"\n";
     std::cout<<act_.output_.size()<<"\n";
     std::cout<<act_.hidden_<<"\n";
@@ -202,6 +228,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     CV2EIGEND(ein, input);
     double const SquareError =
             ((eout.array() - ein.array()).pow(2.0) / 2.0).sum() / NSamples;
+    //std::cout<<"square error pass\n";
     //std::cout<<"square error : "<<SquareError<<"\n";
     // now calculate pj which is the average activation of hidden units
     cv::reduce(act_.hidden_, buffer_.pj_, 1, CV_REDUCE_SUM);
@@ -214,16 +241,18 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     double const WeightError =
             ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
             (params_.lambda_ / 2.0);
+    //std::cout<<"weight error pass\n";
     //std::cout<<WeightError<<"\n";
-    //the third part of overall cost function is the sparsity part    
+    //the third part of overall cost function is the sparsity part
     CV2EIGEND(epj, buffer_.pj_);
-    double const Sparse = params_.sparse_;    
+    double const Sparse = params_.sparse_;
     //beta * sum(sparse * log[sparse/pj] +
     //           (1 - sparse) * log[(1-sparse)/(1-pj)])
     double const SparseError =
             ( (Sparse * (Sparse / epj.array() + zero_firewall_).log()) +
             (1- Sparse) * ((1 - Sparse) / (1 - epj.array() + zero_firewall_)).log()).sum() *
             params_.beta_;
+    //std::cout<<"sparse error pass\n";
     es.cost_ = SquareError + WeightError + SparseError;//*/
     //std::cout<<"Sparse error : "<<SparseError<<"\n";
     //std::cout<<"cost : "<<es.cost_<<"\n";
@@ -238,7 +267,7 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     CV2EIGEND(edelta3, buffer_.delta3_);
     CV2EIGEND(eact_output, act_.output_);
     CV2EIGEND(einput, input);
-    edelta3 = eact_output - einput;
+    edelta3.noalias() = eact_output - einput;
     edelta3 = edelta3.array() *
             ((1.0 - eact_output.array()) * eact_output.array());
 
@@ -282,7 +311,7 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     CV2EIGEND(edelta2, buffer_.delta2_);
     CV2EIGEND(edelta3, delta_3);
     CV2EIGEND(ew2, es.w2_);
-    edelta2 = ew2.transpose() * edelta3;
+    edelta2.noalias() = ew2.transpose() * edelta3;
     //std::cout<<buffer_.delta2_<<"\n";
 
     buffer_.delta_buffer_.create(buffer_.delta2_.rows, 1, mat_type_);
@@ -301,7 +330,7 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     //std::cout<<buffer_.delta_buffer_<<"\n";
     for(int i = 0; i != buffer_.delta2_.cols; ++i){
         buffer_.delta2_.col(i) += buffer_.delta_buffer_;
-    }    
+    }
 
     CV2EIGEND(ehidden, act_.hidden_);
     edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());
@@ -312,8 +341,14 @@ void
 autoencoder::get_activation(cv::Mat const &input,
                             layer_struct const &es)
 {
+    std::cout<<"first forward start\n";
+    std::cout<<"input size : "<<input.size()<<"\n";
+    std::cout<<"w1 size : "<<es.w1_.size()<<"\n";
+    std::cout<<"b1 size : "<<es.b1_.size()<<"\n";
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
+    std::cout<<"first forward pass\n";
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+    std::cout<<"second forward pass\n";
 }
 
 void autoencoder::

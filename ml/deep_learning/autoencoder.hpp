@@ -47,6 +47,7 @@ public:
     autoencoder(autoencoder const&) = delete;
     autoencoder(autoencoder &&) = delete;
 
+    cv::Mat const& get_activation() const;
     std::vector<layer_struct> const& get_layer_struct() const;
 
     void set_beta(double beta);
@@ -104,7 +105,8 @@ private:
     void update_weight_and_bias(cv::Mat const &bias,
                                 cv::Mat &weight);
 
-    activation act_;    
+    activation act_;
+    cv::Mat activation_;
     buffer buffer_;
     std::vector<layer_struct> layers_;
     int mat_type_;
