@@ -138,9 +138,9 @@ void autoencoder::train(const cv::Mat &input)
     std::random_device rd;
     std::default_random_engine re(rd());
     int const Batch = input.cols >= MinSize ?
-                input.cols / 10 : input.cols;
+                input.cols / 100 : input.cols;
     int const RandomSize = input.cols >= MinSize ?
-                input.cols - input.cols / Batch - 1:
+                input.cols - Batch - 1:
                 0;
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
