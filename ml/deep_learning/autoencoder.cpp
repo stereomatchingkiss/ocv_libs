@@ -33,7 +33,8 @@ using CV2EigenD = CV2Eigen<double>;
 
 }
 
-autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
+autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
+    mat_type_{CV_32F}
 {
     set_hidden_layer_size(hidden_size);
 }
@@ -111,7 +112,10 @@ void autoencoder::set_sparse(double sparse)
  */
 void autoencoder::train(const cv::Mat &input)
 {
+    CV_Assert(input.type() == CV_32F || input.type() == CV_64F);
+
     layers_.clear();
+    mat_type_ = input.type();
     double last_cost = std::numeric_limits<double>::max();
     int const MinSize = 1000;
     int const Batch = input.cols >= MinSize ? input.cols / 100 : input.cols;
@@ -170,9 +174,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
             ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
             (params_.lambda_ / 2.0);
 
-    //the third part of overall cost function is the sparsity part
-    //sparse * log(sparse/pj);
-
+    //the third part of overall cost function is the sparsity part    
     CV2EIGEND(epj, buffer_.pj_);
     double const Sparse = params_.sparse_;
 
@@ -189,7 +191,7 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
                                    layer_struct &es)
 {
     auto const NSamples = input.cols;
-    buffer_.delta3_.create(input.rows, input.cols, CV_64F);
+    buffer_.delta3_.create(input.rows, input.cols, mat_type_);
 
     CV2EIGEND(edelta3, buffer_.delta3_);
     CV2EIGEND(eact_output, act_.output_);
@@ -229,13 +231,13 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     //cv::Mat delta2 = es.w2_.t() * delta3 +
     //        cv::repeat(buffer, 1, NSamples);
 
-    buffer_.delta2_.create(es.w2_.cols, delta_3.cols, CV_64F);
+    buffer_.delta2_.create(es.w2_.cols, delta_3.cols, mat_type_);
     CV2EIGEND(edelta2, buffer_.delta2_);
     CV2EIGEND(edelta3, delta_3);
     CV2EIGEND(ew2, es.w2_);
     edelta2 = ew2.transpose() * edelta3;
 
-    buffer_.delta_buffer_.create(buffer_.delta2_.rows, 1, CV_64F);
+    buffer_.delta_buffer_.create(buffer_.delta2_.rows, 1, mat_type_);
     CV2EIGEND(epj, buffer_.pj_);
     CV2EIGEND(ebuffer, buffer_.delta_buffer_);
 
@@ -284,20 +286,20 @@ autoencoder::layer_struct::
 layer_struct(int input_size, int hidden_size, double cost) :
     cost_(cost)
 {
-    w1_.create(hidden_size, input_size, CV_64F);
-    w2_.create(input_size, hidden_size, CV_64F);
-    b1_.create(hidden_size, 1, CV_64F);
-    b2_.create(input_size, 1, CV_64F);
+    w1_.create(hidden_size, input_size, mat_type_);
+    w2_.create(input_size, hidden_size, mat_type_);
+    b1_.create(hidden_size, 1, mat_type_);
+    b2_.create(input_size, 1, mat_type_);
 
     generate_random_value<double>(w1_, 0.12);
     generate_random_value<double>(w2_, 0.12);
     generate_random_value<double>(b1_, 0.12);
     generate_random_value<double>(b2_, 0.12);
 
-    w1_grad_ = cv::Mat::zeros(hidden_size, input_size, CV_64F);
-    w2_grad_ = cv::Mat::zeros(input_size, hidden_size, CV_64F);
-    b1_grad_ = cv::Mat::zeros(hidden_size, 1, CV_64F);
-    b2_grad_ = cv::Mat::zeros(input_size, 1, CV_64F);
+    w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type_);
+    w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type_);
+    b1_grad_ = cv::Mat::zeros(hidden_size, 1, mat_type_);
+    b2_grad_ = cv::Mat::zeros(input_size, 1, mat_type_);
     cost_ = 0;
 }
 

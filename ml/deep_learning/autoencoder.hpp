@@ -106,6 +106,7 @@ private:
     activation act_;
     buffer buffer_;
     std::vector<layer_struct> layers_;
+    int mat_type_;
     params params_;
 };
 
