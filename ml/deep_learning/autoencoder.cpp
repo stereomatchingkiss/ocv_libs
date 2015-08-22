@@ -5,6 +5,7 @@
 
 #include <Eigen/Dense>
 
+#include <fstream>
 #include <random>
 
 namespace ocv{
@@ -12,6 +13,33 @@ namespace ocv{
 namespace ml{
 
 namespace{
+
+std::ofstream check_out("ocv_log.txt");
+
+void output_file(cv::Mat const &input)
+{
+    for_each_channels<double>(input, [&](double a)
+    {
+        check_out<<a<<"\n";
+    });
+}
+
+void generate_random_number(cv::Mat &inout,
+                            std::string const &file_name)
+{
+    /*static double value = 0;
+    ocv::for_each_channels<double>(inout, [&](double &a)
+    {
+        a = value++;
+    });*/
+
+    std::ifstream in(file_name);
+    ocv::for_each_channels<double>(inout, [&](double &a)
+    {
+       in>>a;
+    });
+    inout = inout * (2 * 0.02) - 0.02;
+}
 
 //opencv do not have an easy way to optimize the codes
 //like mat_a = mat_a - constant * mat_b,with eigen
@@ -34,7 +62,8 @@ using CV2EigenD = CV2Eigen<double>;
 }
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
-    mat_type_{CV_32F}
+    mat_type_{CV_32F},
+    zero_firewall_{0.02}
 {
     set_hidden_layer_size(hidden_size);
 }
@@ -107,8 +136,9 @@ void autoencoder::set_sparse(double sparse)
 }
 
 /**
- * @brief autoencoder::train
- * @param input
+ * @brief apply sparse autoencoder on the input
+ * @param input the data.Rows are features, each column associate\n
+ * with different features
  */
 void autoencoder::train(const cv::Mat &input)
 {
@@ -118,7 +148,7 @@ void autoencoder::train(const cv::Mat &input)
     mat_type_ = input.type();
     double last_cost = std::numeric_limits<double>::max();
     int const MinSize = 1000;
-    int const Batch = input.cols >= MinSize ? input.cols / 100 : input.cols;
+    int const Batch = input.cols >= MinSize ? input.cols / 10 : input.cols;
     int const RandomSize = input.cols >= MinSize ?
                 input.cols - input.cols / Batch - 1:
                 0;
@@ -127,34 +157,44 @@ void autoencoder::train(const cv::Mat &input)
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
-        layer_struct ls(input.cols, params_.hidden_size_[i],
-                        mat_type_);
+        layer_struct ls(input.rows, params_.hidden_size_[i],
+                        mat_type_);        
         for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
                                       Batch, input.rows);
             encoder_cost(input(ROI), ls);
             encoder_gradient(input(ROI), ls);
-            if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
+            /*if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
-            }
+            }*/
 
             last_cost = ls.cost_;
             update_weight_and_bias(ls.w1_grad_, ls.w1_);
             update_weight_and_bias(ls.w2_grad_, ls.w2_);
             update_weight_and_bias(ls.b1_grad_, ls.b1_);
             update_weight_and_bias(ls.b2_grad_, ls.b2_);
+            //std::cout<<ls.w1_<<"\n";
+            output_file(ls.w1_);
+            output_file(ls.w2_);
+            output_file(ls.b1_);
+            output_file(ls.b2_);
         }
         layers_.push_back(ls);
     }
     act_.clear();
     buffer_.clear();
+    check_out.close();
 }
 
 void autoencoder::encoder_cost(const cv::Mat &input,
                                layer_struct &es)
 {
     get_activation(input, es);
+    /*std::cout<<act_.hidden_.size()<<"\n";
+    std::cout<<act_.output_.size()<<"\n";
+    std::cout<<act_.hidden_<<"\n";
+    std::cout<<act_.output_<<"\n";*/
     auto const NSamples = input.cols;
 
     //square error of back propagation(first half)
@@ -162,11 +202,11 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     CV2EIGEND(ein, input);
     double const SquareError =
             ((eout.array() - ein.array()).pow(2.0) / 2.0).sum() / NSamples;
-
+    //std::cout<<"square error : "<<SquareError<<"\n";
     // now calculate pj which is the average activation of hidden units
     cv::reduce(act_.hidden_, buffer_.pj_, 1, CV_REDUCE_SUM);
     buffer_.pj_ /= NSamples;
-
+    //std::cout<<buffer_.pj_<<"\n";
     // the second part is weight decay part
     CV2EIGEND(w1, es.w1_);
     CV2EIGEND(w2, es.w2_);
@@ -174,18 +214,19 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     double const WeightError =
             ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
             (params_.lambda_ / 2.0);
-
+    //std::cout<<WeightError<<"\n";
     //the third part of overall cost function is the sparsity part    
     CV2EIGEND(epj, buffer_.pj_);
-    double const Sparse = params_.sparse_;
-
+    double const Sparse = params_.sparse_;    
     //beta * sum(sparse * log[sparse/pj] +
     //           (1 - sparse) * log[(1-sparse)/(1-pj)])
     double const SparseError =
-            ( (Sparse * (Sparse / epj.array()).log()) +
-            (1- Sparse) * ((1 - Sparse) / (1 - epj.array())).log()).sum() *
+            ( (Sparse * (Sparse / epj.array() + zero_firewall_).log()) +
+            (1- Sparse) * ((1 - Sparse) / (1 - epj.array() + zero_firewall_)).log()).sum() *
             params_.beta_;
-    es.cost_ = SquareError + WeightError + SparseError;
+    es.cost_ = SquareError + WeightError + SparseError;//*/
+    //std::cout<<"Sparse error : "<<SparseError<<"\n";
+    //std::cout<<"cost : "<<es.cost_<<"\n";
 }
 
 void autoencoder::encoder_gradient(cv::Mat const &input,
@@ -201,8 +242,9 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     edelta3 = edelta3.array() *
             ((1.0 - eact_output.array()) * eact_output.array());
 
+    //std::cout<<"delta3 "<<buffer_.delta3_<<"\n";
     get_delta_2(buffer_.delta3_, es);
-
+    //std::cout<<buffer_.delta2_<<"\n";
     //cv::Mat nablaW1 = delta2 * input.t();
     //cv::Mat nablaW2 = delta3 * act_.hidden_.t();
     //es.w1_grad_ = nablaW1 / NSamples +
@@ -219,11 +261,15 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
             params_.lambda_ * ew1.array();
     ew2g = (edelta3 * ehidden.transpose()).array() / NSamples +
             params_.lambda_ * ew2.array();
-
+    //std::cout<<es.w1_grad_<<"\n";
+    //std::cout<<es.w2_grad_<<"\n";
     cv::reduce(buffer_.delta2_, es.b1_grad_, 1, CV_REDUCE_SUM);
     cv::reduce(buffer_.delta3_, es.b2_grad_, 1, CV_REDUCE_SUM);
     es.b1_grad_ /= NSamples;
-    es.b2_grad_ /= NSamples;//*/
+    es.b2_grad_ /= NSamples;
+    //output_file(es.b1_grad_);
+    //std::cout<<es.b1_grad_<<"\n";
+    //std::cout<<es.b2_grad_<<"\n";
 }
 
 void autoencoder::get_delta_2(cv::Mat const &delta_3,
@@ -237,20 +283,29 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     CV2EIGEND(edelta3, delta_3);
     CV2EIGEND(ew2, es.w2_);
     edelta2 = ew2.transpose() * edelta3;
+    //std::cout<<buffer_.delta2_<<"\n";
 
     buffer_.delta_buffer_.create(buffer_.delta2_.rows, 1, mat_type_);
     CV2EIGEND(epj, buffer_.pj_);
     CV2EIGEND(ebuffer, buffer_.delta_buffer_);
 
+    //Mat temp2 = -sparsityParam / pj + (1 - sparsityParam) / (1 - pj);
+    //temp2 *= beta;
+    //std::cout<<temp2<<"\n";
+    //std::cout<<(sa.W2.t() * delta3)<<"\n";
+    //Mat delta2 = sa.W2.t() * delta3 + repeat(temp2, 1, nsamples);
+
     ebuffer = params_.beta_ *
-            (-params_.sparse_ / epj.array() +
-             (1.0 - params_.sparse_) / (1.0 - epj.array()));
+            (-params_.sparse_ / (epj.array() + zero_firewall_) +
+             (1.0 - params_.sparse_) / (1.0 - epj.array() + zero_firewall_));
+    //std::cout<<buffer_.delta_buffer_<<"\n";
     for(int i = 0; i != buffer_.delta2_.cols; ++i){
         buffer_.delta2_.col(i) += buffer_.delta_buffer_;
     }    
 
     CV2EIGEND(ehidden, act_.hidden_);
     edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());
+    //std::cout<<buffer_.delta2_<<"\n";
 }
 
 void
@@ -293,10 +348,19 @@ layer_struct(int input_size, int hidden_size,
     b1_.create(hidden_size, 1, mat_type);
     b2_.create(input_size, 1, mat_type);
 
-    generate_random_value<double>(w1_, 0.12);
-    generate_random_value<double>(w2_, 0.12);
-    generate_random_value<double>(b1_, 0.12);
-    generate_random_value<double>(b2_, 0.12);
+    //generate_random_value<double>(w1_, 0.12);
+    //generate_random_value<double>(w2_, 0.12);
+    //generate_random_value<double>(b1_, 0.12);
+    //generate_random_value<double>(b2_, 0.12);
+    generate_random_number(w1_, "w1.txt");
+    generate_random_number(w2_, "w2.txt");
+    generate_random_number(b1_, "w3.txt");
+    generate_random_number(b2_, "w4.txt");
+
+    /*std::cout<<"w1 size : "<<w1_.size()<<"\n";
+    std::cout<<"w2 size : "<<w2_.size()<<"\n";
+    std::cout<<"b1 size : "<<b1_.size()<<"\n";
+    std::cout<<"b2 size : "<<b2_.size()<<"\n";*/
 
     w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type);
     w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type);

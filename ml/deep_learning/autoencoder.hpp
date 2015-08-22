@@ -104,11 +104,12 @@ private:
     void update_weight_and_bias(cv::Mat const &bias,
                                 cv::Mat &weight);
 
-    activation act_;
+    activation act_;    
     buffer buffer_;
     std::vector<layer_struct> layers_;
     int mat_type_;
     params params_;
+    double const zero_firewall_; //prevent divide by zero
 };
 
 } /*! @} End of Doxygen Groups*/
