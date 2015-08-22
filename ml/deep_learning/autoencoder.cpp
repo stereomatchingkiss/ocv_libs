@@ -190,7 +190,13 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
 {
     auto const NSamples = input.cols;
     cv::Mat delta3 = act_.output_ - input;
-    cv::multiply(delta3, dsigmoid_func(act_.output_), delta3);
+    //cv::multiply(1.0 - input, input, output) == dsigmoid
+    //cv::multiply(delta3, dsigmoid_func(act_.output_), delta3);
+
+    CV2EIGEND(edelta3, delta3);
+    CV2EIGEND(eact_output, act_.output_);
+    CV2EIGEND(einput, input);
+    edelta3 = edelta3.array() * ((1.0 - einput.array()) * einput.array());
 
     cv::Mat delta2 = get_delta_2(delta3, es);
 
@@ -200,10 +206,8 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     //        params_.lambda_ * es.w1_;
 
     CV2EIGEND(edelta2, delta2);
-    CV2EIGEND(edelta3, delta3);
     CV2EIGEND(ew1, es.w1_);
     CV2EIGEND(ew2, es.w2_);
-    CV2EIGEND(einput, input);
     CV2EIGEND(ehidden, act_.hidden_);
     CV2EIGEND(ew1g, es.w1_grad_);
     CV2EIGEND(ew2g, es.w2_grad_);
@@ -223,10 +227,13 @@ cv::Mat autoencoder::get_delta_2(cv::Mat const &delta_3,
                                  layer_struct const &es)
 {
     //cv::Mat delta2 = es.w2_.t() * delta3 +
-    //        cv::repeat(temp2, 1, NSamples);
-    cv::Mat delta2;
-    cv::gemm(es.w2_, delta_3, 1.0, cv::Mat(), 0.0,
-             delta2, cv::GEMM_1_T);
+    //        cv::repeat(buffer, 1, NSamples);
+
+    cv::Mat delta2(es.w2_.cols, delta_3.cols, CV_64F);
+    CV2EIGEND(edelta2, delta2);
+    CV2EIGEND(edelta3, delta_3);
+    CV2EIGEND(ew2, es.w2_);
+    edelta2 = ew2.transpose() * edelta3;
 
     buffer_.delta_buffer_.create(delta2.rows, 1, CV_64F);
     CV2EIGEND(epj, buffer_.pj_);
@@ -237,8 +244,10 @@ cv::Mat autoencoder::get_delta_2(cv::Mat const &delta_3,
              (1.0 - params_.sparse_) / (1.0 - epj.array()));
     for(int i = 0; i != delta2.cols; ++i){
         delta2.col(i) += buffer_.delta_buffer_;
-    }
-    cv::multiply(delta2, dsigmoid_func(act_.hidden_), delta2);
+    }    
+
+    CV2EIGEND(ehidden, act_.hidden_);
+    edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());
 
     return delta2;
 }
