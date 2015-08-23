@@ -1,6 +1,7 @@
 #include "autoencoder.hpp"
 
 #include "../../core/utility.hpp"
+#include "../../eigen/cv_to_eigen.hpp"
 #include "../../profile/measure.hpp"
 #include "propagation.hpp"
 
@@ -22,18 +23,9 @@ namespace{
 //opencv do not have an easy way to optimize the codes
 //like mat_a = mat_a - constant * mat_b,with eigen
 //we can optimize the matrix operation at ease
-using namespace Eigen;
-
-template<typename T = double>
-using CV2Eigen =
-Eigen::Map<Eigen::Matrix<T,
-Eigen::Dynamic,
-Eigen::Dynamic,Eigen::RowMajor> >;
-
-using CV2EigenD = CV2Eigen<double>;
 
 #define CV2EIGEND(Name, Input) \
-    CV2EigenD Name(reinterpret_cast<double*>(Input.data), \
+    eigen::CV2EigenD Name(reinterpret_cast<double*>(Input.data), \
     Input.rows, \
     Input.cols) \
 
@@ -204,7 +196,7 @@ generate_activation_cpu(layer_struct const &ls,
     for(int i = 0; i != activation_.cols; ++i){
         activation_.col(i) += ls.b1_;
     }
-    eact = 1.0 / (1.0 + (-1.0 * eact.array()).exp());//*/
+    sigmoid()(activation_);
 }
 
 /**
