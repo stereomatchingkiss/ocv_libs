@@ -3,6 +3,8 @@
 
 #include <opencv2/core.hpp>
 
+#include <random>
+
 /*! \file autoencoder.hpp
     \brief implement the algorithm--autoencoder based on\n
     the description of UFLDL
@@ -109,6 +111,10 @@ private:
                      layer_struct const &es);
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
+
+    void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
+                     std::default_random_engine &re, int batch,
+                     cv::Mat const &temp_input, layer_struct &ls);
 
     void update_weight_and_bias(layer_struct &ls);
     void update_weight_and_bias(cv::Mat const &bias,

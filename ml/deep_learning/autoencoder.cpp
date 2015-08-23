@@ -191,7 +191,6 @@ void autoencoder::train(const cv::Mat &input)
 
     layers_.clear();
     mat_type_ = input.type();
-    double last_cost = std::numeric_limits<double>::max();
     int const MinSize = 10000;
     std::random_device rd;
     std::default_random_engine re(rd());
@@ -206,37 +205,7 @@ void autoencoder::train(const cv::Mat &input)
         cv::Mat temp_input = i == 0 ? input : activation_;
         layer_struct ls(temp_input.rows, params_.hidden_size_[i],
                         mat_type_);
-        for(int j = 0; j != params_.max_iter_; ++j){
-            auto const ROI = cv::Rect(uni_int(re), 0,
-                                      Batch, temp_input.rows);
-#ifdef OCV_MEASURE_TIME
-            auto TCost =
-                    time::measure<>::duration([&]()
-            { encoder_cost(temp_input(ROI), ls); });
-            auto TGra =
-                    time::measure<>::duration([&]()
-            { encoder_gradient(temp_input(ROI), ls); });
-            std::cout<<"encoder cost time : "<<TCost.count()<<"\n";
-            std::cout<<"gradient cost time : "<<TGra.count()<<"\n";
-#else
-            encoder_cost(temp_input(ROI), ls);
-            encoder_gradient(temp_input(ROI), ls);
-#endif
-            if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
-                    ls.cost_ <= 0.0){
-                break;
-            }
-
-            last_cost = ls.cost_;
-#ifdef OCV_MEASURE_TIME
-            auto const TUpdate =
-                    time::measure<>::duration([&]()
-            { update_weight_and_bias(ls); });
-            std::cout<<"update time : "<<TUpdate.count()<<"\n";
-#else
-            update_weight_and_bias(ls);
-#endif
-        }
+        reduce_cost(uni_int, re, Batch, temp_input, ls);
 #ifdef OCV_MEASURE_TIME
         auto TGen =
                 time::measure<>::duration([&]()
@@ -378,6 +347,45 @@ autoencoder::get_activation(cv::Mat const &input,
 {    
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+}
+
+void autoencoder::reduce_cost(const std::uniform_int_distribution<int> &uni_int,
+                              std::default_random_engine &re,
+                              int batch, const cv::Mat &input,
+                              autoencoder::layer_struct &ls)
+{
+    double last_cost = std::numeric_limits<double>::max();
+    for(int j = 0; j != params_.max_iter_; ++j){
+        auto const ROI = cv::Rect(uni_int(re), 0,
+                                  batch, input.rows);
+#ifdef OCV_MEASURE_TIME
+        auto TCost =
+                time::measure<>::duration([&]()
+        { encoder_cost(input(ROI), ls); });
+        auto TGra =
+                time::measure<>::duration([&]()
+        { encoder_gradient(input(ROI), ls); });
+        std::cout<<"encoder cost time : "<<TCost.count()<<"\n";
+        std::cout<<"gradient cost time : "<<TGra.count()<<"\n";
+#else
+        encoder_cost(input(ROI), ls);
+        encoder_gradient(input(ROI), ls);
+#endif
+        if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
+                ls.cost_ <= 0.0){
+            break;
+        }
+
+        last_cost = ls.cost_;
+#ifdef OCV_MEASURE_TIME
+        auto const TUpdate =
+                time::measure<>::duration([&]()
+        { update_weight_and_bias(ls); });
+        std::cout<<"update time : "<<TUpdate.count()<<"\n";
+#else
+        update_weight_and_bias(ls);
+#endif
+    }
 }
 
 void autoencoder::update_weight_and_bias(layer_struct &ls)
