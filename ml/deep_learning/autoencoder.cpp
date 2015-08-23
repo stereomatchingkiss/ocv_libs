@@ -193,9 +193,13 @@ generate_activation_cpu(layer_struct const &ls,
     CV2EIGEND(ew1, ls.w1_);
     CV2EIGEND(etemp_input, temp_input);
     eact.noalias() = ew1 * etemp_input;
-    for(int i = 0; i != activation_.cols; ++i){
-        activation_.col(i) += ls.b1_;
-    }
+
+    CV2EIGEND(eb1, ls.b1_);
+
+    using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+    using Mapper = Eigen::Map<MatType>;
+    Mapper Map(eb1.data(), eb1.size());
+    eact.colwise() += Map;
     sigmoid()(activation_);
 }
 
@@ -353,9 +357,11 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     ebuffer = params_.beta_ *
             (-params_.sparse_ / (epj.array() + zero_firewall_) +
              (1.0 - params_.sparse_) / (1.0 - epj.array() + zero_firewall_));
-    for(int i = 0; i != buffer_.delta2_.cols; ++i){
-        buffer_.delta2_.col(i) += buffer_.delta_buffer_;
-    }
+
+    using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+    using Mapper = Eigen::Map<MatType>;
+    Mapper Map(ebuffer.data(), ebuffer.size());
+    edelta2.colwise() += Map;
 
     CV2EIGEND(ehidden, act_.hidden_);
     edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());
