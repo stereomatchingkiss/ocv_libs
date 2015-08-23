@@ -7,7 +7,8 @@
 
 /*! \file autoencoder.hpp
     \brief implement the algorithm--autoencoder based on\n
-    the description of UFLDL
+    the description of UFLDL, these codes are develop based\n
+    on the example on the website(http://eric-yuan.me/simple-deep-network/)
 */
 
 /*!
