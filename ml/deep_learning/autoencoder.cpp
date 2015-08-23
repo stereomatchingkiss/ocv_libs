@@ -55,6 +55,28 @@ autoencoder::get_layer_struct() const
     return layers_;
 }
 
+void autoencoder::read(const std::string &file)
+{
+    cv::FileStorage in(file, cv::FileStorage::READ);
+    int layer_size = 0;
+    in["layer_size"]>>layer_size;
+
+    layers_.clear();
+    for(int i = 0; i != layer_size; ++i){
+        layer_struct ls;
+        in["w1_" + std::to_string(i)] >> ls.w1_;
+        in["w2_" + std::to_string(i)] >> ls.w2_;
+        in["w1_grad_" + std::to_string(i)] >> ls.w1_grad_;
+        in["w2_grad_" + std::to_string(i)] >> ls.w2_grad_;
+        in["b1_" + std::to_string(i)] >> ls.b1_;
+        in["b2_" + std::to_string(i)] >> ls.b2_;
+        in["b1_grad_" + std::to_string(i)] >> ls.b1_grad_;
+        in["b2_grad_" + std::to_string(i)] >> ls.b2_grad_;
+        layers_.emplace_back(ls);
+    }
+    in["activation"] >> activation_;
+}
+
 /**
  * @brief set the beta of autoencoder
  * @param beta the weight of the sparsity penalty term.\n
@@ -187,34 +209,53 @@ void autoencoder::train(const cv::Mat &input)
         for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
                                       Batch, temp_input.rows);
-            //auto tcost =
-            //        time::measure<>::duration([&](){ encoder_cost(temp_input(ROI), ls); });
-            //auto tgra =
-            //        time::measure<>::duration([&](){ encoder_gradient(temp_input(ROI), ls); });
-            //std::cout<<"encoder cost time : "<<tcost.count()<<"\n";
-            //std::cout<<"gradient cost time : "<<tgra.count()<<"\n";
-            encoder_cost(temp_input(ROI), ls);
-            encoder_gradient(temp_input(ROI), ls);
+            auto tcost =
+                    time::measure<>::duration([&](){ encoder_cost(temp_input(ROI), ls); });
+            auto tgra =
+                    time::measure<>::duration([&](){ encoder_gradient(temp_input(ROI), ls); });
+            std::cout<<"encoder cost time : "<<tcost.count()<<"\n";
+            std::cout<<"gradient cost time : "<<tgra.count()<<"\n";//*/
+            //encoder_cost(temp_input(ROI), ls);
+            //encoder_gradient(temp_input(ROI), ls);
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
             }
 
             last_cost = ls.cost_;
-            update_weight_and_bias(ls);
-            //auto tupdate =
-            //        time::measure<>::duration([&](){ update_weight_and_bias(ls); });
-            //std::cout<<"update time : "<<tupdate.count()<<"\n";
+            //update_weight_and_bias(ls);
+            auto tupdate =
+                    time::measure<>::duration([&](){ update_weight_and_bias(ls); });
+            std::cout<<"update time : "<<tupdate.count()<<"\n";//*/
         }
-        generate_activation(ls, temp_input);
-        //auto tgen =
-        //        time::measure<>::duration([&]()
-        //{ generate_activation(ls, temp_input); });
-        //std::cout<<"generate time : "<<tgen.count()<<"\n";
+        //generate_activation(ls, temp_input);
+        auto tgen =
+                time::measure<>::duration([&]()
+        { generate_activation(ls, temp_input); });
+        std::cout<<"generate time : "<<tgen.count()<<"\n";//*/
         layers_.push_back(ls);
     }
     act_.clear();
     buffer_.clear();
+}
+
+void autoencoder::write(const std::string &file) const
+{
+    cv::FileStorage out(file, cv::FileStorage::WRITE);
+    out<<"layer_size"<<(int)layers_.size();
+    for(size_t i = 0; i != layers_.size(); ++i){
+        auto const &Layer = layers_[i];
+        out<<("w1_" + std::to_string(i))<<Layer.w1_;
+        out<<("w2_" + std::to_string(i))<<Layer.w2_;
+        out<<("w1_grad_" + std::to_string(i))<<Layer.w1_grad_;
+        out<<("w2_grad_" + std::to_string(i))<<Layer.w2_grad_;
+        out<<("b1_" + std::to_string(i))<<Layer.b1_;
+        out<<("b2_" + std::to_string(i))<<Layer.b2_;
+        out<<("b1_grad_" + std::to_string(i))<<Layer.b1_grad_;
+        out<<("b2_grad_" + std::to_string(i))<<Layer.b2_grad_;
+    }
+
+    out<<"activation"<<activation_;
 }
 
 void autoencoder::encoder_cost(const cv::Mat &input,
@@ -222,7 +263,10 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 {    
     get_activation(input, es);
     auto const NSamples = input.cols;
-
+    //std::cout<<"input size : "<<input.size()<<"\n";
+    //std::cout<<"act out size : "<<act_.output_.size()<<"\n";
+    //std::cout<<"w1 size : "<<es.w1_.size()<<"\n";
+    //std::cout<<"w2 size : "<<es.w2_.size()<<"\n";
     //square error of back propagation(first half)
     CV2EIGEND(eout, act_.output_);
     CV2EIGEND(ein, input);
@@ -350,6 +394,12 @@ autoencoder::params::params() :
     lrate_{2e-2},
     max_iter_{80000},
     sparse_{0.1}
+{
+
+}
+
+autoencoder::layer_struct::layer_struct() :
+    cost_{0}
 {
 
 }

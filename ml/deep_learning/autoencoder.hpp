@@ -25,9 +25,10 @@ class autoencoder
 public:
     struct layer_struct
     {
+        layer_struct();
         layer_struct(int input_size, int hidden_size,
                      int mat_type,
-                     double cost = 0);
+                     double cost = 0);        
 
         cv::Mat w1_;
         cv::Mat w2_;
@@ -50,6 +51,8 @@ public:
     cv::Mat const& get_activation() const;
     std::vector<layer_struct> const& get_layer_struct() const;
 
+    void read(std::string const &file);
+
     void set_beta(double beta);
     void set_eps(double eps);
     void set_hidden_layer_size(cv::AutoBuffer<int> const &size);
@@ -59,6 +62,8 @@ public:
     void set_sparse(double sparse);
 
     void train(cv::Mat const &input);
+
+    void write(std::string const &file) const;
 private:
     struct activation
     {
