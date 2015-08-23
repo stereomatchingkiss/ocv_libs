@@ -44,4 +44,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/directx.inc.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/gl_core_3_1.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \
-    ml/deep_learning/network_layer.hpp
+    ml/deep_learning/network_layer.hpp \
+    profile/measure.hpp
