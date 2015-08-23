@@ -57,6 +57,10 @@ autoencoder::get_layer_struct() const
     return layers_;
 }
 
+/**
+ * @brief read the train result from the file(xml)
+ * @param file the file save the train result
+ */
 void autoencoder::read(const std::string &file)
 {
     cv::FileStorage in(file, cv::FileStorage::READ);
@@ -187,6 +191,11 @@ generate_activation_cpu(layer_struct const &ls,
     eact = 1.0 / (1.0 + (-1.0 * eact.array()).exp());//*/
 }
 
+/**
+ * @brief train by sparse autoencoder
+ * @param input the input image, type must be CV_64F.\n
+ * input contains one training example per column
+ */
 void autoencoder::train(const cv::Mat &input)
 {
     CV_Assert(input.type() == CV_64F);
@@ -222,6 +231,10 @@ void autoencoder::train(const cv::Mat &input)
     buffer_.clear();
 }
 
+/**
+ * @brief write the training result into the file(xml)
+ * @param file the name of the file
+ */
 void autoencoder::write(const std::string &file) const
 {
     cv::FileStorage out(file, cv::FileStorage::WRITE);
