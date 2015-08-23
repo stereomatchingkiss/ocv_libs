@@ -19,6 +19,15 @@ namespace ocv{
  */
 namespace ml{
 
+enum class sample_type{
+    row,
+    col
+};
+
+void zero_mean(cv::Mat const &input,
+               cv::Mat &output,
+               sample_type type = sample_type::col);
+
 void z_score_scaling(cv::Mat const &input,
                      cv::Mat &output);
 

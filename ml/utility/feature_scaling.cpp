@@ -17,5 +17,26 @@ void z_score_scaling(cv::Mat const &input, cv::Mat &output)
     output /= stddev.val[0];
 }
 
+void zero_mean(const cv::Mat &input, cv::Mat &output,
+               sample_type type)
+{
+    output.create(input.size(), input.type());
+    if(type == sample_type::col){
+        for(int i = 0; i != input.cols; ++i){
+            cv::Scalar mean = 0;
+            cv::meanStdDev(input.col(i), mean, cv::Scalar());
+            cv::subtract(input.col(i), mean.val[0],
+                    output.col(i));
+        }
+    }else{
+        for(int i = 0; i != input.rows; ++i){
+            cv::Scalar mean = 0;
+            cv::meanStdDev(input.row(i), mean, cv::Scalar());
+            cv::subtract(input.row(i), mean.val[0],
+                    output.row(i));
+        }
+    }
+}
+
 
 }}
