@@ -40,6 +40,7 @@ using CV2EigenD = CV2Eigen<double>;
 }
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
+    batch_divide_{5},
     mat_type_{CV_32F},
     zero_firewall_{0.02}
 {
@@ -84,9 +85,21 @@ void autoencoder::read(const std::string &file)
 }
 
 /**
+ * @brief Set the batch divide parameter, this parameter\n
+ * will determine the fraction of the samples will be use\n
+ * when finding the cost
+ * @param fraction train_size = sample_size / fraction,\n
+ * the default value is 5
+ */
+void autoencoder::set_batch_fraction(int fraction)
+{
+    batch_divide_ = fraction;
+}
+
+/**
  * @brief set the beta of autoencoder
  * @param beta the weight of the sparsity penalty term.\n
- * Must be real positive number
+ * Must be real positive number.The default value is 3
  */
 void autoencoder::set_beta(double beta)
 {
@@ -96,7 +109,7 @@ void autoencoder::set_beta(double beta)
 /**
  * @brief set the hidden layers size
  * @param size size of each hidden layers,must bigger\n
- * than zero
+ * than zero.The default value is 0
  */
 void autoencoder::
 set_hidden_layer_size(cv::AutoBuffer<int> const &size)
@@ -107,7 +120,7 @@ set_hidden_layer_size(cv::AutoBuffer<int> const &size)
 /**
  * @brief set the lambda of the regularization term
  * @param lambda the weight of the regularization term.\n
- * Must be real positive number
+ * Must be real positive number.The default value is 3e-3
  */
 void autoencoder::set_lambda(double lambda)
 {
@@ -118,7 +131,7 @@ void autoencoder::set_lambda(double lambda)
  * @brief set the learning rate
  * @param The larger the lrate, the faster we approach the solution,\n
  *  but larger lrate may incurr divergence, must be real\n
- *  positive number
+ *  positive number.The default value is 2e-2
  */
 void autoencoder::set_learning_rate(double lrate)
 {
@@ -127,7 +140,8 @@ void autoencoder::set_learning_rate(double lrate)
 
 /**
  * @brief set maximum iteration time
- * @param iter the maximum iteration time of the algorithm
+ * @param iter the maximum iteration time of the algorithm.\n
+ * The default value is 80000
  */
 void autoencoder::set_max_iter(int iter)
 {
@@ -137,7 +151,8 @@ void autoencoder::set_max_iter(int iter)
 /**
  * @brief set the sparsity penalty
  * @param sparse Constraint of the hidden neuron, the lower it is,\n
- * the sparser the output of the layer would be
+ * the sparser the output of the layer would be.The default\n
+ * value is 0.1
  */
 void autoencoder::set_sparse(double sparse)
 {
@@ -202,14 +217,11 @@ void autoencoder::train(const cv::Mat &input)
 
     layers_.clear();
     mat_type_ = input.type();
-    int const MinSize = 10000;
     std::random_device rd;
     std::default_random_engine re(rd());
-    int const Batch = input.cols >= MinSize ?
-                input.cols / 100 : input.cols;
-    int const RandomSize = input.cols >= MinSize ?
-                input.cols - Batch - 1:
-                0;
+    int const Batch = get_batch_size(input.cols);
+    int const RandomSize = input.cols != Batch ?
+                input.cols - Batch - 1 : 0;
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
@@ -362,6 +374,15 @@ autoencoder::get_activation(cv::Mat const &input,
 {    
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+}
+
+int autoencoder::get_batch_size(int sample_size) const
+{
+    if(sample_size > batch_divide_){
+        return sample_size / batch_divide_;
+    }
+
+    return sample_size;
 }
 
 void autoencoder::reduce_cost(const std::uniform_int_distribution<int> &uni_int,

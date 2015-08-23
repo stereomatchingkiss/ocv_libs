@@ -56,6 +56,7 @@ public:
 
     void read(std::string const &file);
 
+    void set_batch_fraction(int divide);
     void set_beta(double beta);
     void set_eps(double eps);
     void set_hidden_layer_size(cv::AutoBuffer<int> const &size);
@@ -107,11 +108,12 @@ private:
     void generate_activation(layer_struct const &ls,
                              cv::Mat &temp_input);
     void generate_activation_cpu(layer_struct const &ls,
-                                 cv::Mat &temp_input);
-    void get_delta_2(cv::Mat const &delta_3,
-                     layer_struct const &es);
+                                 cv::Mat &temp_input);    
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
+    int get_batch_size(int sample_size) const;
+    void get_delta_2(cv::Mat const &delta_3,
+                     layer_struct const &es);
 
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                      std::default_random_engine &re, int batch,
@@ -123,6 +125,7 @@ private:
 
     activation act_;
     cv::Mat activation_;
+    int batch_divide_;
     buffer buffer_;
     std::vector<layer_struct> layers_;
     int mat_type_;
