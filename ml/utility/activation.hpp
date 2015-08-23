@@ -41,13 +41,7 @@ struct sigmoid
     }
 
     void operator()(cv::Mat const &input,
-                    cv::Mat &output) const
-    {
-        cv::multiply(input, -1.0, output);
-        cv::exp(output, output);
-        output += 1.0;
-        cv::divide(1.0, output, output);
-    }
+                    cv::Mat &output) const;
 };
 
 } /*! @} End of Doxygen Groups*/
