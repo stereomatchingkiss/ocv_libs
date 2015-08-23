@@ -145,6 +145,7 @@ void autoencoder::set_learning_rate(double lrate)
  */
 void autoencoder::set_max_iter(int iter)
 {
+
     params_.max_iter_ = iter;
 }
 
@@ -298,7 +299,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     //beta * sum(sparse * log[sparse/pj] +
     //           (1 - sparse) * log[(1-sparse)/(1-pj)])
     double const SparseError =
-            ( (Sparse * (Sparse / epj.array() + zero_firewall_).log()) +
+            ( (Sparse * (Sparse / (epj.array() + zero_firewall_)).log()) +
               (1- Sparse) * ((1 - Sparse) / (1 - epj.array() + zero_firewall_)).log()).sum() *
             params_.beta_;
     es.cost_ = SquareError + WeightError + SparseError;
