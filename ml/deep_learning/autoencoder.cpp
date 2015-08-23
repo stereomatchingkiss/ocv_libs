@@ -129,7 +129,7 @@ void autoencoder::generate_activation(layer_struct const &ls,
 
 void autoencoder::train(const cv::Mat &input)
 {
-    CV_Assert(input.type() == CV_32F || input.type() == CV_64F);
+    CV_Assert(input.type() == CV_64F);
 
     layers_.clear();
     mat_type_ = input.type();
