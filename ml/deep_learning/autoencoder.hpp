@@ -58,7 +58,7 @@ public:
     void set_max_iter(int iter);
     void set_sparse(double sparse);
 
-    void train(cv::Mat const &input);    
+    void train(cv::Mat const &input);
 private:
     struct activation
     {
@@ -98,11 +98,14 @@ private:
 
     void generate_activation(layer_struct const &ls,
                              cv::Mat &temp_input);
+    void generate_activation_cpu(layer_struct const &ls,
+                                 cv::Mat &temp_input);
     void get_delta_2(cv::Mat const &delta_3,
                      layer_struct const &es);
     void get_activation(cv::Mat const &input,
                         layer_struct const &es);
 
+    void update_weight_and_bias(layer_struct &ls);
     void update_weight_and_bias(cv::Mat const &bias,
                                 cv::Mat &weight);
 

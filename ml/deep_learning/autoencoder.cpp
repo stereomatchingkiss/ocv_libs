@@ -1,7 +1,10 @@
 #include "autoencoder.hpp"
 
 #include "../../core/utility.hpp"
+#include "../../profile/measure.hpp"
 #include "propagation.hpp"
+
+#include <opencv2/cudaarithm.hpp>
 
 #include <Eigen/Dense>
 
@@ -117,6 +120,36 @@ void autoencoder::generate_activation(layer_struct const &ls,
                                       cv::Mat &temp_input)
 {
     activation_.create(ls.w1_.rows, temp_input.cols, mat_type_);
+    if(temp_input.cols >= 10000 &&
+            cv::cuda::getCudaEnabledDeviceCount() != 0){
+#ifdef OCV_HAS_CUDA
+        cv::cuda::GpuMat cu_w1(ls.w1_);
+        cv::cuda::GpuMat cu_in(temp_input);
+        cv::cuda::GpuMat cu_act;
+        cv::cuda::gemm(cu_w1, cu_in, 1.0, cv::cuda::GpuMat(),
+                       0.0, cu_act);
+        cu_act.download(activation_);
+        for(int i = 0; i != activation_.cols; ++i){
+            activation_.col(i) += ls.b1_;
+        }
+        cu_act.upload(activation_);
+        cu_act.convertTo(cu_act, CV_64F, -1.0);
+        cv::cuda::exp(cu_act, cu_act);
+        cv::cuda::add(cu_act, 1.0, cu_act);
+        cv::cuda::divide(1.0, cu_act, cu_act);
+        cu_act.download(activation_);
+#else
+        generate_activation_cpu(ls, temp_input);
+#endif
+    }else{
+        generate_activation_cpu(ls, temp_input);
+    }
+}
+
+void autoencoder::
+generate_activation_cpu(layer_struct const &ls,
+                        cv::Mat &temp_input)
+{
     CV2EIGEND(eact, activation_);
     CV2EIGEND(ew1, ls.w1_);
     CV2EIGEND(etemp_input, temp_input);
@@ -124,7 +157,7 @@ void autoencoder::generate_activation(layer_struct const &ls,
     for(int i = 0; i != activation_.cols; ++i){
         activation_.col(i) += ls.b1_;
     }
-    eact = 1.0 / (1.0 + (-1.0 * eact.array()).exp());
+    eact = 1.0 / (1.0 + (-1.0 * eact.array()).exp());//*/
 }
 
 void autoencoder::train(const cv::Mat &input)
@@ -151,6 +184,12 @@ void autoencoder::train(const cv::Mat &input)
         for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
                                       Batch, temp_input.rows);
+            //auto tcost =
+            //        time::measure<>::duration([&](){ encoder_cost(temp_input(ROI), ls); });
+            //auto tgra =
+            //        time::measure<>::duration([&](){ encoder_gradient(temp_input(ROI), ls); });
+            //std::cout<<"encoder cost time : "<<tcost.count()<<"\n";
+            //std::cout<<"gradient cost time : "<<tgra.count()<<"\n";
             encoder_cost(temp_input(ROI), ls);
             encoder_gradient(temp_input(ROI), ls);
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
@@ -159,13 +198,16 @@ void autoencoder::train(const cv::Mat &input)
             }
 
             last_cost = ls.cost_;
-            update_weight_and_bias(ls.w1_grad_, ls.w1_);
-            update_weight_and_bias(ls.w2_grad_, ls.w2_);
-            update_weight_and_bias(ls.b1_grad_, ls.b1_);
-            update_weight_and_bias(ls.b2_grad_, ls.b2_);
+            update_weight_and_bias(ls);
+            //auto tupdate =
+            //        time::measure<>::duration([&](){ update_weight_and_bias(ls); });
+            //std::cout<<"update time : "<<tupdate.count()<<"\n";
         }
-
         generate_activation(ls, temp_input);
+        //auto tgen =
+        //        time::measure<>::duration([&]()
+        //{ generate_activation(ls, temp_input); });
+        //std::cout<<"generate time : "<<tgen.count()<<"\n";
         layers_.push_back(ls);
     }
     act_.clear();
@@ -202,7 +244,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     //           (1 - sparse) * log[(1-sparse)/(1-pj)])
     double const SparseError =
             ( (Sparse * (Sparse / epj.array() + zero_firewall_).log()) +
-            (1- Sparse) * ((1 - Sparse) / (1 - epj.array() + zero_firewall_)).log()).sum() *
+              (1- Sparse) * ((1 - Sparse) / (1 - epj.array() + zero_firewall_)).log()).sum() *
             params_.beta_;
     es.cost_ = SquareError + WeightError + SparseError;
 }
@@ -277,6 +319,14 @@ autoencoder::get_activation(cv::Mat const &input,
 {    
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+}
+
+void autoencoder::update_weight_and_bias(layer_struct &ls)
+{
+    update_weight_and_bias(ls.w1_grad_, ls.w1_);
+    update_weight_and_bias(ls.w2_grad_, ls.w2_);
+    update_weight_and_bias(ls.b1_grad_, ls.b1_);
+    update_weight_and_bias(ls.b2_grad_, ls.b2_);
 }
 
 void autoencoder::
