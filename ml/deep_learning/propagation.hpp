@@ -41,7 +41,7 @@ void forward_propagation(cv::Mat const &input,
                          cv::Mat const &weight,
                          cv::Mat const &bias,
                          cv::Mat &output,
-                         UnaryFunc func = sigmoid())
+                         UnaryFunc func = UnaryFunc())
 {
     if(!input.empty() && !weight.empty() &&
             !bias.empty()){
