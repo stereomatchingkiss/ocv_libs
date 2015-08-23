@@ -120,24 +120,27 @@ void autoencoder::generate_activation(layer_struct const &ls,
                                       cv::Mat &temp_input)
 {
     activation_.create(ls.w1_.rows, temp_input.cols, mat_type_);
-    if(temp_input.cols >= 10000 &&
-            cv::cuda::getCudaEnabledDeviceCount() != 0){
+    if(temp_input.cols >= 10000){
 #ifdef OCV_HAS_CUDA
-        cv::cuda::GpuMat cu_w1(ls.w1_);
-        cv::cuda::GpuMat cu_in(temp_input);
-        cv::cuda::GpuMat cu_act;
-        cv::cuda::gemm(cu_w1, cu_in, 1.0, cv::cuda::GpuMat(),
-                       0.0, cu_act);
-        cu_act.download(activation_);
-        for(int i = 0; i != activation_.cols; ++i){
-            activation_.col(i) += ls.b1_;
+        if(cv::cuda::getCudaEnabledDeviceCount() != 0){
+            cv::cuda::GpuMat cu_w1(ls.w1_);
+            cv::cuda::GpuMat cu_in(temp_input);
+            cv::cuda::GpuMat cu_act;
+            cv::cuda::gemm(cu_w1, cu_in, 1.0, cv::cuda::GpuMat(),
+                           0.0, cu_act);
+            cu_act.download(activation_);
+            for(int i = 0; i != activation_.cols; ++i){
+                activation_.col(i) += ls.b1_;
+            }
+            cu_act.upload(activation_);
+            cu_act.convertTo(cu_act, CV_64F, -1.0);
+            cv::cuda::exp(cu_act, cu_act);
+            cv::cuda::add(cu_act, 1.0, cu_act);
+            cv::cuda::divide(1.0, cu_act, cu_act);
+            cu_act.download(activation_);
+        }else{
+            generate_activation_cpu(ls, temp_input);
         }
-        cu_act.upload(activation_);
-        cu_act.convertTo(cu_act, CV_64F, -1.0);
-        cv::cuda::exp(cu_act, cu_act);
-        cv::cuda::add(cu_act, 1.0, cu_act);
-        cv::cuda::divide(1.0, cu_act, cu_act);
-        cu_act.download(activation_);
 #else
         generate_activation_cpu(ls, temp_input);
 #endif
