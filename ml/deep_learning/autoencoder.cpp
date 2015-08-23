@@ -4,7 +4,9 @@
 #include "../../profile/measure.hpp"
 #include "propagation.hpp"
 
+#ifdef OCV_HAS_CUDA
 #include <opencv2/cudaarithm.hpp>
+#endif
 
 #include <Eigen/Dense>
 
