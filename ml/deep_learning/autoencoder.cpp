@@ -192,7 +192,7 @@ void autoencoder::train(const cv::Mat &input)
     layers_.clear();
     mat_type_ = input.type();
     double last_cost = std::numeric_limits<double>::max();
-    int const MinSize = 1000;
+    int const MinSize = 10000;
     std::random_device rd;
     std::default_random_engine re(rd());
     int const Batch = input.cols >= MinSize ?
@@ -209,30 +209,42 @@ void autoencoder::train(const cv::Mat &input)
         for(int j = 0; j != params_.max_iter_; ++j){
             auto const ROI = cv::Rect(uni_int(re), 0,
                                       Batch, temp_input.rows);
-            auto tcost =
-                    time::measure<>::duration([&](){ encoder_cost(temp_input(ROI), ls); });
-            auto tgra =
-                    time::measure<>::duration([&](){ encoder_gradient(temp_input(ROI), ls); });
-            std::cout<<"encoder cost time : "<<tcost.count()<<"\n";
-            std::cout<<"gradient cost time : "<<tgra.count()<<"\n";//*/
-            //encoder_cost(temp_input(ROI), ls);
-            //encoder_gradient(temp_input(ROI), ls);
+#ifdef OCV_MEASURE_TIME
+            auto TCost =
+                    time::measure<>::duration([&]()
+            { encoder_cost(temp_input(ROI), ls); });
+            auto TGra =
+                    time::measure<>::duration([&]()
+            { encoder_gradient(temp_input(ROI), ls); });
+            std::cout<<"encoder cost time : "<<TCost.count()<<"\n";
+            std::cout<<"gradient cost time : "<<TGra.count()<<"\n";
+#else
+            encoder_cost(temp_input(ROI), ls);
+            encoder_gradient(temp_input(ROI), ls);
+#endif
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
             }
 
             last_cost = ls.cost_;
-            //update_weight_and_bias(ls);
-            auto tupdate =
-                    time::measure<>::duration([&](){ update_weight_and_bias(ls); });
-            std::cout<<"update time : "<<tupdate.count()<<"\n";//*/
+#ifdef OCV_MEASURE_TIME
+            auto const TUpdate =
+                    time::measure<>::duration([&]()
+            { update_weight_and_bias(ls); });
+            std::cout<<"update time : "<<TUpdate.count()<<"\n";
+#else
+            update_weight_and_bias(ls);
+#endif
         }
-        //generate_activation(ls, temp_input);
-        auto tgen =
+#ifdef OCV_MEASURE_TIME
+        auto TGen =
                 time::measure<>::duration([&]()
         { generate_activation(ls, temp_input); });
-        std::cout<<"generate time : "<<tgen.count()<<"\n";//*/
+        std::cout<<"generate time : "<<TGen.count()<<"\n";
+#else
+        generate_activation(ls, temp_input);
+#endif
         layers_.push_back(ls);
     }
     act_.clear();
