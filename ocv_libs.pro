@@ -17,7 +17,7 @@ gcc:QMAKE_CXXFLAGS_RELEASE += -fopenmp
 INCLUDEPATH += ..
 
 include(../pri/boost.pri)
-include(../pri/cv_dev.pri)
+include(../pri/cv_dev_cuda.pri)
 include(../pri/eigen.pri)
 
 SOURCES += qt/mat_and_qimage.cpp \

@@ -12,23 +12,6 @@
 namespace ocv
 {
 
-namespace details
-{
-
-template<typename T>
-void unpack_unary_funcs(T)
-{
-}
-
-template<typename T, typename UnaryFunc, typename... UnaryFuncs>
-void unpack_unary_funcs(T value_ptr, UnaryFunc func, UnaryFuncs... funcs)
-{
-    func(*value_ptr);
-    UnaryFunc(++value_ptr, funcs);
-}
-
-}
-
 template<typename T, typename UnaryFunc, typename Mat>
 UnaryFunc for_each_channels(Mat &&input, UnaryFunc func);
 
@@ -201,35 +184,52 @@ BinaryFunc for_each_channels(Mat &&input_1, Mat &&input_2, BinaryFunc func)
 }
 
 /**
- *@brief apply for_each algorithm on variadic channels
+ *@brief apply for_each algorithm on variadic channels.\n
+ * This function is similar to for_each_channels, but more\n
+ * flexible
  *
  *@param inout : input and output
- *@param funcs : unary functor packs,
- * each func handle one channel element
+ *@param func : the functor accept variadic arguments,but\n
+ * the first argument type must be T
  *@param T : template parameter, channel type of src
+ *@param args : variadic parameters which forward to the func
  */
-template<typename T, typename Mat, typename... UnaryFuncs>
-void for_each_variadic_channels(Mat &&inout, UnaryFuncs... funcs)
-{   
-    CV_Assert(inout.channels() == sizeof...(funcs));
 
+/*! \brief example.
+ *\code
+ * cv::Mat_<cv::Vec3b> input =
+ * cv::imread("give_me_back_my_money.jpg");
+ *
+ * for_each<uchar>(input, [](cv::vec3b &a)
+ * {
+ *     a[0] = 255 - a[0];
+ *     a[1] = 255 - a[1];
+ *     a[2] = 255 - a[2];
+ * });
+ *\endcode
+*/
+template<typename T, typename Mat, typename Func,
+         typename... Args>
+Func for_each(Mat &&inout, Func func, Args... args)
+{
     int rows = inout.rows;
     int cols = inout.cols;
+
     if(inout.isContinuous()){
-        cols = inout.total() * sizeof...(funcs);
+        cols = inout.total();
         rows = 1;
     }
 
     for(int row = 0; row != rows; ++row){
-        auto dst_ptr_begin = inout.template ptr<T>(row);
-        auto dst_ptr_end = dst_ptr_begin + cols;
-        for(; dst_ptr_begin != dst_ptr_end; dst_ptr_begin += sizeof...(funcs)){
-            details::unpack_unary_funcs(dst_ptr_begin, funcs);
-            //func_one(*dst_ptr_begin); //++dst_ptr;
-            //func_two(dst_ptr_begin[1]); //++dst_ptr;
-            //func_three(dst_ptr_begin[2]); //++dst_ptr;
+        auto begin = inout.template ptr<T>(row);
+        auto end = begin + cols;
+        while(begin != end){
+            func(*begin, std::forward<Args>(args)...);
+            ++begin;
         }
     }
+
+    return func;
 }
 
 }
