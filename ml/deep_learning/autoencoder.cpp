@@ -208,12 +208,11 @@ generate_activation_cpu(layer_struct const &ls,
  * input contains one training example per column
  */
 void autoencoder::train(const cv::Mat &input)
-{
-    CV_Assert(input.type() == CV_64F);
-
-#ifdef OCV_TEST_AUTOENCODER
+{    
+#ifdef OCV_TEST_AUTOENCODER    
     test();
 #else
+    CV_Assert(input.type() == CV_64F);
     layers_.clear();
     mat_type_ = input.type();
     std::random_device rd;
