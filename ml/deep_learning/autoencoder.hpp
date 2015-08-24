@@ -1,7 +1,10 @@
 #ifndef AUTOENCODER_H
 #define AUTOENCODER_H
 
+#include "../../eigen/eigen.hpp"
+
 #include <opencv2/core.hpp>
+#include <Eigen/Dense>
 
 #include <random>
 
@@ -69,24 +72,43 @@ public:
 
     void write(std::string const &file) const;
 private:
+    using EigenMat = eigen::MatRowMajor<double>;
+
     struct activation
     {
         void clear();
 
-        cv::Mat hidden_;
-        cv::Mat output_;
+        EigenMat hidden_;
+        EigenMat output_;
     };
 
     struct buffer
     {
         void clear();
 
-        cv::Mat delta2_;
-        cv::Mat delta3_;
-        cv::Mat delta_buffer_;
-        cv::Mat pj_; //the average activation of hidden units
-        cv::Mat pj_r0_; //same as pj_ expect 0(set to max() of double)
-        cv::Mat pj_r1_; //same as pj_ expect 1(set to max() of double)
+        EigenMat delta2_;
+        EigenMat delta3_;
+        EigenMat delta_buffer_;
+        EigenMat pj_; //the average activation of hidden units
+        EigenMat pj_r0_; //same as pj_ expect 0(set to max() of double)
+        EigenMat pj_r1_; //same as pj_ expect 1(set to max() of double)
+    };
+
+    struct eigen_layer
+    {
+        eigen_layer();
+        eigen_layer(int input_size, int hidden_size,                    
+                    double cost = 0);
+
+        EigenMat w1_;
+        EigenMat w2_;
+        EigenMat b1_;
+        EigenMat b2_;
+        EigenMat w1_grad_;
+        EigenMat w2_grad_;
+        EigenMat b1_grad_;
+        EigenMat b2_grad_;
+        double cost_;
     };
 
     struct params
@@ -102,13 +124,13 @@ private:
         double sparse_;
     };
 
-    void encoder_cost(cv::Mat const &input,
-                      layer_struct &es);
+    void encoder_cost(EigenMat const &input,
+                      eigen_layer &es);
     void encoder_gradient(cv::Mat const &input,
                           layer_struct &es);
 
-    void get_activation(cv::Mat const &input,
-                        layer_struct const &es);
+    void get_activation(EigenMat const &input,
+                        eigen_layer &es);
     void generate_activation(layer_struct const &ls,
                              cv::Mat &temp_input);
     void generate_activation_cpu(layer_struct const &ls,
@@ -120,8 +142,9 @@ private:
                      layer_struct const &es);
 
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
-                     std::default_random_engine &re, int batch,
-                     cv::Mat const &temp_input, layer_struct &ls);
+                     std::default_random_engine &re,
+                     int batch, EigenMat const &input,
+                     eigen_layer &ls);
 
     void test();
 
@@ -133,6 +156,7 @@ private:
     cv::Mat activation_;
     int batch_divide_;
     buffer buffer_;
+    EigenMat eactivation_;
     std::vector<layer_struct> layers_;
     int mat_type_;
     params params_;

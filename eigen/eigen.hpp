@@ -20,6 +20,11 @@ namespace ocv{
  */
 namespace eigen{
 
+template<typename T>
+using MatRowMajor =
+Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+Eigen::RowMajor>;
+
 } /*! @} End of Doxygen Groups*/
 
 } /*! @} End of Doxygen Groups*/

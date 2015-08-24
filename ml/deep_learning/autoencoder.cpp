@@ -1,13 +1,15 @@
 #include "autoencoder.hpp"
 
 #include "../../core/utility.hpp"
-#include "../../eigen/cv_to_eigen.hpp"
+#include "../../eigen/eigen.hpp"
 #include "../../profile/measure.hpp"
 #include "propagation.hpp"
 
 #ifdef OCV_HAS_CUDA
 #include <opencv2/cudaarithm.hpp>
 #endif
+
+#include <opencv2/core/eigen.hpp>
 
 #include <Eigen/Dense>
 
@@ -19,15 +21,6 @@ namespace ocv{
 namespace ml{
 
 namespace{
-
-//opencv do not have an easy way to optimize the codes
-//like mat_a = mat_a - constant * mat_b,with eigen
-//we can optimize the matrix operation at ease
-
-#define CV2EIGEND(Name, Input) \
-    eigen::CV2EigenD Name(reinterpret_cast<double*>(Input.data), \
-    Input.rows, \
-    Input.cols) \
 
 }
 
@@ -55,7 +48,7 @@ autoencoder::get_layer_struct() const
  */
 void autoencoder::read(const std::string &file)
 {
-    cv::FileStorage in(file, cv::FileStorage::READ);
+    /*cv::FileStorage in(file, cv::FileStorage::READ);
     int layer_size = 0;
     in["layer_size"]>>layer_size;
 
@@ -72,7 +65,7 @@ void autoencoder::read(const std::string &file)
         in["b2_grad_" + std::to_string(i)] >> ls.b2_grad_;
         layers_.emplace_back(ls);
     }
-    in["activation"] >> activation_;
+    in["activation"] >> activation_;*/
 }
 
 /**
@@ -154,7 +147,7 @@ void autoencoder::set_sparse(double sparse)
 void autoencoder::generate_activation_impl(layer_struct const &ls,
                                            cv::Mat &temp_input)
 {
-    activation_.create(ls.w1_.rows, temp_input.cols, mat_type_);
+    /*activation_.create(ls.w1_.rows, temp_input.cols, mat_type_);
     if(temp_input.cols >= 10000){
 #ifdef OCV_HAS_CUDA
         if(cv::cuda::getCudaEnabledDeviceCount() != 0){
@@ -181,14 +174,14 @@ void autoencoder::generate_activation_impl(layer_struct const &ls,
 #endif
     }else{
         generate_activation_cpu(ls, temp_input);
-    }
+    }*/
 }
 
 void autoencoder::
 generate_activation_cpu(layer_struct const &ls,
                         cv::Mat &temp_input)
 {
-    CV2EIGEND(eact, activation_);
+    /*CV2EIGEND(eact, activation_);
     CV2EIGEND(ew1, ls.w1_);
     CV2EIGEND(etemp_input, temp_input);
     eact.noalias() = ew1 * etemp_input;
@@ -199,7 +192,7 @@ generate_activation_cpu(layer_struct const &ls,
     using Mapper = Eigen::Map<MatType>;
     Mapper Map(eb1.data(), eb1.size());
     eact.colwise() += Map;
-    sigmoid()(activation_);
+    sigmoid()(activation_);*/
 }
 
 /**
@@ -222,16 +215,18 @@ void autoencoder::train(const cv::Mat &input)
                 input.cols - Batch - 1 : 0;
     std::uniform_int_distribution<int>
             uni_int(0, RandomSize);
+    EigenMat einput;
+    cv::cv2eigen(input, einput);
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
-        cv::Mat temp_input = i == 0 ? input : activation_;
-        layer_struct ls(temp_input.rows, params_.hidden_size_[i],
-                        mat_type_);
+        EigenMat const &temp_input = i == 0 ? einput
+                                            : eactivation_;
+        eigen_layer ls(temp_input.rows(), params_.hidden_size_[i]);
         reduce_cost(uni_int, re, Batch, temp_input, ls);
-        generate_activation(ls, temp_input);
-        layers_.push_back(ls);
+        //generate_activation(ls, temp_input);
+        //layers_.push_back(ls);
     }
     act_.clear();
-    buffer_.clear();
+    buffer_.clear();//*/
 #endif
 }
 
@@ -241,7 +236,7 @@ void autoencoder::train(const cv::Mat &input)
  */
 void autoencoder::write(const std::string &file) const
 {
-    cv::FileStorage out(file, cv::FileStorage::WRITE);
+    /*cv::FileStorage out(file, cv::FileStorage::WRITE);
     out<<"layer_size"<<(int)layers_.size();
     for(size_t i = 0; i != layers_.size(); ++i){
         auto const &Layer = layers_[i];
@@ -255,14 +250,14 @@ void autoencoder::write(const std::string &file) const
         out<<("b2_grad_" + std::to_string(i))<<Layer.b2_grad_;
     }
 
-    out<<"activation"<<activation_;
+    out<<"activation"<<activation_;*/
 }
 
-void autoencoder::encoder_cost(const cv::Mat &input,
-                               layer_struct &es)
+void autoencoder::encoder_cost(EigenMat const &input,
+                               eigen_layer &es)
 {    
     get_activation(input, es);
-    auto const NSamples = input.cols;
+    /*auto const NSamples = input.cols;
     //square error of back propagation(first half)
     CV2EIGEND(eout, act_.output_);
     CV2EIGEND(ein, input);
@@ -293,7 +288,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     epj_r1 = (epj.array() != 1.0).
             select(epj, std::numeric_limits<double>::max());//*/
 
-    double const Sparse = params_.sparse_;
+    /*double const Sparse = params_.sparse_;
     //beta * sum(sparse * log[sparse/pj] +
     //           (1 - sparse) * log[(1-sparse)/(1-pj)])
     double const SparseError =
@@ -301,13 +296,13 @@ void autoencoder::encoder_cost(const cv::Mat &input,
               (1.0-Sparse)*((1.0-Sparse)/(1.0-epj_r1.array())).log()).sum() *
             params_.beta_;
     //std::cout<<"SparseError error : "<<SparseError<<"\n";
-    es.cost_ = SquareError + WeightError + SparseError;
+    es.cost_ = SquareError + WeightError + SparseError;*/
 }
 
 void autoencoder::encoder_gradient(cv::Mat const &input,
                                    layer_struct &es)
 {
-    auto const NSamples = input.cols;
+    /*auto const NSamples = input.cols;
     buffer_.delta3_.create(input.rows, input.cols, mat_type_);
     CV2EIGEND(edelta3, buffer_.delta3_);
     CV2EIGEND(eact_output, act_.output_);
@@ -342,7 +337,7 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     //cv::Mat delta2 = es.w2_.t() * delta3 +
     //        cv::repeat(buffer, 1, NSamples);
 
-    buffer_.delta2_.create(es.w2_.cols, delta_3.cols, mat_type_);
+    /*buffer_.delta2_.create(es.w2_.cols, delta_3.cols, mat_type_);
     CV2EIGEND(edelta2, buffer_.delta2_);
     CV2EIGEND(edelta3, delta_3);
     CV2EIGEND(ew2, es.w2_);
@@ -372,24 +367,24 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
 }
 
 void
-autoencoder::get_activation(cv::Mat const &input,
-                            layer_struct const &es)
+autoencoder::get_activation(EigenMat const &input,
+                            eigen_layer &ls)
 {    
-    forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
-    forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+    //forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
+    //forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
 }
 
 void autoencoder::generate_activation(const layer_struct &ls,
                                       cv::Mat &temp_input)
 {
-#ifdef OCV_MEASURE_TIME
+/*#ifdef OCV_MEASURE_TIME
     auto const TGen =
             time::measure<>::duration([&]()
     { generate_activation_impl(ls, temp_input); });
     std::cout<<"generate time : "<<TGen.count()<<"\n";
 #else
     generate_activation_impl(ls, temp_input);
-#endif
+#endif*/
 }
 
 int autoencoder::get_batch_size(int sample_size) const
@@ -401,18 +396,17 @@ int autoencoder::get_batch_size(int sample_size) const
     return sample_size;
 }
 
-void autoencoder::reduce_cost(const std::uniform_int_distribution<int> &uni_int,
+void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                               std::default_random_engine &re,
-                              int batch, const cv::Mat &input,
-                              autoencoder::layer_struct &ls)
+                              int batch, EigenMat const &input,
+                              eigen_layer &ls)
 {
     double last_cost = std::numeric_limits<double>::max();
 #ifndef  OCV_MEASURE_TIME
     for(int j = 0; j != params_.max_iter_; ++j){
-        auto const ROI = cv::Rect(uni_int(re), 0,
-                                  batch, input.rows);
-        encoder_cost(input(ROI), ls);
-        encoder_gradient(input(ROI), ls);
+        encoder_cost(input.block(uni_int(re), 0,
+                                 batch, input.rows()), ls);
+        /*encoder_gradient(input(ROI), ls);
 
         if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                 ls.cost_ <= 0.0){
@@ -420,7 +414,7 @@ void autoencoder::reduce_cost(const std::uniform_int_distribution<int> &uni_int,
         }
 
         last_cost = ls.cost_;
-        update_weight_and_bias(ls);
+        update_weight_and_bias(ls);*/
     }
 
 #else
@@ -517,21 +511,21 @@ void autoencoder::test()
 
 void autoencoder::update_weight_and_bias(layer_struct &ls)
 {
-    update_weight_and_bias(ls.w1_grad_, ls.w1_);
+    /*update_weight_and_bias(ls.w1_grad_, ls.w1_);
     update_weight_and_bias(ls.w2_grad_, ls.w2_);
     update_weight_and_bias(ls.b1_grad_, ls.b1_);
-    update_weight_and_bias(ls.b2_grad_, ls.b2_);
+    update_weight_and_bias(ls.b2_grad_, ls.b2_);*/
 }
 
 void autoencoder::
 update_weight_and_bias(const cv::Mat &bias,
                        cv::Mat &weight)
 {    
-    CV2EIGEND(eweight, weight);
+    /*CV2EIGEND(eweight, weight);
     CV2EIGEND(ebias, bias);
 
     eweight = eweight.array() -
-            params_.lrate_ * ebias.array();
+            params_.lrate_ * ebias.array();*/
 }
 
 autoencoder::params::params() :
@@ -547,16 +541,15 @@ autoencoder::params::params() :
 
 autoencoder::layer_struct::layer_struct() :
     cost_{0}
-{    
-    cost_ = 0;
+{        
 }
 
 autoencoder::layer_struct::
 layer_struct(int input_size, int hidden_size,
              int mat_type, double cost) :
-    cost_(cost)
+    cost_{cost}
 {
-    w1_.create(hidden_size, input_size, mat_type);
+    /*w1_.create(hidden_size, input_size, mat_type);
     w2_.create(input_size, hidden_size, mat_type);
     b1_.create(hidden_size, 1, mat_type);
     b2_.create(input_size, 1, mat_type);
@@ -569,24 +562,45 @@ layer_struct(int input_size, int hidden_size,
     w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type);
     w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type);
     b1_grad_ = cv::Mat::zeros(hidden_size, 1, mat_type);
-    b2_grad_ = cv::Mat::zeros(input_size, 1, mat_type);
-    cost_ = 0;
+    b2_grad_ = cv::Mat::zeros(input_size, 1, mat_type);*/
 }
 
 void autoencoder::buffer::clear()
 {
-    delta2_.release();
+    /*delta2_.release();
     delta3_.release();
     delta_buffer_.release();
     pj_.release();
     pj_r0_.release();
-    pj_r1_.release();
+    pj_r1_.release();*/
 }
 
 void autoencoder::activation::clear()
 {
-    hidden_.release();
-    output_.release();
+    hidden_.resize(0, 0);
+    output_.resize(0, 0);
+}
+
+autoencoder::eigen_layer::eigen_layer() :
+    cost_{0.0}
+{
+
+}
+
+autoencoder::eigen_layer::
+eigen_layer(int input_size, int hidden_size,
+            double cost) :
+    cost_{cost}
+{
+    w1_ = EigenMat::Random(hidden_size, input_size);
+    w2_ = EigenMat::Random(input_size, hidden_size);
+    b1_ = EigenMat::Random(hidden_size, 1);
+    b2_ = EigenMat::Random(input_size, 1);
+
+    w1_grad_ = EigenMat::Zero(hidden_size, input_size);
+    w2_grad_ = EigenMat::Zero(input_size, hidden_size);
+    b1_grad_ = EigenMat::Zero(hidden_size, 1);
+    b2_grad_ = EigenMat::Zero(input_size, 1);
 }
 
 }}
