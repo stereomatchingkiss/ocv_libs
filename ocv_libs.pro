@@ -47,4 +47,4 @@ HEADERS += qt/mat_and_qimage.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \
     ml/deep_learning/network_layer.hpp \
     profile/measure.hpp \
-    eigen/cv_to_eigen.hpp
+    eigen/eigen.hpp

@@ -20,14 +20,6 @@ namespace ocv{
  */
 namespace eigen{
 
-template<typename T = double>
-using CV2Eigen =
-Eigen::Map<Eigen::Matrix<T,
-Eigen::Dynamic,
-Eigen::Dynamic,Eigen::RowMajor> >;
-
-using CV2EigenD = CV2Eigen<double>;
-
 } /*! @} End of Doxygen Groups*/
 
 } /*! @} End of Doxygen Groups*/
