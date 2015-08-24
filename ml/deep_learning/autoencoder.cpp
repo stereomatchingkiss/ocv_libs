@@ -27,7 +27,7 @@ namespace{
 #define CV2EIGEND(Name, Input) \
     eigen::CV2EigenD Name(reinterpret_cast<double*>(Input.data), \
     Input.rows, \
-    Input.cols) \
+    Input.step / sizeof(double)) \
 
 }
 
