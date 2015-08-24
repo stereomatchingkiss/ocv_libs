@@ -31,7 +31,7 @@ public:
         layer_struct();
         layer_struct(int input_size, int hidden_size,
                      int mat_type,
-                     double cost = 0);        
+                     double cost = 0);
 
         cv::Mat w1_;
         cv::Mat w2_;
@@ -107,19 +107,21 @@ private:
     void encoder_gradient(cv::Mat const &input,
                           layer_struct &es);
 
+    void get_activation(cv::Mat const &input,
+                        layer_struct const &es);
     void generate_activation(layer_struct const &ls,
                              cv::Mat &temp_input);
     void generate_activation_cpu(layer_struct const &ls,
-                                 cv::Mat &temp_input);    
-    void get_activation(cv::Mat const &input,
-                        layer_struct const &es);
+                                 cv::Mat &temp_input);
+    void generate_activation_impl(layer_struct const &ls,
+                                  cv::Mat &temp_input);
     int get_batch_size(int sample_size) const;
     void get_delta_2(cv::Mat const &delta_3,
                      layer_struct const &es);
 
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                      std::default_random_engine &re, int batch,
-                     cv::Mat const &temp_input, layer_struct &ls);    
+                     cv::Mat const &temp_input, layer_struct &ls);
 
     void update_weight_and_bias(layer_struct &ls);
     void update_weight_and_bias(cv::Mat const &bias,
@@ -131,7 +133,7 @@ private:
     buffer buffer_;
     std::vector<layer_struct> layers_;
     int mat_type_;
-    params params_;    
+    params params_;
 };
 
 } /*! @} End of Doxygen Groups*/

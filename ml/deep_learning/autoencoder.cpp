@@ -151,7 +151,7 @@ void autoencoder::set_sparse(double sparse)
     params_.sparse_ = sparse;
 }
 
-void autoencoder::generate_activation(layer_struct const &ls,
+void autoencoder::generate_activation_impl(layer_struct const &ls,
                                       cv::Mat &temp_input)
 {
     activation_.create(ls.w1_.rows, temp_input.cols, mat_type_);
@@ -225,14 +225,7 @@ void autoencoder::train(const cv::Mat &input)
         layer_struct ls(temp_input.rows, params_.hidden_size_[i],
                         mat_type_);
         reduce_cost(uni_int, re, Batch, temp_input, ls);
-#ifdef OCV_MEASURE_TIME
-        auto TGen =
-                time::measure<>::duration([&]()
-        { generate_activation(ls, temp_input); });
-        std::cout<<"generate time : "<<TGen.count()<<"\n";
-#else
         generate_activation(ls, temp_input);
-#endif
         layers_.push_back(ls);
     }
     act_.clear();
@@ -384,6 +377,19 @@ autoencoder::get_activation(cv::Mat const &input,
 {    
     forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
     forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+}
+
+void autoencoder::generate_activation(const layer_struct &ls,
+                                      cv::Mat &temp_input)
+{
+#ifdef OCV_MEASURE_TIME
+        auto TGen =
+                time::measure<>::duration([&]()
+        { generate_activation_impl(ls, temp_input); });
+        std::cout<<"generate time : "<<TGen.count()<<"\n";
+#else
+        generate_activation_impl(ls, temp_input);
+#endif
 }
 
 int autoencoder::get_batch_size(int sample_size) const
