@@ -85,6 +85,8 @@ private:
         cv::Mat delta3_;
         cv::Mat delta_buffer_;
         cv::Mat pj_; //the average activation of hidden units
+        cv::Mat pj_r0_; //same as pj_ expect 0(set to max() of double)
+        cv::Mat pj_r1_; //same as pj_ expect 1(set to max() of double)
     };
 
     struct params
@@ -117,7 +119,7 @@ private:
 
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                      std::default_random_engine &re, int batch,
-                     cv::Mat const &temp_input, layer_struct &ls);
+                     cv::Mat const &temp_input, layer_struct &ls);    
 
     void update_weight_and_bias(layer_struct &ls);
     void update_weight_and_bias(cv::Mat const &bias,
@@ -129,8 +131,7 @@ private:
     buffer buffer_;
     std::vector<layer_struct> layers_;
     int mat_type_;
-    params params_;
-    double const zero_firewall_; //prevent divide by zero
+    params params_;    
 };
 
 } /*! @} End of Doxygen Groups*/

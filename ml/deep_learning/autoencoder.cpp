@@ -33,8 +33,7 @@ namespace{
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
     batch_divide_{5},
-    mat_type_{CV_32F},
-    zero_firewall_{0.02}
+    mat_type_{CV_64F}
 {
     set_hidden_layer_size(hidden_size);
 }
@@ -291,12 +290,22 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 
     //the third part of overall cost function is the sparsity part
     CV2EIGEND(epj, buffer_.pj_);
+    //prevent division by zero
+    buffer_.pj_.copyTo(buffer_.pj_r0_);
+    buffer_.pj_.copyTo(buffer_.pj_r1_);
+    CV2EIGEND(epj_r0, buffer_.pj_r0_);
+    CV2EIGEND(epj_r1, buffer_.pj_r1_);
+    epj_r0 = (epj.array() != 0.0).
+            select(epj, std::numeric_limits<double>::max());
+    epj_r1 = (epj.array() != 1.0).
+            select(epj, std::numeric_limits<double>::max());//*/
+
     double const Sparse = params_.sparse_;
     //beta * sum(sparse * log[sparse/pj] +
     //           (1 - sparse) * log[(1-sparse)/(1-pj)])
     double const SparseError =
-            ( (Sparse * (Sparse / (epj.array() + zero_firewall_)).log()) +
-              (1- Sparse) * ((1 - Sparse) / (1 - epj.array() + zero_firewall_)).log()).sum() *
+            ( (Sparse * (Sparse / (epj_r0.array())).log()) +
+              (1.0-Sparse)*((1.0-Sparse)/(1.0-epj_r1.array())).log()).sum() *
             params_.beta_;
     es.cost_ = SquareError + WeightError + SparseError;
 }
@@ -354,9 +363,11 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     //temp2 *= beta;
     //Mat delta2 = sa.W2.t() * delta3 + repeat(temp2, 1, nsamples);
 
+    CV2EIGEND(epj_r0, buffer_.pj_r0_);
+    CV2EIGEND(epj_r1, buffer_.pj_r1_);
     ebuffer = params_.beta_ *
-            (-params_.sparse_ / (epj.array() + zero_firewall_) +
-             (1.0 - params_.sparse_) / (1.0 - epj.array() + zero_firewall_));
+            (-params_.sparse_ / (epj_r0.array()) +
+             (1.0 - params_.sparse_) / (1.0 - epj_r1.array()));
 
     using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
     using Mapper = Eigen::Map<MatType>;
@@ -487,6 +498,8 @@ void autoencoder::buffer::clear()
     delta3_.release();
     delta_buffer_.release();
     pj_.release();
+    pj_r0_.release();
+    pj_r1_.release();
 }
 
 void autoencoder::activation::clear()
