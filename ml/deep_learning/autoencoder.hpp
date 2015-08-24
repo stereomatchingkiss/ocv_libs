@@ -123,6 +123,8 @@ private:
                      std::default_random_engine &re, int batch,
                      cv::Mat const &temp_input, layer_struct &ls);
 
+    void test();
+
     void update_weight_and_bias(layer_struct &ls);
     void update_weight_and_bias(cv::Mat const &bias,
                                 cv::Mat &weight);

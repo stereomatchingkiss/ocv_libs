@@ -211,6 +211,9 @@ void autoencoder::train(const cv::Mat &input)
 {
     CV_Assert(input.type() == CV_64F);
 
+#ifdef OCV_TEST_AUTOENCODER
+    test();
+#else
     layers_.clear();
     mat_type_ = input.type();
     std::random_device rd;
@@ -230,6 +233,7 @@ void autoencoder::train(const cv::Mat &input)
     }
     act_.clear();
     buffer_.clear();
+#endif
 }
 
 /**
@@ -260,15 +264,12 @@ void autoencoder::encoder_cost(const cv::Mat &input,
 {    
     get_activation(input, es);
     auto const NSamples = input.cols;
-    //std::cout<<"input size : "<<input.size()<<"\n";
-    //std::cout<<"act out size : "<<act_.output_.size()<<"\n";
-    //std::cout<<"w1 size : "<<es.w1_.size()<<"\n";
-    //std::cout<<"w2 size : "<<es.w2_.size()<<"\n";
     //square error of back propagation(first half)
     CV2EIGEND(eout, act_.output_);
     CV2EIGEND(ein, input);
     double const SquareError =
             ((eout.array() - ein.array()).pow(2.0) / 2.0).sum() / NSamples;
+    //std::cout<<"square error : "<<SquareError<<"\n";
     // now calculate pj which is the average activation of hidden units
     cv::reduce(act_.hidden_, buffer_.pj_, 1, CV_REDUCE_SUM);
     buffer_.pj_ /= NSamples;
@@ -280,7 +281,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
     double const WeightError =
             ((w1.array() * w1.array()).sum() + (w2.array() * w2.array()).sum()) *
             (params_.lambda_ / 2.0);
-
+    //std::cout<<"weight error : "<<WeightError<<"\n";
     //the third part of overall cost function is the sparsity part
     CV2EIGEND(epj, buffer_.pj_);
     //prevent division by zero
@@ -300,6 +301,7 @@ void autoencoder::encoder_cost(const cv::Mat &input,
             ( (Sparse * (Sparse / (epj_r0.array())).log()) +
               (1.0-Sparse)*((1.0-Sparse)/(1.0-epj_r1.array())).log()).sum() *
             params_.beta_;
+    //std::cout<<"SparseError error : "<<SparseError<<"\n";
     es.cost_ = SquareError + WeightError + SparseError;
 }
 
@@ -308,14 +310,13 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
 {
     auto const NSamples = input.cols;
     buffer_.delta3_.create(input.rows, input.cols, mat_type_);
-
     CV2EIGEND(edelta3, buffer_.delta3_);
     CV2EIGEND(eact_output, act_.output_);
     CV2EIGEND(einput, input);
     edelta3.noalias() = eact_output - einput;
     edelta3 = edelta3.array() *
             ((1.0 - eact_output.array()) * eact_output.array());
-
+    //std::cout<<edelta3<<"\n";
     get_delta_2(buffer_.delta3_, es);
 
     CV2EIGEND(edelta2, buffer_.delta2_);
@@ -333,7 +334,7 @@ void autoencoder::encoder_gradient(cv::Mat const &input,
     cv::reduce(buffer_.delta2_, es.b1_grad_, 1, CV_REDUCE_SUM);
     cv::reduce(buffer_.delta3_, es.b2_grad_, 1, CV_REDUCE_SUM);
     es.b1_grad_ /= NSamples;
-    es.b2_grad_ /= NSamples;
+    es.b2_grad_ /= NSamples;//*/
 }
 
 void autoencoder::get_delta_2(cv::Mat const &delta_3,
@@ -368,7 +369,7 @@ void autoencoder::get_delta_2(cv::Mat const &delta_3,
     edelta2.colwise() += Map;
 
     CV2EIGEND(ehidden, act_.hidden_);
-    edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());
+    edelta2 = edelta2.array() * ((1.0 - ehidden.array()) * ehidden.array());//*/
 }
 
 void
@@ -459,6 +460,53 @@ void autoencoder::reduce_cost(const std::uniform_int_distribution<int> &uni_int,
 #endif
 }
 
+void autoencoder::test()
+{
+    cv::Mat input;
+    cv::FileStorage in("test_data.xml", cv::FileStorage::READ);
+    in["train"]>>input;
+
+    layers_.clear();
+    mat_type_ = input.type();
+    std::random_device rd;
+    std::default_random_engine re(rd());
+
+    std::uniform_int_distribution<int>
+            uni_int(0, 0);
+    for(int i = 0; i < params_.hidden_size_.size(); ++i){
+        cv::Mat temp_input = i == 0 ? input : activation_;
+        layer_struct ls;
+        auto const Index = std::to_string(i);
+        in["w1_" + Index]>>ls.w1_;
+        in["w2_" + Index]>>ls.w2_;
+        in["b1_" + Index]>>ls.b1_;
+        in["b2_" + Index]>>ls.b2_;
+        in["w1_grad_" + Index]>>ls.w1_grad_;
+        in["w2_grad_" + Index]>>ls.w2_grad_;
+        in["b1_grad_" + Index]>>ls.b1_grad_;
+        in["b2_grad_" + Index]>>ls.b2_grad_;
+
+        reduce_cost(uni_int, re, input.cols, temp_input, ls);
+        generate_activation(ls, temp_input);
+        cv::Mat temp_act;
+        in["activation_l" + std::to_string(i)] >> temp_act;
+        bool all_same = true;
+        ocv::for_each_channels<double>(activation_, temp_act,
+                                       [&](double lhs, double rhs)
+        {
+            if(std::abs(lhs - rhs) > 0.02){
+                all_same = false;
+            }
+        });
+        if(!all_same){
+            break;
+        }else{
+            std::cout<<"layer "<<i<<" pass\n";
+        }
+        layers_.push_back(ls);
+    }
+}
+
 void autoencoder::update_weight_and_bias(layer_struct &ls)
 {
     update_weight_and_bias(ls.w1_grad_, ls.w1_);
@@ -491,8 +539,8 @@ autoencoder::params::params() :
 
 autoencoder::layer_struct::layer_struct() :
     cost_{0}
-{
-
+{    
+    cost_ = 0;
 }
 
 autoencoder::layer_struct::
