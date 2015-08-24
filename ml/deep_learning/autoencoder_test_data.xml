@@ -15,6 +15,13 @@
     1.6342339281869259e-001 2.9977922692041215e-001
     9.0565391973954612e-001 7.0968583444910338e-001
     1.4971249485466073e-001 7.6543992656051107e-001</data></train>
+<max_iter>100</max_iter>
+<hidden_size type_id="opencv-matrix">
+  <rows>1</rows>
+  <cols>2</cols>
+  <dt>i</dt>
+  <data>
+    5 5</data></hidden_size>
 <w1_0 type_id="opencv-matrix">
   <rows>5</rows>
   <cols>10</cols>

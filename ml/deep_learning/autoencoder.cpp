@@ -474,6 +474,13 @@ void autoencoder::test()
 
     std::uniform_int_distribution<int>
             uni_int(0, 0);
+    cv::Mat hidden_size;
+    in["hidden_size"]>>hidden_size;
+    params_.hidden_size_.resize(hidden_size.cols);
+    for(int i = 0; i != hidden_size.cols; ++i){
+        params_.hidden_size_[i] = hidden_size.at<int>(0, i);
+    }
+    in["max_iter"]>>params_.max_iter_;
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
         cv::Mat temp_input = i == 0 ? input : activation_;
         layer_struct ls;
