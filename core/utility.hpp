@@ -7,6 +7,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 #include <opencv2/core/core.hpp>
 
@@ -96,17 +97,24 @@ std::vector<T> copy_to_one_dim_array_ch(cv::Mat const &src, int channel)
     return result;
 }
 
-template<typename T, typename Distribution = std::uniform_real_distribution<T>>
+template<typename T,
+         typename Distribution =
+         typename std::conditional<std::is_integral<T>::value,
+                                   std::uniform_int_distribution<T>,
+                                   std::uniform_real_distribution<T>>::type
+         >
 void generate_random_value(cv::Mat &inout, T epsillon,
                            Distribution &&distribution = Distribution(0, 100))
 {
+    static_assert(std::is_arithmetic<T>::value, "T should be arithmetic type");
+
     std::random_device rd;
     std::default_random_engine re(rd());
 
     for_each_channels<T>(inout, [&](T &value)
     {
         value = distribution(re);
-    });    
+    });
 
     inout *= (2 * epsillon);
     inout -= epsillon;
