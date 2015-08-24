@@ -42,6 +42,12 @@ struct sigmoid
 
     void operator()(cv::Mat const &input,
                     cv::Mat &output) const;
+
+    template<typename EigenMat>
+    void operator()(EigenMat &inout) const
+    {
+        inout = 1.0 / (1.0 + (-1.0 * inout.array()).exp());
+    }
 };
 
 } /*! @} End of Doxygen Groups*/
