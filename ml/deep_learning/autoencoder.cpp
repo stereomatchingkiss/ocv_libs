@@ -462,6 +462,7 @@ void autoencoder::reduce_cost(const std::uniform_int_distribution<int> &uni_int,
 
 void autoencoder::test()
 {
+#ifdef OCV_TEST_AUTOENCODER
     cv::Mat input;
     cv::FileStorage in("autoencoder_test_data.xml", cv::FileStorage::READ);
     in["train"]>>input;
@@ -505,6 +506,7 @@ void autoencoder::test()
         }
         layers_.push_back(ls);
     }
+#endif
 }
 
 void autoencoder::update_weight_and_bias(layer_struct &ls)
