@@ -141,7 +141,7 @@ UnaryFunc for_each_channels(Mat &&input, UnaryFunc func)
     int cols = input.cols;
 
     if(input.isContinuous()){
-        cols = input.total() * input.channels();
+        cols = static_cast<int>(input.total() * input.channels());
         rows = 1;
     }
 
@@ -167,7 +167,7 @@ BinaryFunc for_each_channels(Mat &&input_1, Mat &&input_2, BinaryFunc func)
 
     if(input_1.isContinuous() && input_2.isContinuous()){
         rows = 1;
-        cols = input_1.total() * input_1.channels();
+        cols = static_cast<int>(input_1.total() * input_1.channels());
     }
 
     for(int row = 0; row != rows; ++row){
@@ -216,7 +216,7 @@ Func for_each(Mat &&inout, Func func, Args... args)
     int cols = inout.cols;
 
     if(inout.isContinuous()){
-        cols = inout.total();
+        cols = static_cast<int>(inout.total());
         rows = 1;
     }
 
