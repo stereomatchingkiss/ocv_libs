@@ -96,13 +96,17 @@ std::vector<T> copy_to_one_dim_array_ch(cv::Mat const &src, int channel)
     return result;
 }
 
-template<typename T>
-void generate_random_value(cv::Mat &inout, T epsillon)
+template<typename T, typename Distribution = std::uniform_real_distribution<T>>
+void generate_random_value(cv::Mat &inout, T epsillon,
+                           Distribution &&distribution = Distribution(0, 100))
 {
-    for_each_channels<T>(inout, [](T &value)
+    std::random_device rd;
+    std::default_random_engine re(rd());
+
+    for_each_channels<T>(inout, [&](T &value)
     {
-        value = cv::randu<T>();
-    });
+        value = distribution(re);
+    });    
 
     inout *= (2 * epsillon);
     inout -= epsillon;
