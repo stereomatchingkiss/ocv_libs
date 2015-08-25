@@ -31,9 +31,18 @@ template<typename T>
 void cv2eigen_cpy(cv::Mat const &input, MatRowMajor<T> &output){
     output.resize(input.rows, input.cols);
     cv::Mat dst(input.rows, input.cols, cv::DataType<T>::type,
-                output.data(),
-                (size_t)(output.stride()*sizeof(double)));
+                static_cast<void*>(output.data()),
+                static_cast<size_t>(output.stride()*sizeof(T)));
     input.convertTo(dst, dst.type());
+}
+
+template<typename T>
+void eigen2cv_cpy(MatRowMajor<T> const &input, cv::Mat &output)
+{
+    cv::Mat src(input.rows(), input.cols(), cv::DataType<T>::type,
+                (void*)input.data(),
+                static_cast<size_t>(input.stride()*sizeof(T)));
+    src.copyTo(output);
 }
 
 } /*! @} End of Doxygen Groups*/
