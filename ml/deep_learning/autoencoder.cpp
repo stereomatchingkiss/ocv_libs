@@ -298,11 +298,11 @@ void autoencoder::encoder_gradient(EigenMat const &input,
             ((1.0 - act_.output_.array()) * act_.output_.array());
 
     auto const NSamples = input.cols();
-    es.w1_grad_ =
-            (buffer_.delta2_ * input.transpose()).array() / NSamples +
+    es.w1_grad_.noalias() = buffer_.delta2_*input.transpose();
+    es.w1_grad_ = (es.w1_grad_.array()/NSamples) +
             params_.lambda_ * es.w1_.array();
-    es.w2_grad_ =
-            (buffer_.delta3_ * act_.hidden_.transpose()).array() / NSamples +
+    es.w2_grad_.noalias() = buffer_.delta3_*act_.hidden_.transpose();
+    es.w2_grad_ = (es.w2_grad_.array()/NSamples) +
             params_.lambda_ * es.w2_.array();
 
     es.b1_grad_ = buffer_.delta2_.rowwise().sum() / NSamples;
@@ -429,7 +429,7 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
     std::cout<<"total update time : "<<t_gra<<"\n";
     std::cout<<"average encoder cost time : "<<t_cost / iter_time<<"\n";
     std::cout<<"average gradient cost time : "<<t_gra / iter_time<<"\n";
-    std::cout<<"average update time : "<<t_gra / iter_time<<"\n";
+    std::cout<<"average update time : "<<t_gra / iter_time<<"\n\n";
 #endif
 }
 
