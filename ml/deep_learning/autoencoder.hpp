@@ -73,6 +73,8 @@ public:
     void write(std::string const &file) const;
 private:
     using EigenMat = eigen::MatRowMajor<double>;
+    //using EigenMat = Eigen::Matrix<double, Eigen::Dynamic,
+    //Eigen::Dynamic>;
 
     struct activation
     {
@@ -97,7 +99,7 @@ private:
     struct eigen_layer
     {
         eigen_layer();
-        eigen_layer(int input_size, int hidden_size,                    
+        eigen_layer(int input_size, int hidden_size,
                     double cost = 0);
 
         EigenMat w1_;
@@ -124,6 +126,10 @@ private:
         double sparse_;
     };
 
+    void convert(layer_struct const &input,
+                 eigen_layer &output) const;
+    void convert(eigen_layer const &input,
+                 layer_struct &output) const;
     void encoder_cost(EigenMat const &input,
                       eigen_layer &es);
     void encoder_gradient(EigenMat const &input,
@@ -140,6 +146,10 @@ private:
     int get_batch_size(int sample_size) const;
     void get_delta_2(EigenMat const &delta_3,
                      eigen_layer const &es);
+
+    void read_test_data(cv::FileStorage const &in,
+                        std::string const &index,
+                        layer_struct &out) const;
 
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                      std::default_random_engine &re,
