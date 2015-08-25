@@ -126,20 +126,20 @@ private:
 
     void encoder_cost(EigenMat const &input,
                       eigen_layer &es);
-    void encoder_gradient(cv::Mat const &input,
-                          layer_struct &es);
+    void encoder_gradient(EigenMat const &input,
+                          eigen_layer &es);
 
     void get_activation(EigenMat const &input,
                         eigen_layer &es);
-    void generate_activation(layer_struct const &ls,
-                             cv::Mat &temp_input);
-    void generate_activation_cpu(layer_struct const &ls,
-                                 cv::Mat &temp_input);
-    void generate_activation_impl(layer_struct const &ls,
-                                  cv::Mat &temp_input);
+    void generate_activation(eigen_layer const &ls,
+                             EigenMat &temp_input);
+    void generate_activation_cpu(eigen_layer const &ls,
+                                 EigenMat &temp_input);
+    void generate_activation_impl(eigen_layer const &ls,
+                                  EigenMat &temp_input);
     int get_batch_size(int sample_size) const;
-    void get_delta_2(cv::Mat const &delta_3,
-                     layer_struct const &es);
+    void get_delta_2(EigenMat const &delta_3,
+                     eigen_layer const &es);
 
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                      std::default_random_engine &re,
@@ -148,9 +148,9 @@ private:
 
     void test();
 
-    void update_weight_and_bias(layer_struct &ls);
-    void update_weight_and_bias(cv::Mat const &bias,
-                                cv::Mat &weight);
+    void update_weight_and_bias(eigen_layer &ls);
+    void update_weight_and_bias(EigenMat const &bias,
+                                EigenMat &weight);
 
     activation act_;
     cv::Mat activation_;
