@@ -82,7 +82,7 @@ void forward_propagation(EigenMat const &input,
             bias.rows() != 0){
         output.noalias() = weight * input;
         using MatType = Eigen::Matrix<typename EigenMat::Scalar, Eigen::Dynamic, 1>;
-        using Mapper = Eigen::Map<const MatType>;
+        using Mapper = Eigen::Map<const MatType, Eigen::Aligned>;
         Mapper Map(bias.data(), bias.size());
         output.colwise() += Map;
         func(output);

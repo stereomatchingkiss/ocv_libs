@@ -19,8 +19,8 @@ namespace ml{
 namespace{
 
 using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-using Mapper = Eigen::Map<MatType>;
-using MapperConst = Eigen::Map<const MatType>;
+using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
+using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
 }
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
