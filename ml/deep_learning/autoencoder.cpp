@@ -358,7 +358,7 @@ void autoencoder::generate_activation(eigen_layer const &ls,
     auto const TGen =
             time::measure<>::duration([&]()
     { generate_activation_impl(ls, temp_input); });
-    std::cout<<"generate time : "<<TGen.count()<<"\n";
+    std::cout<<"time of generate last layer activation : "<<TGen.count()<<"\n\n";
 #else
     generate_activation_impl(ls, temp_input);
 #endif
@@ -427,9 +427,11 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
     std::cout<<"total encoder cost time : "<<t_cost<<"\n";
     std::cout<<"total gradient cost time : "<<t_gra<<"\n";
     std::cout<<"total update time : "<<t_gra<<"\n";
+	std::cout<<"total time of update weight and bias : "<<t_update<<"\n";
     std::cout<<"average encoder cost time : "<<t_cost / iter_time<<"\n";
     std::cout<<"average gradient cost time : "<<t_gra / iter_time<<"\n";
-    std::cout<<"average update time : "<<t_gra / iter_time<<"\n\n";
+    std::cout<<"average update time : "<<t_gra / iter_time<<"\n";
+	std::cout<<"average time of update weight and bias : "<<t_update / iter_time<<"\n";
 #endif
 }
 
