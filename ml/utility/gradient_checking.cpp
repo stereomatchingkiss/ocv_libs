@@ -51,13 +51,4 @@ void gradient_checking::set_inaccuracy(double inaccuracy)
     inaccuracy_ = inaccuracy;
 }
 
-void gradient_checking::initialize(const cv::Mat &theta)
-{
-    CV_Assert(theta.channels() == 1 &&
-              theta.rows == 1);
-
-    theta.convertTo(theta_buffer_, CV_64F);
-    gradient_.create(theta.rows, theta.cols, theta.type());
-}
-
 }}

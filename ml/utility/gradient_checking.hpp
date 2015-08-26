@@ -23,8 +23,7 @@ namespace ml{
 
 /**
  * @brief The gradient_checking class which use\n
- * to check the results of gradient descent like algorithm.\n
- * This class intent to work with c++98
+ * to check the results of gradient descent like algorithm.
  */
 
 class gradient_checking
@@ -34,7 +33,7 @@ public:
 
     bool compare_gradient(cv::Mat const &gradient) const;
 
-    template<typename UnaryFunc>
+    template<typename T, typename UnaryFunc>
     cv::Mat const& compute_gradient(cv::Mat const &theta,
                                     UnaryFunc func);
 
@@ -42,8 +41,6 @@ public:
     void set_inaccuracy(double inaccuracy);
 
 private:
-    void initialize(cv::Mat const &theta);
-
     double epsillon_;
 
     cv::Mat gradient_;
@@ -61,29 +58,32 @@ private:
  * function only accept one parameter--cv::Mat which contains\n
  * the (theta[i] + epsillon) or (theta[i] - epsillon)
  *@pre <strong class = "paramname">theta</strong> must be\n
- * one channel and one row
+ * one channel
  *@return the gradients
  */
-template<typename UnaryFunc>
+template<typename T, typename UnaryFunc>
 cv::Mat const &gradient_checking::
 compute_gradient(const cv::Mat &theta,
                  UnaryFunc cost_function)
-{
-    initialize(theta);
-    double *buffer_ptr = theta_buffer_.ptr<double>(0);
-    double *gradient_ptr = gradient_.ptr<double>(0);
-    double *theta_ptr = theta.ptr<double>(0);
-    for(int i = 0; i != theta.cols; ++i){
-        *buffer_ptr = *theta_ptr + epsillon_;
-        double const Plus = cost_function(theta_buffer_);
-        *buffer_ptr = *theta_ptr - epsillon_;
-        double const Minus = cost_function(theta_buffer_);
-        *gradient_ptr = (Plus - Minus) / (2 * epsillon_);
+{    
+    theta.copyTo(theta_buffer_);
+    gradient_.create(theta.rows,
+                     theta.cols,
+                     theta.type());
+    for(int row = 0; row != theta.rows; ++row){
+        for(int col = 0; col != theta.cols; ++col){
+            auto const OriValue = theta_buffer_.at<T>(row, col);
+            theta_buffer_.at<T>(row, col) =
+                    OriValue + epsillon_;
+            auto const Plus = cost_function(theta_buffer_);
+            theta_buffer_.at<T>(row, col) =
+                    OriValue - epsillon_;
+            auto const Minus = cost_function(theta_buffer_);
+            gradient_.at<T>(row, col) =
+                    (Plus - Minus) / (2 * epsillon_);
 
-        *buffer_ptr = *theta_ptr;
-        ++buffer_ptr;
-        ++gradient_ptr;
-        ++theta_ptr;
+            theta_buffer_.at<T>(row, col) = OriValue;
+        }
     }
 
     return gradient_;
