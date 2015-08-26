@@ -45,6 +45,14 @@ void eigen2cv_cpy(MatRowMajor<T> const &input, cv::Mat &output)
     src.copyTo(output);
 }
 
+template<typename T>
+cv::Mat eigen2cv_ref(MatRowMajor<T> const &input)
+{
+    return cv::Mat(input.rows(), input.cols(), cv::DataType<T>::type,
+                   (void*)input.data(),
+                   static_cast<size_t>(input.stride()*sizeof(T)));
+}
+
 /**
  *@brief create memory align cv::Mat
  */
