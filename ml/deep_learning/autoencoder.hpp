@@ -60,7 +60,7 @@ public:
 
     void read(std::string const &file);
 
-    void set_batch_fraction(int divide);
+    void set_batch_size(int size);
     void set_beta(double beta);
     void set_eps(double eps);
     void set_hidden_layer_size(cv::AutoBuffer<int> const &size);

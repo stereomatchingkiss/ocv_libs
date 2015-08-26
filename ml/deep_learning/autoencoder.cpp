@@ -79,12 +79,12 @@ void autoencoder::read(const std::string &file)
  * @brief Set the batch divide parameter, this parameter\n
  * will determine the fraction of the samples will be use\n
  * when finding the cost
- * @param fraction train_size = sample_size / fraction,\n
- * the default value is 5
+ * @param size set up the mini-batch size every time the\n
+ * iteration will use
  */
-void autoencoder::set_batch_fraction(int fraction)
+void autoencoder::set_batch_size(int size)
 {
-    params_.batch_divide_ = fraction;
+    params_.batch_size_ = size;
 }
 
 /**
@@ -394,12 +394,9 @@ void autoencoder::generate_activation(layer const &ls,
 }
 
 int autoencoder::get_batch_size(int sample_size) const
-{
-    if(sample_size > params_.batch_divide_){
-        return sample_size / params_.batch_divide_;
-    }
-
-    return sample_size;
+{    
+    return sample_size > params_.batch_size_ + 100?
+                params_.batch_size_ : sample_size;
 }
 
 void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
@@ -542,7 +539,7 @@ update_weight_and_bias(EigenMat const &bias,
 }
 
 autoencoder::params::params() :
-    batch_divide_{5},
+    batch_size_{5},
     beta_{3},
     eps_{5e-5},
     lambda_{3e-3},
