@@ -72,28 +72,26 @@ void softmax::train(const softmax::EigenMat &train,
     {
         EigenMat temp;
         eigen::cv2eigen_cpy(theta, temp);
-        auto const Value = compute_cost(train, temp);
-        compute_gradient(train);
-
-        return Value;
+        return compute_cost(train, temp);
     };
     cv::Mat cv_weight =
             gc.compute_gradient<double>(cv_w, func);
     EigenMat weight_buffer;
     eigen::cv2eigen_cpy(cv_weight, weight_buffer);
-    std::cout<<(weight_buffer.array() - grad_.array()).abs()
-            <<"\n\n";
+    compute_cost(train, weight_);
+    compute_gradient(train);
+    EigenMat const Diff =
+            (weight_buffer.array() - grad_.array()).abs();
+    std::cout<<std::boolalpha<<"gradient checking pass : "
+            <<(Diff.array() < 1e-5).all()<<"\n";
 #endif
 
     for(size_t i = 0; i != params_.max_iter_; ++i){
         auto const Cost = compute_cost(train, weight_);
         if(std::abs(params_.cost_ - Cost) < params_.inaccuracy_){
-            std::cout<<"find cost : "<<Cost
-                    <<", iter "<<i<<" time\n\n";
             break;
         }
         params_.cost_ = Cost;
-        //std::cout<<i<<" : "<<params_.cost_<<"\n";
         compute_gradient(train);
         weight_.array() -= grad_.array() * params_.lrate_;
     }
@@ -111,7 +109,7 @@ double softmax::compute_cost(EigenMat const &train,
 }
 
 void softmax::compute_hypothesis(EigenMat const &train,
-                                EigenMat const &weight)
+                                 EigenMat const &weight)
 {
     hypothesis_.noalias() = weight * train;
     max_exp_power_ = hypothesis_.colwise().maxCoeff();
