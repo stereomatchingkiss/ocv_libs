@@ -23,10 +23,8 @@ using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
 using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
 }
 
-autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size) :
-    batch_divide_{5},
-    mat_type_{CV_64F}
-{
+autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
+{    
     set_hidden_layer_size(hidden_size);
 }
 
@@ -81,7 +79,7 @@ void autoencoder::read(const std::string &file)
  */
 void autoencoder::set_batch_fraction(int fraction)
 {
-    batch_divide_ = fraction;
+    params_.batch_divide_ = fraction;
 }
 
 /**
@@ -383,8 +381,8 @@ void autoencoder::generate_activation(layer const &ls,
 
 int autoencoder::get_batch_size(int sample_size) const
 {
-    if(sample_size > batch_divide_){
-        return sample_size / batch_divide_;
+    if(sample_size > params_.batch_divide_){
+        return sample_size / params_.batch_divide_;
     }
 
     return sample_size;
@@ -526,6 +524,7 @@ update_weight_and_bias(EigenMat const &bias,
 }
 
 autoencoder::params::params() :
+    batch_divide_{5},
     beta_{3},
     eps_{5e-5},
     lambda_{3e-3},

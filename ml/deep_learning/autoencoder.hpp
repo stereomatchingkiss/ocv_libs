@@ -115,6 +115,7 @@ private:
     {
         params();
 
+        int batch_divide_;
         double beta_;
         double eps_;
         cv::AutoBuffer<int> hidden_size_;
@@ -160,12 +161,10 @@ private:
     void update_weight_and_bias(EigenMat const &bias,
                                 EigenMat &weight);
 
-    activation act_;    
-    int batch_divide_;
+    activation act_;        
     buffer buffer_;
     EigenMat eactivation_;
-    std::vector<layer> layers_;
-    int mat_type_;
+    std::vector<layer> layers_;    
     params params_;
 };
 
