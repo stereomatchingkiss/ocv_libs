@@ -350,6 +350,7 @@ void autoencoder::read_test_data(cv::FileStorage const &in,
                                  std::string const &index,
                                  cv_layer &out) const
 {
+#ifdef OCV_TEST_AUTOENCODER
     in["w1_" + index]>>out.w1_;
     in["w2_" + index]>>out.w2_;
     in["b1_" + index]>>out.b1_;
@@ -358,6 +359,12 @@ void autoencoder::read_test_data(cv::FileStorage const &in,
     in["w2_grad_" + index]>>out.w2_grad_;
     in["b1_grad_" + index]>>out.b1_grad_;
     in["b2_grad_" + index]>>out.b2_grad_;
+#else
+#define UNUSED(x) (void)(x)
+    UNUSED(in);
+    UNUSED(index);
+    UNUSED(out);
+#endif
 }
 
 void
