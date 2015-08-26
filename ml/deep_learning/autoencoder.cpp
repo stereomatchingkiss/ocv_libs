@@ -197,7 +197,8 @@ generate_activation_cpu(layer const &ls,
 */
 void autoencoder::train(const EigenMat &input)
 {    
-#ifdef OCV_TEST_AUTOENCODER    
+#ifdef OCV_TEST_AUTOENCODER
+    unused(input);
     test();
 #else    
     layers_.clear();
@@ -474,7 +475,6 @@ void autoencoder::test()
     eigen::cv2eigen_cpy(input, ein);
 
     layers_.clear();
-    mat_type_ = input.type();
     std::random_device rd;
     std::default_random_engine re(rd());
 
@@ -507,7 +507,7 @@ void autoencoder::test()
         ocv::for_each_channels<double>(activation, temp_act,
                                        [&](double lhs, double rhs)
         {
-            if(std::abs(lhs - rhs) > 0.02){
+            if(std::abs(lhs - rhs) > 1e-3){
                 all_same = false;
             }
         });
