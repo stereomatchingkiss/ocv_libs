@@ -46,9 +46,11 @@ public:
                size_t num_class);
 
 private:
-    double compute_cost(EigenMat const &train);
+    double compute_cost(EigenMat const &train,
+                        EigenMat const &weight);
 
-    void compute_hypthesis(EigenMat const &train);
+    void compute_hypothesis(EigenMat const &train,
+                           EigenMat const &weight);
     void compute_gradient(EigenMat const &train);
 
     struct params
@@ -65,7 +67,6 @@ private:
     EigenMat hypothesis_;
     EigenMat grad_;
     EigenMat ground_truth_;
-    EigenMat log_power_;
     EigenMat max_exp_power_;
     params params_;
     EigenMat weight_;

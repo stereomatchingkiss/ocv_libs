@@ -1,5 +1,8 @@
 #include "softmax.hpp"
 
+#include "../../ml/utility/gradient_checking.hpp"
+#include "../../eigen/eigen.hpp"
+
 #include <iostream>
 
 namespace ocv{
@@ -61,32 +64,56 @@ void softmax::train(const softmax::EigenMat &train,
         ground_truth_(labels[i], i) = 1;
     }
 
+#ifdef OCV_TEST_SOFTMAX
+    cv::Mat cv_w;
+    eigen::eigen2cv_cpy(weight_, cv_w);
+    gradient_checking gc;
+    auto func = [&](cv::Mat &theta)->double
+    {
+        EigenMat temp;
+        eigen::cv2eigen_cpy(theta, temp);
+        auto const Value = compute_cost(train, temp);
+        compute_gradient(train);
+
+        return Value;
+    };
+    cv::Mat cv_weight =
+            gc.compute_gradient<double>(cv_w, func);
+    EigenMat weight_buffer;
+    eigen::cv2eigen_cpy(cv_weight, weight_buffer);
+    std::cout<<(weight_buffer.array() - grad_.array()).abs()
+            <<"\n\n";
+#endif
+
     for(size_t i = 0; i != params_.max_iter_; ++i){
-        auto const Cost = compute_cost(train);
+        auto const Cost = compute_cost(train, weight_);
         if(std::abs(params_.cost_ - Cost) < params_.inaccuracy_){
-            //std::cout<<"find cost : "<<Cost<<"\n";
+            std::cout<<"find cost : "<<Cost
+                    <<", iter "<<i<<" time\n\n";
             break;
         }
         params_.cost_ = Cost;
-        //std::cout<<params_.cost_<<"\n";
+        //std::cout<<i<<" : "<<params_.cost_<<"\n";
         compute_gradient(train);
         weight_.array() -= grad_.array() * params_.lrate_;
     }
 }
 
-double softmax::compute_cost(softmax::EigenMat const &train)
+double softmax::compute_cost(EigenMat const &train,
+                             EigenMat const &weight)
 {
-    compute_hypthesis(train);
+    compute_hypothesis(train, weight);
     double const NSamples = static_cast<double>(train.cols());
 
     return  -1.0 * (hypothesis_.array().log() *
                     ground_truth_.array()).sum() / NSamples +
-            weight_.array().pow(2.0).sum() * params_.lambda_ / 2.0;
+            weight.array().pow(2.0).sum() * params_.lambda_ / 2.0;
 }
 
-void softmax::compute_hypthesis(const softmax::EigenMat &train)
+void softmax::compute_hypothesis(EigenMat const &train,
+                                EigenMat const &weight)
 {
-    hypothesis_.noalias() = weight_ * train;
+    hypothesis_.noalias() = weight * train;
     max_exp_power_ = hypothesis_.colwise().maxCoeff();
     for(size_t i = 0; i != hypothesis_.cols(); ++i){
         hypothesis_.col(i).array() -= max_exp_power_(0, i);
