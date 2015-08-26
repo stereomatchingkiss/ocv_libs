@@ -480,10 +480,10 @@ void autoencoder::test()
     //std::cout<<"max iter : "<<params_.max_iter_<<"\n";
     for(int i = 0; i < params_.hidden_size_.size(); ++i){
         EigenMat &temp_input = i == 0 ? ein : eactivation_;
-        layer_struct ls;
+        cv_layer ls;
         read_test_data(in, std::to_string(i),
                        ls);
-        eigen_layer es;
+        layer es;
         convert(ls, es);
 
         reduce_cost(uni_int, re, temp_input.cols(),
@@ -492,8 +492,8 @@ void autoencoder::test()
         cv::Mat temp_act;
         in["activation_l" + std::to_string(i)] >> temp_act;
         bool all_same = true;
-        cv::eigen2cv(eactivation_, activation_);
-        ocv::for_each_channels<double>(activation_, temp_act,
+        cv::Mat activation = eigen::eigen2cv_ref(eactivation_);
+        ocv::for_each_channels<double>(activation, temp_act,
                                        [&](double lhs, double rhs)
         {
             if(std::abs(lhs - rhs) > 0.02){
