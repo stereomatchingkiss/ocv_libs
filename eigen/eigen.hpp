@@ -39,7 +39,9 @@ void cv2eigen_cpy(cv::Mat const &input, MatRowMajor<T> &output){
 template<typename T>
 void eigen2cv_cpy(MatRowMajor<T> const &input, cv::Mat &output)
 {
-    cv::Mat src(input.rows(), input.cols(), cv::DataType<T>::type,
+    cv::Mat src(static_cast<int>(input.rows()),
+                static_cast<int>(input.cols()),
+                cv::DataType<T>::type,
                 (void*)input.data(),
                 static_cast<size_t>(input.stride()*sizeof(T)));
     src.copyTo(output);
@@ -48,7 +50,9 @@ void eigen2cv_cpy(MatRowMajor<T> const &input, cv::Mat &output)
 template<typename T>
 cv::Mat eigen2cv_ref(MatRowMajor<T> const &input)
 {
-    return cv::Mat(input.rows(), input.cols(), cv::DataType<T>::type,
+    return cv::Mat(static_cast<int>(input.rows()),
+                   static_cast<int>(input.cols()),
+                   cv::DataType<T>::type,
                    (void*)input.data(),
                    static_cast<size_t>(input.stride()*sizeof(T)));
 }
