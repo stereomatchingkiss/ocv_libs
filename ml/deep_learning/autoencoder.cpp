@@ -172,6 +172,24 @@ generate_activation_cpu(layer const &ls,
  * @param input the input image, type must be CV_64F.\n
  * input contains one training example per column
  */
+
+/*! \brief example.
+ *\code
+ * ocv::eigen::EigenMat buffer(16*16, 10000);
+ * cv::Mat train = ocv::eigen::eigen2cv_ref(buffer);
+ * //read_mnist will read the data of mnist into cv::Mat
+ * read_mnist(train, "train_0", 10000);
+ * train /= 255.0;
+ *
+ * cv::AutoBuffer<int> hidden_size(2);
+ * hidden_size[0] = buffer.cols() * 3 / 4;
+ * hidden_size[1] = hidden_size[0];
+ * ocv::ml::autoencoder encoder(hidden_size);
+ * encoder.set_batch_fraction(20);
+ * encoder.train(train);
+ * encoder.write("train.xml");
+ *\endcode
+*/
 void autoencoder::train(const EigenMat &input)
 {    
 #ifdef OCV_TEST_AUTOENCODER    
