@@ -411,16 +411,16 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
         int const X = uni_int(re);
         encoder_cost(input.block(0, X,
                                  input.rows(), batch), ls);
-        encoder_gradient(input.block(0, X,
-                                     input.rows(), batch), ls);
-
-        if(ls.cost_ > last_cost){
-            params_.lrate_ /= 2;
-        }
         if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                 ls.cost_ <= 0.0){
             break;
         }
+
+        encoder_gradient(input.block(0, X,
+                                     input.rows(), batch), ls);
+        if(ls.cost_ > last_cost){
+            params_.lrate_ /= 2;
+        }        
 
         last_cost = ls.cost_;
         update_weight_and_bias(ls);
