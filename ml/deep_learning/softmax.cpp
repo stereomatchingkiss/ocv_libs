@@ -60,13 +60,15 @@ void softmax::train(const softmax::EigenMat &train,
     for(size_t i = 0; i != ground_truth_.cols(); ++i){
         ground_truth_(labels[i], i) = 1;
     }
-    std::cout<<ground_truth_<<"\n\n";
 
     for(size_t i = 0; i != params_.max_iter_; ++i){
         auto const Cost = compute_cost(train);
         if(std::abs(params_.cost_ - Cost) < params_.inaccuracy_){
+            //std::cout<<"find cost : "<<Cost<<"\n";
             break;
         }
+        params_.cost_ = Cost;
+        //std::cout<<params_.cost_<<"\n";
         compute_gradient(train);
         weight_.array() -= grad_.array() * params_.lrate_;
     }
@@ -74,19 +76,7 @@ void softmax::train(const softmax::EigenMat &train,
 
 double softmax::compute_cost(softmax::EigenMat const &train)
 {
-    //std::cout<<weight_.rows()<<", "<<weight_.cols()<<"\n";
-    //std::cout<<train.rows()<<", "<<train.cols()<<"\n";
-    compute_exp_power(train);
-
-    weight_sum_ = hypothesis_.array().colwise().sum();
-    std::cout<<"sum \n "<<weight_sum_<<"\n\n";
-    std::cout<<std::boolalpha<<(weight_sum_.cols() == hypothesis_.cols())<<"\n";
-    for(size_t i = 0; i != hypothesis_.cols(); ++i){
-        hypothesis_.col(i) /= weight_sum_(0, i);
-    }
-    //log_power_ = exp_power_.array().log();
-    //std::cout<<log_power_.rows()<<", "<<log_power_.cols()<<"\n\n";
-    //std::cout<<ground_truth_.rows()<<", "<<ground_truth_.cols()<<"\n\n";
+    compute_hypthesis(train);
     double const NSamples = static_cast<double>(train.cols());
 
     return  -1.0 * (hypothesis_.array().log() *
@@ -94,19 +84,19 @@ double softmax::compute_cost(softmax::EigenMat const &train)
             weight_.array().pow(2.0).sum() * params_.lambda_ / 2.0;
 }
 
-void softmax::compute_exp_power(const softmax::EigenMat &train)
+void softmax::compute_hypthesis(const softmax::EigenMat &train)
 {
     hypothesis_.noalias() = weight_ * train;
-    std::cout<<hypothesis_<<"\n\n";
     max_exp_power_ = hypothesis_.colwise().maxCoeff();
-    std::cout<<max_exp_power_<<"\n\n";
     for(size_t i = 0; i != hypothesis_.cols(); ++i){
         hypothesis_.col(i).array() -= max_exp_power_(0, i);
     }
-    std::cout<<hypothesis_<<"\n\n";
 
     hypothesis_ = hypothesis_.array().exp();
-    std::cout<<hypothesis_<<"\n\n";
+    weight_sum_ = hypothesis_.array().colwise().sum();
+    for(size_t i = 0; i != hypothesis_.cols(); ++i){
+        hypothesis_.col(i) /= weight_sum_(0, i);
+    }
 }
 
 void softmax::compute_gradient(const softmax::EigenMat &train)
@@ -123,7 +113,7 @@ softmax::params::params() :
     cost_{std::numeric_limits<double>::max()},
     inaccuracy_{0.002},
     lambda_{0.0},
-    lrate_{0.0},
+    lrate_{0.2},
     max_iter_{100}
 {
 

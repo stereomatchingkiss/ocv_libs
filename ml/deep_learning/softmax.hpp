@@ -48,7 +48,7 @@ public:
 private:
     double compute_cost(EigenMat const &train);
 
-    void compute_exp_power(EigenMat const &train);
+    void compute_hypthesis(EigenMat const &train);
     void compute_gradient(EigenMat const &train);
 
     struct params
