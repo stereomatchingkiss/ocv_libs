@@ -21,6 +21,11 @@ namespace{
 using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
 using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
+
+template <typename T>
+void unused(T &&)
+{ };
+
 }
 
 autoencoder::autoencoder(cv::AutoBuffer<int> const &hidden_size)
@@ -360,10 +365,9 @@ void autoencoder::read_test_data(cv::FileStorage const &in,
     in["b1_grad_" + index]>>out.b1_grad_;
     in["b2_grad_" + index]>>out.b2_grad_;
 #else
-#define UNUSED(x) (void)(x)
-    UNUSED(in);
-    UNUSED(index);
-    UNUSED(out);
+    unused(in);
+    unused(index);
+    unused(out);
 #endif
 }
 
