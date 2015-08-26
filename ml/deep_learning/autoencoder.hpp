@@ -115,7 +115,7 @@ private:
     {
         params();
 
-        int batch_divide_;
+        int batch_size_;
         double beta_;
         double eps_;
         cv::AutoBuffer<int> hidden_size_;
