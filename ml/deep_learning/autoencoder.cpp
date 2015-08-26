@@ -539,7 +539,7 @@ update_weight_and_bias(EigenMat const &bias,
 }
 
 autoencoder::params::params() :
-    batch_size_{5},
+    batch_size_{100},
     beta_{3},
     eps_{5e-5},
     lambda_{3e-3},
