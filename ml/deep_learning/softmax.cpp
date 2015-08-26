@@ -65,25 +65,21 @@ void softmax::train(const softmax::EigenMat &train,
     }
 
 #ifdef OCV_TEST_SOFTMAX
-    cv::Mat cv_w;
-    eigen::eigen2cv_cpy(weight_, cv_w);
     gradient_checking gc;
-    auto func = [&](cv::Mat &theta)->double
+    auto func = [&](EigenMat &theta)->double
     {
-        EigenMat temp;
-        eigen::cv2eigen_cpy(theta, temp);
-        return compute_cost(train, temp);
+        return compute_cost(train, theta);
     };
-    cv::Mat cv_weight =
-            gc.compute_gradient<double>(cv_w, func);
-    EigenMat weight_buffer;
-    eigen::cv2eigen_cpy(cv_weight, weight_buffer);
-    compute_cost(train, weight_);
+
+    EigenMat const WeightBuffer = weight_;
+    EigenMat const Gradient =
+            gc.compute_gradient(weight_, func);
+
+    compute_cost(train, WeightBuffer);
     compute_gradient(train);
-    EigenMat const Diff =
-            (weight_buffer.array() - grad_.array()).abs();
+
     std::cout<<std::boolalpha<<"gradient checking pass : "
-            <<(Diff.array() < 1e-5).all()<<"\n";
+            <<gc.compare_gradient(grad_, Gradient)<<"\n";//*/
 #endif
 
     for(size_t i = 0; i != params_.max_iter_; ++i){
