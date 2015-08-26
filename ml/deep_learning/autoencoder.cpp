@@ -155,9 +155,7 @@ void autoencoder::generate_activation_impl(layer const &ls,
 void autoencoder::
 generate_activation_cpu(layer const &ls,
                         EigenMat const &temp_input)
-{    
-    std::cout<<ls.w1_.size()<<"\n";
-    std::cout<<temp_input.size()<<"\n";
+{        
     eactivation_.noalias() = ls.w1_ * temp_input;
 
     MapperConst Map(ls.b1_.data(), ls.b1_.size());
