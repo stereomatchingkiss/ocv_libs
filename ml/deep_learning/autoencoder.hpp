@@ -111,9 +111,9 @@ private:
         double cost_;
     };
 
-    struct params
+    struct criteria
     {
-        params();
+        criteria();
 
         int batch_size_;
         double beta_;
@@ -165,7 +165,7 @@ private:
     buffer buffer_;
     EigenMat eactivation_;
     std::vector<layer> layers_;    
-    params params_;
+    criteria params_;
 };
 
 } /*! @} End of Doxygen Groups*/

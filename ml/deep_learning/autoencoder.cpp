@@ -538,7 +538,7 @@ update_weight_and_bias(EigenMat const &bias,
             params_.lrate_ * bias.array();
 }
 
-autoencoder::params::params() :
+autoencoder::criteria::criteria() :
     batch_size_{100},
     beta_{3},
     eps_{5e-5},
