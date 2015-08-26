@@ -408,6 +408,7 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                               layer &ls)
 {
     double last_cost = std::numeric_limits<double>::max();
+    auto const LRate = params_.lrate_;
 #ifndef  OCV_MEASURE_TIME
     for(int j = 0; j != params_.max_iter_; ++j){
         int const X = uni_int(re);
@@ -416,6 +417,9 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
         encoder_gradient(input.block(0, X,
                                      input.rows(), batch), ls);
 
+        if(ls.cost_ > last_cost){
+            params_.lrate_ /= 2;
+        }
         if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                 ls.cost_ <= 0.0){
             break;
@@ -462,6 +466,7 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
     std::cout<<"average update time : "<<t_gra / iter_time<<"\n";
     std::cout<<"average time of update weight and bias : "<<t_update / iter_time<<"\n";
 #endif
+    params_.lrate_ = LRate;
 }
 
 void autoencoder::test()
