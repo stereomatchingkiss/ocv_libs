@@ -156,7 +156,11 @@ void autoencoder::
 generate_activation_cpu(layer const &ls,
                         EigenMat const &temp_input)
 {        
-    eactivation_.noalias() = ls.w1_ * temp_input;
+    if(temp_input.data() != eactivation_.data()){
+        eactivation_.noalias() = ls.w1_ * temp_input;
+    }else{
+        eactivation_ = ls.w1_ * temp_input;
+    }
 
     MapperConst Map(ls.b1_.data(), ls.b1_.size());
     eactivation_.colwise() += Map;
@@ -540,7 +544,7 @@ autoencoder::cv_layer::cv_layer() :
 
 autoencoder::cv_layer::
 cv_layer(int input_size, int hidden_size,
-             int mat_type, double cost) :
+         int mat_type, double cost) :
     cost_{cost}
 {
     w1_.create(hidden_size, input_size, mat_type);
@@ -583,7 +587,7 @@ autoencoder::layer::layer() :
 
 autoencoder::layer::
 layer(int input_size, int hidden_size,
-            double cost) :
+      double cost) :
     cost_{cost}
 {
     w1_ = EigenMat::Random(hidden_size, input_size);
