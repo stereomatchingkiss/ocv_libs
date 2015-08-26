@@ -28,7 +28,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     ml/deep_learning/autoencoder.cpp \
     ml/utility/feature_scaling.cpp \
     ml/deep_learning/network_layer.cpp \
-    ml/utility/activation.cpp
+    ml/utility/activation.cpp \
+    ml/deep_learning/softmax.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -47,4 +48,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \
     ml/deep_learning/network_layer.hpp \
     profile/measure.hpp \
-    eigen/eigen.hpp
+    eigen/eigen.hpp \
+    ml/deep_learning/softmax.hpp
