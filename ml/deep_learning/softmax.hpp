@@ -41,7 +41,7 @@ public:
     void set_epsillon(double epsillon);
     void set_lambda(double lambda);
     void set_learning_rate(double lrate);
-    void set_max_iter(size_t max_iter);
+    void set_max_iter(int max_iter);
 
     void read(std::string const &file);
 
@@ -66,7 +66,7 @@ private:
         double epsillon_;
         double lambda_;
         double lrate_;
-        size_t max_iter_;
+        int max_iter_;
     };
 
     EigenMat hypothesis_;

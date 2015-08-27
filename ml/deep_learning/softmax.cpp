@@ -71,7 +71,7 @@ void softmax::set_learning_rate(double lrate)
  * @brief Set max iterateration times
  * @param max_iter max iteration time
  */
-void softmax::set_max_iter(size_t max_iter)
+void softmax::set_max_iter(int max_iter)
 {
     params_.max_iter_ = max_iter;
 }
@@ -89,9 +89,7 @@ void softmax::read(const std::string &file)
     in["epsillon_"]>>params_.epsillon_;
     in["lambda_"]>>params_.lambda_;
     in["lrate_"]>>params_.lrate_;
-    int max_iter = 100;
-    in["max_iter_"]>>max_iter;
-    params_.max_iter_ = static_cast<size_t>(max_iter);
+    in["max_iter_"]>>params_.max_iter_;
     cv::Mat weight;
     in["weight"]>>weight;
     eigen::cv2eigen_cpy(weight, weight_);
@@ -158,7 +156,7 @@ void softmax::write(const std::string &file) const
     out<<"epsillon_"<<params_.epsillon_;
     out<<"lambda_"<<params_.lambda_;
     out<<"lrate_"<<params_.lrate_;
-    out<<"max_iter_"<<static_cast<int>(params_.max_iter_);
+    out<<"max_iter_"<<params_.max_iter_;
     cv::Mat const Weight = eigen::eigen2cv_ref(weight_);
     out<<"weight"<<Weight;
 }
