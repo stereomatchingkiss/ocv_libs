@@ -11,20 +11,6 @@ namespace ocv{
 
 namespace ml{
 
-namespace{
-
-using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
-using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
-
-template<typename T>
-void print_dimension(T const &input)
-{
-    std::cout<<input.rows()<<", "<<input.cols()<<"\n\n";
-}
-
-}
-
 softmax::softmax()
 {
 
