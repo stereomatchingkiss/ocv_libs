@@ -413,9 +413,9 @@ void autoencoder::generate_activation(layer const &ls,
 #endif
 }
 
-int autoencoder::get_batch_size(int batch_size) const
+int autoencoder::get_batch_size(int sample_size) const
 {    
-    return std::min(params_.batch_size_, batch_size);
+    return std::min(params_.batch_size_, sample_size);
 }
 
 void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,

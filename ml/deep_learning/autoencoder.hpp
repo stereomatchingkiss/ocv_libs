@@ -142,7 +142,7 @@ private:
                                   EigenMat const &temp_input);    
     void get_activation(EigenMat const &input,
                         layer &es);
-    int get_batch_size(int batch_size) const;
+    int get_batch_size(int sample_size) const;
     void get_delta_2(EigenMat const &delta_3,
                      layer const &es);
 
