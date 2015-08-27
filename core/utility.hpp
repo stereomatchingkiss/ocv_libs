@@ -16,6 +16,65 @@
 namespace ocv
 {
 
+/*
+ *@brief easy function for compare_channels, user should make sure T is the correct
+ *channel type of src1.
+ */
+template<typename T, typename UnaryFunc>
+typename std::enable_if<!std::is_same<UnaryFunc, cv::Mat>::value, bool>::type
+compare_channels(cv::Mat const &src, UnaryFunc func)
+{
+    int rows = src.rows;
+    int cols = src.cols * src.channels();
+
+    if(src.isContinuous()){
+        rows = 1;
+        cols = src.total() * src.channels();
+    }
+
+    for(int row = 0; row != rows; ++row){
+        T const *src_ptr = src.ptr<T>(row);
+        for(int col = 0; col != cols; ++col){
+            if(!func(src_ptr[col])){
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ *@brief : easy function for compare_channels, user should make sure T is the correct
+ *channel type of src1 and src2
+ */
+template<typename T, typename BiFunc = std::equal_to<T> >
+bool compare_channels(cv::Mat const &src1, cv::Mat const &src2, BiFunc func = std::equal_to<T>())
+{
+    if(src1.rows != src2.rows || src1.cols != src2.cols || src1.type() != src2.type()){
+        return false;
+    }
+
+    if(src1.isContinuous() && src2.isContinuous()){
+        return std::equal(src1.ptr<T>(0), src1.ptr<T>(0) + src1.total() * src1.channels(), src2.ptr<T>(0), func);
+    }
+
+    int const rows = src1.rows;
+    int const pixels_per_row = src1.cols * src1.channels();
+    for(int row = 0; row != rows; ++row){
+        T const *src1_ptr = src1.ptr<T>(row);
+        T const *src2_ptr = src2.ptr<T>(row);
+        for(int col = 0; col != pixels_per_row; ++col){
+            if(!func(src1_ptr[col], src2_ptr[col])){
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
 /**
  * @brief: copy src to dst if their rows, cols or type are different
  */
