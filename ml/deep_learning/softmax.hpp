@@ -37,7 +37,8 @@ public:
 
     EigenMat const& get_weight() const;
 
-    void set_batch_size(int batch_size);    
+    void set_batch_size(int batch_size);
+    void set_epsillon(double epsillon);
     void set_lambda(double lambda);
     void set_learning_rate(double lrate);
     void set_max_iter(size_t max_iter);
@@ -50,7 +51,7 @@ private:
                         EigenMat const &weight);
 
     void compute_hypothesis(EigenMat const &train,
-                           EigenMat const &weight);
+                            EigenMat const &weight);
     void compute_gradient(EigenMat const &train);
 
     struct params
@@ -58,7 +59,7 @@ private:
         params();
         int batch_size_;
         double cost_;
-        double epsillon;
+        double epsillon_;
         double lambda_;
         double lrate_;
         size_t max_iter_;

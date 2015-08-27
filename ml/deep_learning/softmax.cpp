@@ -51,6 +51,11 @@ void softmax::set_batch_size(int batch_size)
     params_.batch_size_ = batch_size;
 }
 
+void softmax::set_epsillon(double epsillon)
+{
+    params_.epsillon_ = epsillon;
+}
+
 /**
  * @brief Setup the lambda
  * @param lambda the lambda value which determine the effect\n
@@ -119,7 +124,7 @@ void softmax::train(const softmax::EigenMat &train,
 
     for(size_t i = 0; i != params_.max_iter_; ++i){
         auto const Cost = compute_cost(train, weight_);
-        if(std::abs(params_.cost_ - Cost) < params_.epsillon){
+        if(std::abs(params_.cost_ - Cost) < params_.epsillon_){
             break;
         }
         params_.cost_ = Cost;
@@ -167,7 +172,7 @@ void softmax::compute_gradient(const softmax::EigenMat &train)
 softmax::params::params() :
     batch_size_{100},
     cost_{std::numeric_limits<double>::max()},
-    epsillon{0.002},
+    epsillon_{0.002},
     lambda_{0.0},
     lrate_{0.2},
     max_iter_{100}
