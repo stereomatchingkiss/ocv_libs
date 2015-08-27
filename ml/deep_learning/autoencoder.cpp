@@ -54,18 +54,28 @@ void autoencoder::read(const std::string &file)
     cv::FileStorage in(file, cv::FileStorage::READ);
     int layer_size = 0;
     in["layer_size"]>>layer_size;
-
+    in["batch_size"]>>params_.batch_size_;
+    in["beta_"]>>params_.beta_;
+    in["eps_"]>>params_.eps_;
+    in["lambda_"]>>params_.lambda_;
+    in["lrate_"]>>params_.lrate_;
+    in["max_iter_"]>>params_.max_iter_;
+    in["sparse_"]>>params_.sparse_;
+    params_.hidden_size_.resize(layer_size);
     layers_.clear();
     for(int i = 0; i != layer_size; ++i){
         cv_layer ls;
-        in["w1_" + std::to_string(i)] >> ls.w1_;
-        in["w2_" + std::to_string(i)] >> ls.w2_;
-        in["w1_grad_" + std::to_string(i)] >> ls.w1_grad_;
-        in["w2_grad_" + std::to_string(i)] >> ls.w2_grad_;
-        in["b1_" + std::to_string(i)] >> ls.b1_;
-        in["b2_" + std::to_string(i)] >> ls.b2_;
-        in["b1_grad_" + std::to_string(i)] >> ls.b1_grad_;
-        in["b2_grad_" + std::to_string(i)] >> ls.b2_grad_;
+        auto const Index = std::to_string(i);
+        in["w1_" + Index] >> ls.w1_;
+        in["w2_" + Index] >> ls.w2_;
+        in["w1_grad_" + Index] >> ls.w1_grad_;
+        in["w2_grad_" + Index] >> ls.w2_grad_;
+        in["b1_" + Index] >> ls.b1_;
+        in["b2_" + Index] >> ls.b2_;
+        in["b1_grad_" + Index] >> ls.b1_grad_;
+        in["b2_grad_" + Index] >> ls.b2_grad_;
+        in["hidden_size_" + Index]>>
+             params_.hidden_size_[i];
         layer el;
         convert(ls, el);
         layers_.emplace_back(el);
@@ -230,21 +240,31 @@ void autoencoder::train(const EigenMat &input)
 void autoencoder::write(const std::string &file) const
 {
     cv::FileStorage out(file, cv::FileStorage::WRITE);
-    out<<"layer_size"<<(int)layers_.size();
+    out<<"layer_size"<<static_cast<int>(layers_.size());
+    out<<"batch_size"<<params_.batch_size_;
+    out<<"beta_"<<params_.beta_;
+    out<<"eps_"<<params_.eps_;
+    out<<"lambda_"<<params_.lambda_;
+    out<<"lrate_"<<params_.lrate_;
+    out<<"max_iter_"<<params_.max_iter_;
+    out<<"sparse_"<<params_.sparse_;
     for(size_t i = 0; i != layers_.size(); ++i){
         cv_layer ls;
         convert(layers_[i], ls);
-        out<<("w1_" + std::to_string(i))<<ls.w1_;
-        out<<("w2_" + std::to_string(i))<<ls.w2_;
-        out<<("w1_grad_" + std::to_string(i))<<ls.w1_grad_;
-        out<<("w2_grad_" + std::to_string(i))<<ls.w2_grad_;
-        out<<("b1_" + std::to_string(i))<<ls.b1_;
-        out<<("b2_" + std::to_string(i))<<ls.b2_;
-        out<<("b1_grad_" + std::to_string(i))<<ls.b1_grad_;
-        out<<("b2_grad_" + std::to_string(i))<<ls.b2_grad_;
+        auto const Index = std::to_string(i);
+        out<<("w1_" + Index)<<ls.w1_;
+        out<<("w2_" + Index)<<ls.w2_;
+        out<<("w1_grad_" + Index)<<ls.w1_grad_;
+        out<<("w2_grad_" + Index)<<ls.w2_grad_;
+        out<<("b1_" + Index)<<ls.b1_;
+        out<<("b2_" + Index)<<ls.b2_;
+        out<<("b1_grad_" + Index)<<ls.b1_grad_;
+        out<<("b2_grad_" + Index)<<ls.b2_grad_;
+        out<<("hidden_size_" + Index)<<
+             params_.hidden_size_[i];
     }
-    cv::Mat activation = eigen::eigen2cv_ref(eactivation_);
-    out<<"activation"<<activation;
+    cv::Mat const Activation = eigen::eigen2cv_ref(eactivation_);
+    out<<"activation"<<Activation;
 }
 
 void autoencoder::convert(cv_layer const &input,
@@ -420,7 +440,7 @@ void autoencoder::reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                                      input.rows(), batch), ls);
         if(ls.cost_ > last_cost){
             params_.lrate_ /= 2;
-        }        
+        }
 
         last_cost = ls.cost_;
         update_weight_and_bias(ls);

@@ -163,9 +163,9 @@ private:
 
     activation act_;        
     buffer buffer_;
-    EigenMat eactivation_;
-    std::vector<layer> layers_;    
     criteria params_;
+    EigenMat eactivation_;
+    std::vector<layer> layers_;        
 };
 
 } /*! @} End of Doxygen Groups*/
