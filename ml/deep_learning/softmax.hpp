@@ -37,7 +37,7 @@ public:
 
     EigenMat const& get_weight() const;
 
-    void set_batch_size(int batch_size);
+    void set_batch_size(int batch_size);    
     void set_lambda(double lambda);
     void set_learning_rate(double lrate);
     void set_max_iter(size_t max_iter);
@@ -58,7 +58,7 @@ private:
         params();
         int batch_size_;
         double cost_;
-        double inaccuracy_;
+        double epsillon;
         double lambda_;
         double lrate_;
         size_t max_iter_;

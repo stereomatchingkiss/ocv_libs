@@ -119,7 +119,7 @@ void softmax::train(const softmax::EigenMat &train,
 
     for(size_t i = 0; i != params_.max_iter_; ++i){
         auto const Cost = compute_cost(train, weight_);
-        if(std::abs(params_.cost_ - Cost) < params_.inaccuracy_){
+        if(std::abs(params_.cost_ - Cost) < params_.epsillon){
             break;
         }
         params_.cost_ = Cost;
@@ -167,7 +167,7 @@ void softmax::compute_gradient(const softmax::EigenMat &train)
 softmax::params::params() :
     batch_size_{100},
     cost_{std::numeric_limits<double>::max()},
-    inaccuracy_{0.002},
+    epsillon{0.002},
     lambda_{0.0},
     lrate_{0.2},
     max_iter_{100}
