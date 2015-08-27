@@ -23,8 +23,7 @@ include(../pri/eigen.pri)
 SOURCES += qt/mat_and_qimage.cpp \
     core/histogram.cpp \
     qt/io_img.cpp \
-    core/wavelet_transform.cpp \
-    ml/utility/gradient_checking.cpp \
+    core/wavelet_transform.cpp \    
     ml/deep_learning/autoencoder.cpp \
     ml/utility/feature_scaling.cpp \
     ml/deep_learning/network_layer.cpp \
