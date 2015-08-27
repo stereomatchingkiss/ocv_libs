@@ -134,15 +134,15 @@ private:
     void encoder_gradient(EigenMat const &input,
                           layer &es);
 
-    void get_activation(EigenMat const &input,
-                        layer &es);
     void generate_activation(layer const &ls,
                              EigenMat const &temp_input);
     void generate_activation_cpu(layer const &ls,
                                  EigenMat const &temp_input);
     void generate_activation_impl(layer const &ls,
-                                  EigenMat const &temp_input);
-    int get_batch_size(int sample_size) const;
+                                  EigenMat const &temp_input);    
+    void get_activation(EigenMat const &input,
+                        layer &es);
+    int get_batch_size(int batch_size) const;
     void get_delta_2(EigenMat const &delta_3,
                      layer const &es);
 
