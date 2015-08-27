@@ -174,7 +174,7 @@ generate_activation_cpu(layer const &ls,
 
 /**
  * @brief train by sparse autoencoder
- * @param input the input image, type must be CV_64F.\n
+ * @param input the input image, type must be double.\n
  * input contains one training example per column
  */
 
