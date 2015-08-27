@@ -43,8 +43,12 @@ public:
     void set_learning_rate(double lrate);
     void set_max_iter(size_t max_iter);
 
+    void read(std::string const &file);
+
     void train(EigenMat const &train,
                std::vector<int> const &labels);
+
+    void write(std::string const &file) const;
 
 private:
     double compute_cost(EigenMat const &train,

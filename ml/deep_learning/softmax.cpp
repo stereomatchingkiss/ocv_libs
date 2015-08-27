@@ -91,6 +91,27 @@ void softmax::set_max_iter(size_t max_iter)
 }
 
 /**
+ * @brief read the training result into the data
+ * @param file the name of the file
+ */
+void softmax::read(const std::string &file)
+{
+    cv::FileStorage in(file, cv::FileStorage::READ);
+
+    in["batch_size"]>>params_.batch_size_;
+    in["cost_"]>>params_.cost_;
+    in["epsillon_"]>>params_.epsillon_;
+    in["lambda_"]>>params_.lambda_;
+    in["lrate_"]>>params_.lrate_;
+    int max_iter = 100;
+    in["max_iter_"]>>max_iter;
+    params_.max_iter_ = static_cast<size_t>(max_iter);
+    cv::Mat weight;
+    in["weight"]>>weight;
+    eigen::cv2eigen_cpy(weight, weight_);
+}
+
+/**
  * @brief Train the input data by softmax algorithm
  * @param train Training data, input contains one\n
  *  training example per column
@@ -136,6 +157,24 @@ void softmax::train(const softmax::EigenMat &train,
         compute_gradient(train);
         weight_.array() -= grad_.array() * params_.lrate_;
     }
+}
+
+/**
+ * @brief write the training result into the file(xml)
+ * @param file the name of the file
+ */
+void softmax::write(const std::string &file) const
+{
+    cv::FileStorage out(file, cv::FileStorage::WRITE);
+
+    out<<"batch_size"<<params_.batch_size_;
+    out<<"cost_"<<params_.cost_;
+    out<<"epsillon_"<<params_.epsillon_;
+    out<<"lambda_"<<params_.lambda_;
+    out<<"lrate_"<<params_.lrate_;
+    out<<"max_iter_"<<static_cast<int>(params_.max_iter_);
+    cv::Mat const Weight = eigen::eigen2cv_ref(weight_);
+    out<<"weight"<<Weight;
 }
 
 double softmax::compute_cost(EigenMat const &train,
