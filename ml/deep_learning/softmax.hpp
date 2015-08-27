@@ -4,9 +4,9 @@
 #include "../../eigen/eigen.hpp"
 
 #include <opencv2/core.hpp>
+
 #include <Eigen/Dense>
 
-#include <random>
 #include <vector>
 
 /*! \file softmax.hpp
@@ -57,6 +57,8 @@ private:
     void compute_hypothesis(EigenMat const &train,
                             EigenMat const &weight);
     void compute_gradient(EigenMat const &train);
+
+    int get_batch_size(int sample_size) const;
 
     struct params
     {

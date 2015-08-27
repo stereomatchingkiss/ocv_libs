@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <limits>
+#include <random>
 #include <set>
 
 namespace ocv{
@@ -132,13 +133,28 @@ void softmax::train(const softmax::EigenMat &train,
             <<gc.compare_gradient(grad_, Gradient)<<"\n";//*/
 #endif
 
+    std::random_device rd;
+    std::default_random_engine re(rd());
+    auto const TrainCols = static_cast<int>(train.cols());
+    int const Batch =
+            (get_batch_size(TrainCols));
+    int const RandomSize = TrainCols != Batch ?
+                TrainCols - Batch - 1 : 0;
+    std::uniform_int_distribution<int>
+            uni_int(0, RandomSize);
     for(size_t i = 0; i != params_.max_iter_; ++i){
-        auto const Cost = compute_cost(train, weight_);
+        auto const Cols = uni_int(re);
+        auto const Cost =
+                compute_cost(train.block(0, Cols,
+                                         train.rows(),
+                                         Batch), weight_);
         if(std::abs(params_.cost_ - Cost) < params_.epsillon_){
             break;
         }
         params_.cost_ = Cost;
-        compute_gradient(train);
+        compute_gradient(train.block(0, Cols,
+                                     train.rows(),
+                                     Batch));
         weight_.array() -= grad_.array() * params_.lrate_;
     }
 }
@@ -195,6 +211,11 @@ void softmax::compute_gradient(const softmax::EigenMat &train)
             .matrix() * train.transpose();
     auto const NSamples = static_cast<double>(train.cols());
     grad_.array() /= -NSamples;
+}
+
+int softmax::get_batch_size(int sample_size) const
+{
+    return std::min(sample_size, params_.batch_size_);
 }
 
 softmax::params::params() :
