@@ -12,7 +12,8 @@
 /*! \file softmax.hpp
     \brief implement the algorithm--softmax regression based on\n
     the description of UFLDL, these codes are develop based\n
-    on the example on the website(http://eric-yuan.me/softmax-regression-cv/#comment-8781)
+    on the example on the website(http://eric-yuan.me/softmax-regression-cv/#comment-8781).
+    By now this class only support double as input data
 */
 
 /*!
@@ -42,8 +43,7 @@ public:
     void set_max_iter(size_t max_iter);
 
     void train(EigenMat const &train,
-               std::vector<int> const &labels,
-               size_t num_class);
+               std::vector<int> const &labels);
 
 private:
     double compute_cost(EigenMat const &train,

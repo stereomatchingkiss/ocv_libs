@@ -4,6 +4,8 @@
 #include "../../eigen/eigen.hpp"
 
 #include <iostream>
+#include <limits>
+#include <set>
 
 namespace ocv{
 
@@ -28,38 +30,71 @@ softmax::softmax()
 
 }
 
+/**
+ * @brief get the weight of softmax
+ * @return weight of softmax
+ */
 const softmax::EigenMat &softmax::get_weight() const
 {
     return weight_;
 }
 
+/**
+ * @brief Set the batch size of mini-batch
+ * @param batch_size batch size of mini-batch,default\n
+ * value is 200, if the train data is smaller than\n
+ * the batch size, the batch size will be same as the\n
+ * batch size
+ */
 void softmax::set_batch_size(int batch_size)
 {
     params_.batch_size_ = batch_size;
 }
 
+/**
+ * @brief Setup the lambda
+ * @param lambda the lambda value which determine the effect\n
+ * of penalizes term
+ */
 void softmax::set_lambda(double lambda)
 {
     params_.lambda_ = lambda;
 }
 
+/**
+ * @brief Set the learning rate
+ * @param lrate The larger the learning rate, the faster\n
+ * the convergence speed, but larger value may cause divergence too
+ */
 void softmax::set_learning_rate(double lrate)
 {
     params_.lrate_ = lrate;
 }
 
+/**
+ * @brief Set max iterateration times
+ * @param max_iter max iteration time
+ */
 void softmax::set_max_iter(size_t max_iter)
 {
     params_.max_iter_ = max_iter;
 }
 
+/**
+ * @brief Train the input data by softmax algorithm
+ * @param train Training data, input contains one\n
+ *  training example per column
+ * @param labels The label of each training example
+ */
 void softmax::train(const softmax::EigenMat &train,
-                    const std::vector<int> &labels,
-                    size_t num_class)
+                    const std::vector<int> &labels)
 {
-    weight_ = EigenMat::Random(num_class, train.rows());
-    grad_ = EigenMat::Zero(num_class, train.rows());
-    ground_truth_ = EigenMat::Zero(num_class, train.cols());
+    std::set<int> const UniqueLabels(std::begin(labels),
+                                     std::end(labels));
+    auto const NumClass = UniqueLabels.size();
+    weight_ = EigenMat::Random(NumClass, train.rows());
+    grad_ = EigenMat::Zero(NumClass, train.rows());
+    ground_truth_ = EigenMat::Zero(NumClass, train.cols());
     for(size_t i = 0; i != ground_truth_.cols(); ++i){
         ground_truth_(labels[i], i) = 1;
     }
