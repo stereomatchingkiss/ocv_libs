@@ -105,14 +105,16 @@ void softmax::read(const std::string &file)
 void softmax::train(const softmax::EigenMat &train,
                     const std::vector<int> &labels)
 {
-    std::set<int> const UniqueLabels(std::begin(labels),
-                                     std::end(labels));
+    auto const UniqueLabels = get_unique_labels(labels);
     auto const NumClass = UniqueLabels.size();
     weight_ = EigenMat::Random(NumClass, train.rows());
     grad_ = EigenMat::Zero(NumClass, train.rows());
     ground_truth_ = EigenMat::Zero(NumClass, train.cols());
     for(size_t i = 0; i != ground_truth_.cols(); ++i){
-        ground_truth_(labels[i], i) = 1;
+        auto it = UniqueLabels.find(labels[i]);
+        if(it != std::end(UniqueLabels)){
+            ground_truth_(it->second, i) = 1;
+        }
     }
 
 #ifdef OCV_TEST_SOFTMAX
@@ -216,6 +218,24 @@ void softmax::compute_gradient(const softmax::EigenMat &train)
 int softmax::get_batch_size(int sample_size) const
 {
     return std::min(sample_size, params_.batch_size_);
+}
+
+std::map<int, int> softmax::
+get_unique_labels(const std::vector<int> &labels) const
+{
+    std::set<int> const UniqueLabels(std::begin(labels),
+                                     std::end(labels));
+    std::map<int, int> result;
+    int i = 0;
+    for(auto it = std::begin(UniqueLabels);
+        it != std::end(UniqueLabels); ++it){
+        if(UniqueLabels.find(*it) ==
+                std::end(UniqueLabels)){
+            result.emplace(*it, i++);
+        }
+    }
+
+    return result;
 }
 
 softmax::params::params() :

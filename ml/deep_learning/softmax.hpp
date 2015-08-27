@@ -7,6 +7,7 @@
 
 #include <Eigen/Dense>
 
+#include <map>
 #include <vector>
 
 /*! \file softmax.hpp
@@ -59,6 +60,8 @@ private:
     void compute_gradient(EigenMat const &train);
 
     int get_batch_size(int sample_size) const;
+    std::map<int, int> get_unique_labels
+    (std::vector<int> const &labels) const;
 
     struct params
     {
