@@ -51,6 +51,11 @@ void softmax::set_batch_size(int batch_size)
     params_.batch_size_ = batch_size;
 }
 
+/**
+ * @brief softmax::set_epsillon
+ * @param epsillon The desired accuracy or change\n
+ *  in parameters at which the iterative algorithm stops.
+ */
 void softmax::set_epsillon(double epsillon)
 {
     params_.epsillon_ = epsillon;
