@@ -18,7 +18,7 @@
 /*! \file softmax.hpp
     \brief implement the algorithm--softmax regression based on\n
     the description of UFLDL, these codes are develop based\n
-    on the example on the website(http://eric-yuan.me/softmax-regression-cv/#comment-8781).    
+    on the example on the website(http://eric-yuan.me/softmax-regression-cv/#comment-8781).
 */
 
 /*!
@@ -53,13 +53,13 @@ public:
         return weight_;
     }
 
-    //int predict(Eigen::Ref<EigenMat> const &input);
-    //int predict(cv::Mat const &input);
+    int predict(Eigen::Ref<const EigenMat> const &input);
+    int predict(cv::Mat const &input);
 
     /**
      * @brief Set the batch size of mini-batch
      * @param batch_size batch size of mini-batch,default\n
-     * value is 200, if the train data is smaller than\n
+     * value is 100, if the train data is smaller than\n
      * the batch size, the batch size will be same as the\n
      * batch size
      */
@@ -71,7 +71,8 @@ public:
     /**
      * @brief softmax::set_epsillon
      * @param epsillon The desired accuracy or change\n
-     *  in parameters at which the iterative algorithm stops.
+     *  in parameters at which the iterative algorithm stops.\n
+     *  Default value is 1e-5
      */
     void set_epsillon(double epsillon)
     {
@@ -81,7 +82,7 @@ public:
     /**
      * @brief Setup the lambda
      * @param lambda the lambda value which determine the effect\n
-     * of penalizes term
+     * of penalizes term.Default value is 2.0
      */
     void set_lambda(double lambda)
     {
@@ -91,7 +92,8 @@ public:
     /**
      * @brief Set the learning rate
      * @param lrate The larger the learning rate, the faster\n
-     * the convergence speed, but larger value may cause divergence too
+     * the convergence speed, but larger value may cause divergence too.\n
+     * Default value is 0.2
      */
     void softmax::set_learning_rate(double lrate)
     {
@@ -100,51 +102,27 @@ public:
 
     /**
      * @brief Set max iterateration times
-     * @param max_iter max iteration time
+     * @param max_iter max iteration time, default value is 10000
      */
     void softmax::set_max_iter(int max_iter)
     {
         params_.max_iter_ = max_iter;
     }
 
-    /**
-     * @brief read the training result into the data
-     * @param file the name of the file
-     */
     void read(const std::string &file);
 
-    /**
-     * @brief Train the input data by softmax algorithm
-     * @param train Training data, input contains one\n
-     *  training example per column
-     * @param labels The label of each training example
-     */    
     void train(const Eigen::Ref<const EigenMat> &train,
                const std::vector<int> &labels);
 
-    /**
-     * @brief write the training result into the file(xml)
-     * @param file the name of the file
-     */
-    void write(const std::string &file) const
-    {
-        cv::FileStorage out(file, cv::FileStorage::WRITE);
-
-        out<<"batch_size"<<params_.batch_size_;
-        out<<"cost_"<<params_.cost_;
-        out<<"epsillon_"<<params_.epsillon_;
-        out<<"lambda_"<<params_.lambda_;
-        out<<"lrate_"<<params_.lrate_;
-        out<<"max_iter_"<<params_.max_iter_;
-        cv::Mat const Weight = eigen::eigen2cv_ref(weight_);
-        out<<"weight"<<Weight;
-    }
+    void write(const std::string &file) const;
 
 private:    
     double compute_cost(Eigen::Ref<const EigenMat> const &train,
-                        Eigen::Ref<const EigenMat> const &weight);
+                        Eigen::Ref<const EigenMat> const &weight,
+                        Eigen::Ref<const EigenMat> const &ground_truth);
 
-    void compute_gradient(Eigen::Ref<const EigenMat> const &train);
+    void compute_gradient(Eigen::Ref<const EigenMat> const &train,
+                          Eigen::Ref<const EigenMat> const &ground_truth);
 
     void compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
                             Eigen::Ref<const EigenMat> const &weight);
@@ -154,8 +132,32 @@ private:
         return std::min(sample_size, params_.batch_size_);
     }
 
+    EigenMat get_ground_truth(int NumClass,
+                              int samples_size,
+                              std::map<int, int> const &unique_labels,
+                              std::vector<int> const &labels) const;
     std::map<int, int> softmax::
     get_unique_labels(const std::vector<int> &labels) const;
+
+    void gradient_checking(Eigen::Ref<const EigenMat> const &train,
+                           Eigen::Ref<const EigenMat> const &ground_truth)
+    {
+        gradient_checking gc;
+        auto func = [&](EigenMat &theta)->double
+        {
+            return compute_cost(train, theta, ground_truth);
+        };
+
+        EigenMat const WeightBuffer = weight_;
+        EigenMat const Gradient =
+                gc.compute_gradient(weight_, func);
+
+        compute_cost(train, WeightBuffer, ground_truth);
+        compute_gradient(train, ground_truth);
+
+        std::cout<<std::boolalpha<<"gradient checking pass : "
+                <<gc.compare_gradient(grad_, Gradient)<<"\n";//*/
+    }
 
 
     struct params
@@ -171,9 +173,10 @@ private:
 
     EigenMat hypothesis_;
     EigenMat grad_;
-    EigenMat ground_truth_;
+    //EigenMat ground_truth_;
     EigenMat max_exp_power_;
     params params_;
+    EigenMat probability_;
     EigenMat weight_;
     EigenMat weight_sum_;
 };
@@ -184,6 +187,46 @@ softmax<T>::softmax()
 
 }
 
+/**
+ *@brief Predicts the response for input sample(one sample)
+ *@param input input data for prediction
+ *@return Output prediction responses for corresponding sample
+ *@pre rows are the features, col is the corresponding sample.\n
+ * This function can predict one sample only
+ */
+template<typename T>
+int softmax<T>::predict(Eigen::Ref<const EigenMat> const &input)
+{    
+    CV_Assert(input.cols() == 1);
+    compute_hypothesis(input, weight_);
+    probability_ = (hypothesis_ * input.transpose()).
+            rowwise().sum();
+    EigenMat::Index max_row = 0, max_col = 0;
+    probability_.maxCoeff(&max_row, &max_col);
+
+    return max_row;
+}
+
+/**
+ *@brief Predicts the response for input sample(one sample)
+ *@param input input data for prediction
+ *@return Output prediction responses for corresponding sample
+ *@pre rows are the features, col is the corresponding sample.\n
+ * This function can predict one sample only
+ */
+template<typename T>
+int softmax<T>::predict(cv::Mat const &input)
+{
+    Eigen::Map<EigenMat> const Map(reinterpret_cast<*>(input.data),
+                                   input.rows,
+                                   input.step / sizeof(T));
+    return predict(Map.block(0, 0, input.rows, input.cols));
+}
+
+/**
+ * @brief read the training result into the data
+ * @param file the name of the file
+ */
 template<typename T>
 void softmax<T>::read(const std::string &file)
 {
@@ -200,6 +243,12 @@ void softmax<T>::read(const std::string &file)
     eigen::cv2eigen_cpy(weight, weight_);
 }
 
+/**
+ * @brief Train the input data by softmax algorithm
+ * @param train Training data, input contains one\n
+ *  training example per column
+ * @param labels The label of each training example
+ */
 template<typename T>
 void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
                        const std::vector<int> &labels)
@@ -208,37 +257,17 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
     auto const NumClass = UniqueLabels.size();
     weight_ = EigenMat::Random(NumClass, train.rows());
     grad_ = EigenMat::Zero(NumClass, train.rows());
-    ground_truth_ = EigenMat::Zero(NumClass, train.cols());
-    for(size_t i = 0; i != ground_truth_.cols(); ++i){
-        auto it = UniqueLabels.find(labels[i]);
-        if(it != std::end(UniqueLabels)){
-            ground_truth_(it->second, i) = 1;
-        }
-    }
-
+    auto const TrainCols = static_cast<int>(train.cols());
+    EigenMat const GroundTruth = get_ground_truth(NumClass, TrainCols,
+                                                  UniqueLabels,
+                                                  labels);
 #ifdef OCV_TEST_SOFTMAX
-    gradient_checking gc;
-    auto func = [&](EigenMat &theta)->double
-    {
-        return compute_cost(train, theta);
-    };
-
-    EigenMat const WeightBuffer = weight_;
-    EigenMat const Gradient =
-            gc.compute_gradient(weight_, func);
-
-    compute_cost(train, WeightBuffer);
-    compute_gradient(train);
-
-    std::cout<<std::boolalpha<<"gradient checking pass : "
-            <<gc.compare_gradient(grad_, Gradient)<<"\n";//*/
+    gradient_checking(train, GroundTruth);
 #endif
 
     std::random_device rd;
     std::default_random_engine re(rd());
-    auto const TrainCols = static_cast<int>(train.cols());
-    int const Batch =
-            (get_batch_size(TrainCols));
+    int const Batch = (get_batch_size(TrainCols));
     int const RandomSize = TrainCols != Batch ?
                 TrainCols - Batch - 1 : 0;
     std::uniform_int_distribution<int>
@@ -248,35 +277,59 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
         auto const Cost =
                 compute_cost(train.block(0, Cols,
                                          train.rows(),
-                                         Batch), weight_);
-        if(std::abs(params_.cost_ - Cost) < params_.epsillon_){
+                                         Batch),
+                             weight_,
+                             GroundTruth.block(0, Cols,
+                                               NumClass,
+                                               Batch));
+        if(std::abs(params_.cost_ - Cost) < params_.epsillon_ ||
+                Cost < 0){
             break;
         }
         params_.cost_ = Cost;
         compute_gradient(train.block(0, Cols,
                                      train.rows(),
-                                     Batch));
-        weight_.array() -= grad_.array() * params_.lrate_;
+                                     Batch),
+                         GroundTruth.block(0, Cols,
+                                           NumClass,
+                                           Batch));
+        weight_.array() -= grad_.array() * params_.lrate_;//*/
     }
 }
 
 template<typename T>
-double softmax<T>::compute_cost(const Eigen::Ref<const EigenMat> &train,
-                                const Eigen::Ref<const EigenMat> &weight)
+void softmax<T>::write(const std::string &file) const
 {
+    cv::FileStorage out(file, cv::FileStorage::WRITE);
+
+    out<<"batch_size"<<params_.batch_size_;
+    out<<"cost_"<<params_.cost_;
+    out<<"epsillon_"<<params_.epsillon_;
+    out<<"lambda_"<<params_.lambda_;
+    out<<"lrate_"<<params_.lrate_;
+    out<<"max_iter_"<<params_.max_iter_;
+    cv::Mat const Weight = eigen::eigen2cv_ref(weight_);
+    out<<"weight"<<Weight;
+}
+
+template<typename T>
+double softmax<T>::compute_cost(const Eigen::Ref<const EigenMat> &train,
+                                const Eigen::Ref<const EigenMat> &weight,
+                                const Eigen::Ref<const EigenMat> &ground_truth)
+{    
     compute_hypothesis(train, weight);
     double const NSamples = static_cast<double>(train.cols());
-
     return  -1.0 * (hypothesis_.array().log() *
-                    ground_truth_.array()).sum() / NSamples +
+                    ground_truth.array()).sum() / NSamples +
             weight.array().pow(2.0).sum() * params_.lambda_ / 2.0;
 }
 
 template<typename T>
-void softmax<T>::compute_gradient(Eigen::Ref<const EigenMat> const &train)
+void softmax<T>::compute_gradient(Eigen::Ref<const EigenMat> const &train,
+                                  Eigen::Ref<const EigenMat> const &ground_truth)
 {
     grad_.noalias() =
-            (ground_truth_.array() - hypothesis_.array())
+            (ground_truth.array() - hypothesis_.array())
             .matrix() * train.transpose();
     auto const NSamples = static_cast<double>(train.cols());
     grad_.array() /= -NSamples;
@@ -285,7 +338,7 @@ void softmax<T>::compute_gradient(Eigen::Ref<const EigenMat> const &train)
 template<typename T>
 void softmax<T>::compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
                                     Eigen::Ref<const EigenMat> const &weight)
-{
+{    
     hypothesis_.noalias() = weight * train;
     max_exp_power_ = hypothesis_.colwise().maxCoeff();
     for(size_t i = 0; i != hypothesis_.cols(); ++i){
@@ -300,6 +353,23 @@ void softmax<T>::compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
 }
 
 template<typename T>
+typename softmax<T>::EigenMat softmax<T>::
+get_ground_truth(int NumClass, int samples_size,
+                 std::map<int, int> const &unique_labels,
+                 std::vector<int> const &labels) const
+{
+    EigenMat ground_truth = EigenMat::Zero(NumClass, samples_size);
+    for(size_t i = 0; i != ground_truth.cols(); ++i){
+        auto it = unique_labels.find(labels[i]);
+        if(it != std::end(unique_labels)){
+            ground_truth(it->second, i) = 1;
+        }
+    }
+
+    return ground_truth;
+}
+
+template<typename T>
 std::map<int, int> softmax<T>::
 get_unique_labels(const std::vector<int> &labels) const
 {
@@ -309,8 +379,8 @@ get_unique_labels(const std::vector<int> &labels) const
     int i = 0;
     for(auto it = std::begin(UniqueLabels);
         it != std::end(UniqueLabels); ++it){
-        if(UniqueLabels.find(*it) ==
-                std::end(UniqueLabels)){
+        if(result.find(*it) ==
+                std::end(result)){
             result.emplace(*it, i++);
         }
     }
@@ -322,10 +392,10 @@ template<typename T>
 softmax<T>::params::params() :
     batch_size_{100},
     cost_{std::numeric_limits<double>::max()},
-    epsillon_{0.002},
-    lambda_{0.0},
+    epsillon_{1e-5},
+    lambda_{2.0},
     lrate_{0.2},
-    max_iter_{100}
+    max_iter_{10000}
 {
 
 }
