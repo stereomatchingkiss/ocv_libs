@@ -274,25 +274,17 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
             uni_int(0, RandomSize);
     for(size_t i = 0; i != params_.max_iter_; ++i){
         auto const Cols = uni_int(re);
-        auto const Cost =
-                compute_cost(train.block(0, Cols,
-                                         train.rows(),
-                                         Batch),
-                             weight_,
-                             GroundTruth.block(0, Cols,
-                                               NumClass,
-                                               Batch));
+        auto const &TrainBlock =
+                train.block(0, Cols, train.rows(), Batch);
+        auto const &GTBlock =
+                GroundTruth.block(0, Cols, NumClass, Batch);
+        auto const Cost = compute_cost(TrainBlock, weight_, GTBlock);
         if(std::abs(params_.cost_ - Cost) < params_.epsillon_ ||
                 Cost < 0){
             break;
         }
         params_.cost_ = Cost;
-        compute_gradient(train.block(0, Cols,
-                                     train.rows(),
-                                     Batch),
-                         GroundTruth.block(0, Cols,
-                                           NumClass,
-                                           Batch));
+        compute_gradient(TrainBlock, GTBlock);
         weight_.array() -= grad_.array() * params_.lrate_;//*/
     }
 }
