@@ -160,9 +160,9 @@ private:
     }
 
 
-    struct params
+    struct criteria
     {
-        params();
+        criteria();
         int batch_size_;
         double cost_;
         double epsillon_;
@@ -172,10 +172,9 @@ private:
     };
 
     EigenMat hypothesis_;
-    EigenMat grad_;
-    //EigenMat ground_truth_;
+    EigenMat grad_;    
     EigenMat max_exp_power_;
-    params params_;
+    criteria params_;
     EigenMat probability_;
     EigenMat weight_;
     EigenMat weight_sum_;
@@ -381,7 +380,7 @@ get_unique_labels(const std::vector<int> &labels) const
 }
 
 template<typename T>
-softmax<T>::params::params() :
+softmax<T>::criteria::criteria() :
     batch_size_{100},
     cost_{std::numeric_limits<double>::max()},
     epsillon_{1e-5},
