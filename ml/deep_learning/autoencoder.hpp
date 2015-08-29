@@ -234,6 +234,7 @@ public:
     {
 #ifdef OCV_TEST_AUTOENCODER
         unused(input);
+        std::cout<<"test autoencoder\n";
         test();
 #else
         layers_.clear();
@@ -521,7 +522,7 @@ private:
                         layer &es)
     {
         forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
-        //forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
+        forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
     }
     int get_batch_size(int sample_size) const
     {
@@ -685,6 +686,7 @@ private:
                 }
             });
             if(!all_same){
+                std::cout<<"layer "<<i<<" fail\n";
                 break;
             }else{
                 std::cout<<"layer "<<i<<" pass\n";
@@ -696,9 +698,9 @@ private:
     void update_weight_and_bias(layer &ls)
     {
         update_weight_and_bias(ls.w1_grad_, ls.w1_);
-        //update_weight_and_bias(ls.w2_grad_, ls.w2_);
-        //update_weight_and_bias(ls.b1_grad_, ls.b1_);
-        //update_weight_and_bias(ls.b2_grad_, ls.b2_);
+        update_weight_and_bias(ls.w2_grad_, ls.w2_);
+        update_weight_and_bias(ls.b1_grad_, ls.b1_);
+        update_weight_and_bias(ls.b2_grad_, ls.b2_);
     }
 
     template<typename Derived>
