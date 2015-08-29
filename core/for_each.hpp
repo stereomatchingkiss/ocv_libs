@@ -189,8 +189,8 @@ BinaryFunc for_each_channels(Mat &&input_1, Mat &&input_2, BinaryFunc func)
  * flexible
  *
  *@param inout : input and output
- *@param func : the functor accept variadic arguments,but\n
- * the first argument type must be T
+ *@param func : the functor accept atleast 1 arguments,\n
+ * the first argument type must be Mat
  *@param T : template parameter, channel type of src
  *@param args : variadic parameters which forward to the func
  */
@@ -225,6 +225,64 @@ Func for_each(Mat &&inout, Func func, Args... args)
         auto end = begin + cols;
         while(begin != end){
             func(*begin, std::forward<Args>(args)...);
+            ++begin;
+        }
+    }
+
+    return func;
+}
+
+/**
+ *@brief apply for_each algorithm on variadic channels.\n
+ * This function is similar to for_each_channels, but more\n
+ * flexible
+ *
+ *@param inout_1 : input and output 1
+ *@param inout_2 : input and output 2
+ *@param func : the functor accept atleast 2 arguments,\n
+ * the first and second argument type must be Mat
+ *@param T : template parameter, channel type of src
+ *@param args : variadic parameters which forward to the func
+ */
+
+/*! \brief example.
+ *\code
+ * cv::Mat_<cv::Vec3b> im_1 =
+ * cv::imread("give_me_back_my_money.jpg");
+ * cv::Mat_<cv::Vec3b> im_2 =
+ * cv::imread("charlotte.jpg");
+ *
+ * for_each<cv::Vec3b>(input, [](cv::vec3b &a, cv::vec3b &b)
+ * {
+ *     b[0] = 255 - a[0];
+ *     b[1] = 255 - a[1];
+ *     b[2] = 255 - a[2];
+ * });
+ *\endcode
+*/
+template<typename T, typename Mat, typename Func,
+         typename... Args>
+Func for_each(Mat &&inout_1, Mat &&inout_2,
+              Func func, Args... args)
+{
+    CV_Assert(inout_1.total() == inout_2.total());
+    CV_Assert(inout_1.type() == inout_2.type());
+
+    int rows = inout_1.rows;
+    int cols = inout_1.cols;
+
+    if(inout_1.isContinuous()){
+        cols = static_cast<int>(inout_1.total());
+        rows = 1;
+    }
+
+    for(int row = 0; row != rows; ++row){
+        auto begin_1 = inout_1.template ptr<T>(row);
+        auto begin_2 = inout_2.template ptr<T>(row);
+        auto end = begin_1 + cols;
+        while(begin != end){
+            func(*begin_1, *begin_2,
+                 std::forward<Args>(args)...);
             ++begin;
         }
     }
