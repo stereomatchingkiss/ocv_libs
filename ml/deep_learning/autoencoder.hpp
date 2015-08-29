@@ -55,6 +55,11 @@ public:
             b1_ = EigenMat::Random(hidden_size, 1);
             b2_ = EigenMat::Random(input_size, 1);
 
+            /*std::cout<<"w1\n"<<w1_<<"\n\n";
+            std::cout<<"w2\n"<<w2_<<"\n\n";
+            std::cout<<"b1\n"<<b1_<<"\n\n";
+            std::cout<<"b2\n"<<b2_<<"\n\n";//*/
+
             w1_grad_ = EigenMat::Zero(hidden_size, input_size);
             w2_grad_ = EigenMat::Zero(input_size, hidden_size);
             b1_grad_ = EigenMat::Zero(hidden_size, 1);
@@ -254,6 +259,7 @@ public:
             generate_activation(es, temp_input);
             layers_.push_back(es);
         }
+
         act_.clear();
         buffer_.clear();//*/
 #endif
@@ -293,7 +299,7 @@ public:
         out<<"activation"<<Activation;
     }
 private:
-    using MatType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+    using MatType = Eigen::Matrix<T, Eigen::Dynamic, 1>;
     using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
     using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
 
@@ -331,7 +337,7 @@ private:
         EigenMat pj_; //the average activation of hidden units
         EigenMat pj_r0_; //same as pj_ expect 0(set to max() of double)
         EigenMat pj_r1_; //same as pj_ expect 1(set to max() of double)
-    };    
+    };
 
     struct cv_layer
     {
@@ -349,10 +355,10 @@ private:
             b1_.create(hidden_size, 1, mat_type);
             b2_.create(input_size, 1, mat_type);
 
-            generate_random_value<double>(w1_, 0.12);
-            generate_random_value<double>(w2_, 0.12);
-            generate_random_value<double>(b1_, 0.12);
-            generate_random_value<double>(b2_, 0.12);
+            generate_random_value<T>(w1_, 0.12);
+            generate_random_value<T>(w2_, 0.12);
+            generate_random_value<T>(b1_, 0.12);
+            generate_random_value<T>(b2_, 0.12);
 
             w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type);
             w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type);
@@ -376,7 +382,7 @@ private:
         criteria() :
             batch_size_{100},
             beta_{3},
-            eps_{5e-5},
+            eps_{1e-8},
             lambda_{3e-3},
             lrate_{2e-2},
             max_iter_{80000},
@@ -429,23 +435,23 @@ private:
         auto const NSamples = input.cols();
         //square error of back propagation(first half)
         double const SquareError =
-                ((act_.output_.array() - input.array()).pow(2.0)
-                 / 2.0).sum() / NSamples;
+                ((act_.output_.array() - input.array()).pow(2.0) / 2.0).
+                sum() / NSamples;
         //std::cout<<"square error : "<<SquareError<<"\n";
-        // now calculate pj which is the average activation of hidden units
-        buffer_.pj_ = act_.hidden_.rowwise().sum() / NSamples;
-
         // the second part is weight decay part
         double const WeightError =
-                ((es.w1_.array() * es.w2_.array()).sum() +
+                ((es.w1_.array() * es.w1_.array()).sum() +
                  (es.w2_.array() * es.w2_.array()).sum()) *
                 (params_.lambda_ / 2.0);
         //std::cout<<"weight error : "<<WeightError<<"\n";
+
+        // now calculate pj which is the average activation of hidden units
+        buffer_.pj_ = act_.hidden_.rowwise().sum() / NSamples;
         //prevent division by zero
         buffer_.pj_r0_ = (buffer_.pj_.array() != 0.0).
-                select(buffer_.pj_, std::numeric_limits<double>::max());
+                select(buffer_.pj_, std::numeric_limits<T>::max());
         buffer_.pj_r1_ = (buffer_.pj_.array() != 1.0).
-                select(buffer_.pj_, std::numeric_limits<double>::max());//*/
+                select(buffer_.pj_, std::numeric_limits<T>::max());//*/
 
         //the third part of overall cost function is the sparsity part
         double const Sparse = params_.sparse_;
@@ -455,7 +461,6 @@ private:
                 ( (Sparse * (Sparse / (buffer_.pj_r0_.array())).log()) +
                   (1.0-Sparse)*((1.0-Sparse)/(1.0-buffer_.pj_r1_.array())).log()).sum() *
                 params_.beta_;
-        //std::cout<<"SparseError error : "<<SparseError<<"\n";
         es.cost_ = SquareError + WeightError + SparseError;//*/
     }
 
@@ -463,22 +468,20 @@ private:
     void encoder_gradient(Eigen::MatrixBase<Derived> const &input,
                           layer &es)
     {
-        get_delta_2(buffer_.delta3_, es);
-
-        buffer_.delta3_ = act_.output_ - input;
-        buffer_.delta3_ = buffer_.delta3_.array() *
-                ((1.0 - act_.output_.array()) * act_.output_.array());
-
         auto const NSamples = input.cols();
-        es.w1_grad_.noalias() = buffer_.delta2_*input.transpose();
-        es.w1_grad_ = (es.w1_grad_.array()/NSamples) +
-                params_.lambda_ * es.w1_.array();
+        buffer_.delta3_ =
+                ((act_.output_.array() - input.array()) / NSamples) *
+                ((1.0 - act_.output_.array()) * act_.output_.array());
         es.w2_grad_.noalias() = buffer_.delta3_*act_.hidden_.transpose();
-        es.w2_grad_ = (es.w2_grad_.array()/NSamples) +
+        es.w2_grad_ = (es.w2_grad_.array()) +
                 params_.lambda_ * es.w2_.array();
+        es.b2_grad_ = buffer_.delta3_.rowwise().sum();
 
-        es.b1_grad_ = buffer_.delta2_.rowwise().sum() / NSamples;
-        es.b2_grad_ = buffer_.delta3_.rowwise().sum() / NSamples;
+        get_delta_2(buffer_.delta3_, es, NSamples);
+        es.w1_grad_.noalias() = buffer_.delta2_*input.transpose();
+        es.w1_grad_ = (es.w1_grad_.array()) +
+                params_.lambda_ * es.w1_.array();
+        es.b1_grad_ = buffer_.delta2_.rowwise().sum();
     }
 
     template<typename Derived>
@@ -531,19 +534,17 @@ private:
 
     template<typename Derived>
     void get_delta_2(Eigen::MatrixBase<Derived> const &delta_3,
-                     layer const &es)
+                     layer const &es,
+                     size_t sample_size)
     {
-        //cv::Mat delta2 = es.w2_.t() * delta3 +
-        //        cv::repeat(buffer, 1, NSamples);
-
-        buffer_.delta2_.noalias() = es.w2_.transpose() * delta_3;
         buffer_.delta_buffer_ =
-                params_.beta_ *
+                (params_.beta_ / sample_size) *
                 (-params_.sparse_/(buffer_.pj_r0_.array()) +
                  (1.0-params_.sparse_)/(1.0-buffer_.pj_r1_.array()));
 
         Mapper Map(buffer_.delta_buffer_.data(),
                    buffer_.delta_buffer_.size());
+        buffer_.delta2_.noalias() = es.w2_.transpose() * delta_3;
         buffer_.delta2_.colwise() += Map;
         buffer_.delta2_ =
                 buffer_.delta2_.array() *
@@ -583,6 +584,7 @@ private:
             int const X = uni_int(re);
             encoder_cost(input.block(0, X,
                                      input.rows(), batch), ls);
+
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
@@ -597,7 +599,6 @@ private:
             last_cost = ls.cost_;
             update_weight_and_bias(ls);
         }
-
 #else
         double t_cost = 0;
         double t_gra = 0;
@@ -704,18 +705,18 @@ private:
     }
 
     template<typename Derived>
-    void update_weight_and_bias(Eigen::MatrixBase<Derived> const &bias,
+    void update_weight_and_bias(Eigen::MatrixBase<Derived> const &gradient,
                                 Eigen::MatrixBase<Derived> &weight)
     {
         weight = weight.array() -
-                params_.lrate_ * bias.array();
+                params_.lrate_ * gradient.array();
     }
 
-    activation act_;        
+    activation act_;
     buffer buffer_;
     criteria params_;
     EigenMat eactivation_;
-    std::vector<layer> layers_;        
+    std::vector<layer> layers_;
 };
 
 } /*! @} End of Doxygen Groups*/
