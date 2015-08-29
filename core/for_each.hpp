@@ -200,7 +200,7 @@ BinaryFunc for_each_channels(Mat &&input_1, Mat &&input_2, BinaryFunc func)
  * cv::Mat_<cv::Vec3b> input =
  * cv::imread("give_me_back_my_money.jpg");
  *
- * for_each<uchar>(input, [](cv::vec3b &a)
+ * for_each<cv::Vec3b>(input, [](cv::vec3b &a)
  * {
  *     a[0] = 255 - a[0];
  *     a[1] = 255 - a[1];
