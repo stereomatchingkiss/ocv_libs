@@ -24,8 +24,7 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/histogram.cpp \
     qt/io_img.cpp \
     core/wavelet_transform.cpp \        
-    ml/utility/feature_scaling.cpp \
-    ml/deep_learning/network_layer.cpp \
+    ml/utility/feature_scaling.cpp \    
     ml/utility/activation.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
@@ -42,8 +41,7 @@ HEADERS += qt/mat_and_qimage.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/bufferpool.impl.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/directx.inc.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/gl_core_3_1.hpp \
-    ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \
-    ml/deep_learning/network_layer.hpp \
+    ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \    
     profile/measure.hpp \
     eigen/eigen.hpp \
     ml/deep_learning/softmax.hpp
