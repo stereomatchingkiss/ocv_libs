@@ -3,6 +3,11 @@
 
 #include "../../core/utility.hpp"
 #include "../../eigen/eigen.hpp"
+
+#ifdef OCV_TEST_AUTOENCODER
+#include "../utility/gradient_checking.hpp"
+#endif
+
 #include "../../profile/measure.hpp"
 #include "propagation.hpp"
 
@@ -54,11 +59,6 @@ public:
             w2_ = EigenMat::Random(input_size, hidden_size);
             b1_ = EigenMat::Random(hidden_size, 1);
             b2_ = EigenMat::Random(input_size, 1);
-
-            /*std::cout<<"w1\n"<<w1_<<"\n\n";
-            std::cout<<"w2\n"<<w2_<<"\n\n";
-            std::cout<<"b1\n"<<b1_<<"\n\n";
-            std::cout<<"b2\n"<<b2_<<"\n\n";//*/
 
             w1_grad_ = EigenMat::Zero(hidden_size, input_size);
             w2_grad_ = EigenMat::Zero(input_size, hidden_size);
@@ -237,11 +237,6 @@ public:
     template<typename Derived>
     void train(Eigen::MatrixBase<Derived> const &input)
     {
-#ifdef OCV_TEST_AUTOENCODER
-        unused(input);
-        std::cout<<"test autoencoder\n";
-        test();
-#else
         layers_.clear();
         std::random_device rd;
         std::default_random_engine re(rd());
@@ -255,7 +250,26 @@ public:
             EigenMat const &temp_input = i == 0 ? input
                                                 : eactivation_;
             layer es(temp_input.rows(), params_.hidden_size_[i]);
+#ifdef OCV_TEST_AUTOENCODER
+            layer es_copy = es;
+            gradient_checking gc;
+            EigenMat const Gradient =
+                    gc.compute_gradient(es_copy.w1_,
+                                        [&](EigenMat &theta)->T
+            {
+                    es_copy.w1_.swap(theta);
+                    encoder_cost(input, es_copy);
+                    auto const Cost = es_copy.cost_;
+                    es_copy.w1_.swap(theta);
+
+                    return Cost;
+        });
+#endif
             reduce_cost(uni_int, re, Batch, temp_input, es);
+#ifdef OCV_TEST_AUTOENCODER
+            std::cout<<std::boolalpha<<"pass : "<<
+                       gc.compare_gradient(Gradient, es.w1_grad_)<<"\n";
+#endif
             generate_activation(es, temp_input);
             layers_.push_back(es);
         }
@@ -551,26 +565,6 @@ private:
                 ((1.0 - act_.hidden_.array()) * act_.hidden_.array());
     }
 
-    void read_test_data(cv::FileStorage const &in,
-                        std::string const &index,
-                        cv_layer &out) const
-    {
-#ifdef OCV_TEST_AUTOENCODER
-        in["w1_" + index]>>out.w1_;
-        in["w2_" + index]>>out.w2_;
-        in["b1_" + index]>>out.b1_;
-        in["b2_" + index]>>out.b2_;
-        in["w1_grad_" + index]>>out.w1_grad_;
-        in["w2_grad_" + index]>>out.w2_grad_;
-        in["b1_grad_" + index]>>out.b1_grad_;
-        in["b2_grad_" + index]>>out.b2_grad_;
-#else
-        unused(in);
-        unused(index);
-        unused(out);
-#endif
-    }
-
     template<typename Derived>
     void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
                      std::default_random_engine &re,
@@ -637,63 +631,6 @@ private:
         std::cout<<"average time of update weight and bias : "<<t_update / iter_time<<"\n";
 #endif
         params_.lrate_ = LRate;
-    }
-
-    void test()
-    {
-#ifdef OCV_TEST_AUTOENCODER
-        cv::Mat input;
-        cv::FileStorage in("autoencoder_test_data.xml", cv::FileStorage::READ);
-        in["train"]>>input;
-
-        EigenMat ein;
-        eigen::cv2eigen_cpy(input, ein);
-
-        layers_.clear();
-        std::random_device rd;
-        std::default_random_engine re(rd());
-
-        std::uniform_int_distribution<int>
-                uni_int(0, 0);
-        cv::Mat hidden_size;
-        in["hidden_size"]>>hidden_size;
-        //std::cout<<"hidden size : "<<hidden_size<<"\n";
-        params_.hidden_size_.resize(hidden_size.cols);
-        for(int i = 0; i != hidden_size.cols; ++i){
-            params_.hidden_size_[i] = hidden_size.at<int>(0, i);
-        }
-        in["max_iter"]>>params_.max_iter_;
-        //std::cout<<"max iter : "<<params_.max_iter_<<"\n";
-        for(int i = 0; i < params_.hidden_size_.size(); ++i){
-            EigenMat &temp_input = i == 0 ? ein : eactivation_;
-            cv_layer ls;
-            read_test_data(in, std::to_string(i),
-                           ls);
-            layer es;
-            convert(ls, es);
-
-            reduce_cost(uni_int, re, temp_input.cols(),
-                        temp_input, es);
-            generate_activation(es, temp_input);
-            cv::Mat temp_act;
-            in["activation_l" + std::to_string(i)] >> temp_act;
-            bool all_same = true;
-            cv::Mat activation = eigen::eigen2cv_ref(eactivation_);
-            ocv::for_each_channels<double>(activation, temp_act,
-                                           [&](double lhs, double rhs)
-            {
-                if(std::abs(lhs - rhs) > 1e-3){
-                    all_same = false;
-                }
-            });
-            if(!all_same){
-                std::cout<<"layer "<<i<<" fail\n";
-                break;
-            }else{
-                std::cout<<"layer "<<i<<" pass\n";
-            }
-        }//*/
-#endif
     }
 
     void update_weight_and_bias(layer &ls)
