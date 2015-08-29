@@ -71,19 +71,30 @@ void forward_propagation(cv::Mat const &input,
  *@pre input, weight and bias cannot be empty.\n
  * weight.cols == input.rows && bias.rows == weight.rows
  */
-template<typename EigenMat, typename UnaryFunc = sigmoid>
-void forward_propagation(EigenMat const &input,
-                         EigenMat const &weight,
-                         EigenMat const &bias,
-                         EigenMat &output,
+template<typename Derived1,
+         typename Derived2,
+         typename Derived3,
+         typename Derived4,
+         typename UnaryFunc = sigmoid>
+void forward_propagation(Eigen::MatrixBase<Derived1> const &input,
+                         Eigen::MatrixBase<Derived2> const &weight,
+                         Eigen::MatrixBase<Derived3> const &bias,
+                         Eigen::MatrixBase<Derived4> &output,
                          UnaryFunc func = UnaryFunc())
 {
+    static_assert(std::is_same<Derived1::Scalar, Derived2::Scalar>::value &&
+                  std::is_same<Derived2::Scalar, Derived3::Scalar>::value &&
+                  std::is_same<Derived4::Scalar, Derived4::Scalar>::value,
+                  "Data type of matrix input, weight, bias and output should be the same");
+
     if(input.rows() != 0 && weight.rows() != 0 &&
             bias.rows() != 0){
         output.noalias() = weight * input;
-        using MatType = Eigen::Matrix<typename EigenMat::Scalar, Eigen::Dynamic, 1>;
+
+        using Scalar = typename Derived3::Scalar;
+        using MatType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using Mapper = Eigen::Map<const MatType, Eigen::Aligned>;
-        Mapper Map(bias.data(), bias.size());
+        Mapper Map(const_cast<Scalar*>(&bias(0, 0)), bias.size());
         output.colwise() += Map;
         func(output);
     }
