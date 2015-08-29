@@ -94,7 +94,7 @@ void forward_propagation(Eigen::MatrixBase<Derived1> const &input,
         using Scalar = typename Derived3::Scalar;
         using MatType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using Mapper = Eigen::Map<const MatType, Eigen::Aligned>;
-        Mapper Map(const_cast<Scalar*>(&bias(0, 0)), bias.size());
+        Mapper Map(&bias(0, 0), bias.size());
         output.colwise() += Map;
         func(output);
     }
