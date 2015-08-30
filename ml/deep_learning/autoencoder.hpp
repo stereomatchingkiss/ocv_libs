@@ -256,7 +256,8 @@ public:
                            : eactivation_;
             layer es(TmpInput.rows(), params_.hidden_size_[i]);
             reduce_cost(uni_int, re, Batch, TmpInput, es);
-            generate_activation(es, TmpInput);
+            generate_activation(es, TmpInput,
+                                i==0?true:false);
             layers_.push_back(es);
         }
         act_.clear();
@@ -424,6 +425,7 @@ private:
     void compute_cost(Eigen::MatrixBase<Derived> const &input,
                       layer &es)
     {
+        //std::cout<<&input(0, 0)<<"\n";
         get_activation(input, es);
         //std::cout<<"get activation\n";
         auto const NSamples = input.cols();
@@ -480,31 +482,28 @@ private:
 
     template<typename Derived>
     void generate_activation(layer const &ls,
-                             Eigen::MatrixBase<Derived> const &temp_input)
+                             Eigen::MatrixBase<Derived> const &temp_input,
+                             bool no_overlap = true)
     {
 #ifdef OCV_MEASURE_TIME
         auto const TGen =
                 time::measure<>::duration([&]()
-        { generate_activation_impl(ls, temp_input); });
+        { generate_activation_impl(ls, temp_input,
+                                   no_overlap); });
         std::cout<<"time of generate last layer activation : "<<TGen.count()<<"\n\n";
 #else
-        generate_activation_impl(ls, temp_input);
+        generate_activation_impl(ls, temp_input, no_overlap);
 #endif
     }
 
     template<typename Derived>
-    void generate_activation_cpu(layer const &ls,
-                                 Eigen::MatrixBase<Derived> const &temp_input)
+    void generate_activation_impl(layer const &ls,
+                                  Eigen::MatrixBase<Derived> const &temp_input,
+                                  bool no_overlap = true)
     {
         forward_propagation(temp_input, ls.w1_,
-                            ls.b1_, eactivation_);
-    }
-
-    template<typename Derived>
-    void generate_activation_impl(layer const &ls,
-                                  Eigen::MatrixBase<Derived> const &temp_input)
-    {
-        generate_activation_cpu(ls, temp_input);
+                            ls.b1_, eactivation_,
+                            no_overlap);
     }
 
     template<typename Derived>
