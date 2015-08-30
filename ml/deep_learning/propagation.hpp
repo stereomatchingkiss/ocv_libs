@@ -89,7 +89,11 @@ void forward_propagation(Eigen::MatrixBase<Derived1> const &input,
 
     if(input.rows() != 0 && weight.rows() != 0 &&
             bias.rows() != 0){
-        output.noalias() = weight * input;
+        if(&weight(0, 0) != &input(0, 0)){
+            output.noalias() = weight * input;
+        }else{
+            output = weight * input;
+        }
 
         using Scalar = typename Derived3::Scalar;
         using MatType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
