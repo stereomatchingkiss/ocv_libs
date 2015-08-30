@@ -546,8 +546,8 @@ private:
         auto func = [&](EigenMat &theta)->T
         {
             es.w1_.swap(theta);
-            compute_cost(Input, es_copy);
-            auto const Cost = es_copy.cost_;
+            compute_cost(Input, es);
+            auto const Cost = es.cost_;
             es.w1_.swap(theta);
 
             return Cost;
@@ -560,7 +560,7 @@ private:
         compute_gradient(Input, es_copy);
 
         std::cout<<std::boolalpha<<"pass : "<<
-                   gc.compare_gradient(Gradient, es.w1_grad_)<<"\n";
+                   gc.compare_gradient(Gradient, es_copy.w1_grad_)<<"\n";
     }
 
     template<typename Derived>
