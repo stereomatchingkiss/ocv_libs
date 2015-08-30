@@ -122,6 +122,7 @@ private:
                         Eigen::Ref<const EigenMat> const &ground_truth);
 
     void compute_gradient(Eigen::Ref<const EigenMat> const &train,
+                          Eigen::Ref<const EigenMat> const &weight,
                           Eigen::Ref<const EigenMat> const &ground_truth);
 
     void compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
@@ -153,7 +154,7 @@ private:
                 gc.compute_gradient(weight_, func);
 
         compute_cost(train, WeightBuffer, ground_truth);
-        compute_gradient(train, ground_truth);
+        compute_gradient(train, WeightBuffer, ground_truth);
 
         std::cout<<std::boolalpha<<"gradient checking pass : "
                 <<gc.compare_gradient(grad_, Gradient)<<"\n";//*/
@@ -283,7 +284,7 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
             break;
         }
         params_.cost_ = Cost;
-        compute_gradient(TrainBlock, GTBlock);
+        compute_gradient(TrainBlock, weight_, GTBlock);
         weight_.array() -= grad_.array() * params_.lrate_;//*/
     }
 }
@@ -317,13 +318,15 @@ double softmax<T>::compute_cost(const Eigen::Ref<const EigenMat> &train,
 
 template<typename T>
 void softmax<T>::compute_gradient(Eigen::Ref<const EigenMat> const &train,
+                                  Eigen::Ref<const EigenMat> const &weight,
                                   Eigen::Ref<const EigenMat> const &ground_truth)
 {
     grad_.noalias() =
             (ground_truth.array() - hypothesis_.array())
             .matrix() * train.transpose();
     auto const NSamples = static_cast<double>(train.cols());
-    grad_.array() /= -NSamples;
+    grad_.array() = grad_.array() / -NSamples +
+            params_.lambda_ * weight.array();
 }
 
 template<typename T>
@@ -339,7 +342,9 @@ void softmax<T>::compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
     hypothesis_ = hypothesis_.array().exp();
     weight_sum_ = hypothesis_.array().colwise().sum();
     for(size_t i = 0; i != hypothesis_.cols(); ++i){
-        hypothesis_.col(i) /= weight_sum_(0, i);
+        if(weight_sum_(0, i) != T(0)){
+            hypothesis_.col(i) /= weight_sum_(0, i);
+        }
     }
 }
 
