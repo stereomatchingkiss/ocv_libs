@@ -1,6 +1,8 @@
 #ifndef ACTIVATION_HPP
 #define ACTIVATION_HPP
 
+#include <Eigen/Dense>
+
 #include <opencv2/core.hpp>
 
 /*! \file activation.hpp
@@ -43,8 +45,8 @@ struct sigmoid
     void operator()(cv::Mat const &input,
                     cv::Mat &output) const;
 
-    template<typename EigenMat>
-    void operator()(EigenMat &inout) const
+    template<typename Derived>
+    void operator()(Eigen::MatrixBase<Derived> &inout) const
     {
         inout = 1.0 / (1.0 + (-1.0 * inout.array()).exp());
     }
