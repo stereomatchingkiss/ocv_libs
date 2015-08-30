@@ -80,6 +80,7 @@ void forward_propagation(Eigen::MatrixBase<Derived1> const &input,
                          Eigen::MatrixBase<Derived2> const &weight,
                          Eigen::MatrixBase<Derived3> const &bias,
                          Eigen::MatrixBase<Derived4> &output,
+                         bool no_overlap = true,
                          UnaryFunc func = UnaryFunc())
 {
     static_assert(std::is_same<Derived1::Scalar, Derived2::Scalar>::value &&
@@ -88,8 +89,8 @@ void forward_propagation(Eigen::MatrixBase<Derived1> const &input,
                   "Data type of matrix input, weight, bias and output should be the same");
 
     if(input.rows() != 0 && weight.rows() != 0 &&
-            bias.rows() != 0){
-        if(&weight(0, 0) != &input(0, 0)){
+            bias.rows() != 0){        
+        if(no_overlap){
             output.noalias() = weight * input;
         }else{
             output = weight * input;
