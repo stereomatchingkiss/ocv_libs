@@ -139,8 +139,8 @@ private:
     std::map<int, int> softmax::
     get_unique_labels(const std::vector<int> &labels) const;
 
-    void gradient_checking(Eigen::Ref<const EigenMat> const &train,
-                           Eigen::Ref<const EigenMat> const &ground_truth)
+    void gradient_check(Eigen::Ref<const EigenMat> const &train,
+                        Eigen::Ref<const EigenMat> const &ground_truth)
     {
         gradient_checking gc;
         auto func = [&](EigenMat &theta)->double
@@ -172,7 +172,7 @@ private:
     };
 
     EigenMat hypothesis_;
-    EigenMat grad_;    
+    EigenMat grad_;
     EigenMat max_exp_power_;
     criteria params_;
     EigenMat probability_;
@@ -261,7 +261,7 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
                                                   UniqueLabels,
                                                   labels);
 #ifdef OCV_TEST_SOFTMAX
-    gradient_checking(train, GroundTruth);
+    gradient_check(train, GroundTruth);
 #endif
 
     std::random_device rd;
