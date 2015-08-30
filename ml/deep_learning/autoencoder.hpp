@@ -300,10 +300,6 @@ private:
     using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
     using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
 
-    template <typename T>
-    void unused(T &&)
-    { };
-
     struct activation
     {
         void clear()
@@ -424,7 +420,7 @@ private:
     }
 
     template<typename Derived>
-    void encoder_cost(Eigen::MatrixBase<Derived> const &input,
+    void compute_cost(Eigen::MatrixBase<Derived> const &input,
                       layer &es)
     {
         get_activation(input, es);
@@ -462,7 +458,7 @@ private:
     }
 
     template<typename Derived>
-    void encoder_gradient(Eigen::MatrixBase<Derived> const &input,
+    void compute_gradient(Eigen::MatrixBase<Derived> const &input,
                           layer &es)
     {
         auto const NSamples = input.cols();
@@ -499,15 +495,8 @@ private:
     void generate_activation_cpu(layer const &ls,
                                  Eigen::MatrixBase<Derived> const &temp_input)
     {
-        if(&temp_input(0, 0) != &eactivation_(0, 0)){
-            eactivation_.noalias() = ls.w1_ * temp_input;
-        }else{
-            eactivation_ = ls.w1_ * temp_input;
-        }
-
-        MapperConst Map(ls.b1_.data(), ls.b1_.size());
-        eactivation_.colwise() += Map;
-        sigmoid()(eactivation_);
+        forward_propagation(temp_input, ls.w1_,
+                            ls.b1_, eactivation_);
     }
 
     template<typename Derived>
@@ -557,7 +546,7 @@ private:
         auto func = [&](EigenMat &theta)->T
         {
             es.w1_.swap(theta);
-            encoder_cost(Input, es_copy);
+            compute_cost(Input, es_copy);
             auto const Cost = es_copy.cost_;
             es.w1_.swap(theta);
 
@@ -567,8 +556,8 @@ private:
                 gc.compute_gradient(es.w1_,
                                     func);
 
-        encoder_cost(Input, es_copy);
-        encoder_gradient(Input, es_copy);
+        compute_cost(Input, es_copy);
+        compute_gradient(Input, es_copy);
 
         std::cout<<std::boolalpha<<"pass : "<<
                    gc.compare_gradient(Gradient, es.w1_grad_)<<"\n";
@@ -585,7 +574,7 @@ private:
 #ifndef  OCV_MEASURE_TIME
         for(int j = 0; j != params_.max_iter_; ++j){
             int const X = uni_int(re);
-            encoder_cost(input.block(0, X,
+            compute_cost(input.block(0, X,
                                      input.rows(), batch), ls);
 
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
@@ -593,14 +582,14 @@ private:
                 break;
             }
 
-            encoder_gradient(input.block(0, X,
+            compute_gradient(input.block(0, X,
                                          input.rows(), batch), ls);
             if(ls.cost_ > last_cost){
                 params_.lrate_ /= 2;
             }
 
             last_cost = ls.cost_;
-            update_weight_and_bias(ls);
+            update_weight(ls);
         }
 #else
         double t_cost = 0;
@@ -642,16 +631,16 @@ private:
         params_.lrate_ = LRate;
     }
 
-    void update_weight_and_bias(layer &ls)
+    void update_weight(layer &ls)
     {
-        update_weight_and_bias(ls.w1_grad_, ls.w1_);
-        update_weight_and_bias(ls.w2_grad_, ls.w2_);
-        update_weight_and_bias(ls.b1_grad_, ls.b1_);
-        update_weight_and_bias(ls.b2_grad_, ls.b2_);
+        update_weight(ls.w1_grad_, ls.w1_);
+        update_weight(ls.w2_grad_, ls.w2_);
+        update_weight(ls.b1_grad_, ls.b1_);
+        update_weight(ls.b2_grad_, ls.b2_);
     }
 
     template<typename Derived>
-    void update_weight_and_bias(Eigen::MatrixBase<Derived> const &gradient,
+    void update_weight(Eigen::MatrixBase<Derived> const &gradient,
                                 Eigen::MatrixBase<Derived> &weight)
     {
         weight = weight.array() -
