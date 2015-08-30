@@ -344,8 +344,10 @@ void softmax<T>::compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
     for(size_t i = 0; i != hypothesis_.cols(); ++i){
         if(weight_sum_(0, i) != T(0)){
             hypothesis_.col(i) /= weight_sum_(0, i);
-        }
+        }        
     }
+    hypothesis_ = (hypothesis_.array() != 0 ).
+            select(hypothesis_, T(0.1));
 }
 
 template<typename T>
