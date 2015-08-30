@@ -251,11 +251,12 @@ public:
 #endif
 
         for(size_t i = 0; i < params_.hidden_size_.size(); ++i){
-            EigenMat const &temp_input = i == 0 ? input
-                                                : eactivation_;
-            layer es(temp_input.rows(), params_.hidden_size_[i]);
-            reduce_cost(uni_int, re, Batch, temp_input, es);
-            generate_activation(es, temp_input);
+            Eigen::MatrixBase<Derived> const &TmpInput =
+                    i == 0 ? input
+                           : eactivation_;
+            layer es(TmpInput.rows(), params_.hidden_size_[i]);
+            reduce_cost(uni_int, re, Batch, TmpInput, es);
+            generate_activation(es, TmpInput);
             layers_.push_back(es);
         }
         act_.clear();
@@ -641,7 +642,7 @@ private:
 
     template<typename Derived>
     void update_weight(Eigen::MatrixBase<Derived> const &gradient,
-                                Eigen::MatrixBase<Derived> &weight)
+                       Eigen::MatrixBase<Derived> &weight)
     {
         weight = weight.array() -
                 params_.lrate_ * gradient.array();
