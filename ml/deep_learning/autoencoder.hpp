@@ -246,37 +246,20 @@ public:
         std::uniform_int_distribution<int>
                 uni_int(0, RandomSize);
 
+#ifdef OCV_TEST_AUTOENCODER
+        gradient_check();
+#endif
+
         for(size_t i = 0; i < params_.hidden_size_.size(); ++i){
             EigenMat const &temp_input = i == 0 ? input
                                                 : eactivation_;
             layer es(temp_input.rows(), params_.hidden_size_[i]);
-#ifdef OCV_TEST_AUTOENCODER
-            layer es_copy = es;
-            gradient_checking gc;
-            EigenMat const Gradient =
-                    gc.compute_gradient(es_copy.w1_,
-                                        [&](EigenMat &theta)->T
-            {
-                    es_copy.w1_.swap(theta);
-                    encoder_cost(input, es_copy);
-                    auto const Cost = es_copy.cost_;
-                    es_copy.w1_.swap(theta);
-
-                    return Cost;
-        });
-#endif
             reduce_cost(uni_int, re, Batch, temp_input, es);
-#ifdef OCV_TEST_AUTOENCODER
-            std::cout<<std::boolalpha<<"pass : "<<
-                       gc.compare_gradient(Gradient, es.w1_grad_)<<"\n";
-#endif
             generate_activation(es, temp_input);
             layers_.push_back(es);
         }
-
         act_.clear();
         buffer_.clear();//*/
-#endif
     }
 
     /**
@@ -563,6 +546,32 @@ private:
         buffer_.delta2_ =
                 buffer_.delta2_.array() *
                 ((1.0 - act_.hidden_.array()) * act_.hidden_.array());
+    }
+
+    void gradient_check()
+    {
+        EigenMat const Input = EigenMat::Random(8, 2);
+        layer es(Input.rows(), Input.rows() / 2);
+        layer es_copy = es;
+        gradient_checking gc;
+        auto func = [&](EigenMat &theta)->T
+        {
+            es.w1_.swap(theta);
+            encoder_cost(Input, es_copy);
+            auto const Cost = es_copy.cost_;
+            es.w1_.swap(theta);
+
+            return Cost;
+        };
+        EigenMat const Gradient =
+                gc.compute_gradient(es.w1_,
+                                    func);
+
+        encoder_cost(Input, es_copy);
+        encoder_gradient(Input, es_copy);
+
+        std::cout<<std::boolalpha<<"pass : "<<
+                   gc.compare_gradient(Gradient, es.w1_grad_)<<"\n";
     }
 
     template<typename Derived>
