@@ -140,21 +140,30 @@ private:
     std::map<int, int> softmax::
     get_unique_labels(const std::vector<int> &labels) const;
 
-    void gradient_check(Eigen::Ref<const EigenMat> const &train,
-                        Eigen::Ref<const EigenMat> const &ground_truth)
+    void gradient_check()
     {
+        std::vector<int> const Labels{0, 1, 2, 0};
+        auto const UniqueLabels = get_unique_labels(Labels);
+        auto const NumClass = UniqueLabels.size();
+        EigenMat const Train = EigenMat::Random(10, 2);
+        weight_ = EigenMat::Random(NumClass, Train.rows());
+        grad_ = EigenMat::Zero(NumClass, Train.rows());
+        auto const TrainCols = static_cast<int>(Train.cols());
+        EigenMat const GroundTruth = get_ground_truth(NumClass, TrainCols,
+                                                      UniqueLabels,
+                                                      Labels);
         gradient_checking gc;
         auto func = [&](EigenMat &theta)->double
         {
-            return compute_cost(train, theta, ground_truth);
+            return compute_cost(Train, theta, GroundTruth);
         };
 
         EigenMat const WeightBuffer = weight_;
         EigenMat const Gradient =
                 gc.compute_gradient(weight_, func);
 
-        compute_cost(train, WeightBuffer, ground_truth);
-        compute_gradient(train, WeightBuffer, ground_truth);
+        compute_cost(Train, WeightBuffer, GroundTruth);
+        compute_gradient(Train, WeightBuffer, GroundTruth);
 
         std::cout<<std::boolalpha<<"gradient checking pass : "
                 <<gc.compare_gradient(grad_, Gradient)<<"\n";//*/
@@ -253,6 +262,10 @@ template<typename T>
 void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
                        const std::vector<int> &labels)
 {
+#ifdef OCV_TEST_SOFTMAX
+    gradient_check();
+#endif
+
     auto const UniqueLabels = get_unique_labels(labels);
     auto const NumClass = UniqueLabels.size();
     weight_ = EigenMat::Random(NumClass, train.rows());
@@ -261,9 +274,6 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
     EigenMat const GroundTruth = get_ground_truth(NumClass, TrainCols,
                                                   UniqueLabels,
                                                   labels);
-#ifdef OCV_TEST_SOFTMAX
-    gradient_check(train, GroundTruth);
-#endif
 
     std::random_device rd;
     std::default_random_engine re(rd());
