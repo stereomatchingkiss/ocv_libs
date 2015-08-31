@@ -53,6 +53,9 @@ public:
         return weight_;
     }
 
+    std::vector<int> const& batch_predicts
+    (Eigen::Ref<const EigenMat> const &input);
+    std::vector<int> const& batch_predicts(cv::Mat const &input);
     int predict(Eigen::Ref<const EigenMat> const &input);
     int predict(cv::Mat const &input);
 
@@ -185,6 +188,7 @@ private:
     EigenMat grad_;
     EigenMat max_exp_power_;
     criteria params_;
+    std::vector<int> predicts_;
     EigenMat probability_;
     EigenMat weight_;
     EigenMat weight_sum_;
@@ -197,8 +201,53 @@ softmax<T>::softmax()
 }
 
 /**
+ *@brief Predicts the response for input samples(multiple samples)
+ *@param input input data for prediction, each col associate\n
+ * with one sample
+ *@return Output prediction responses for corresponding samples
+ *@pre rows are the features, cols are the corresponding samples.\n
+ * This function can predict multiple samples
+ */
+template<typename T>
+std::vector<int> const& softmax<T>::
+batch_predicts(Eigen::Ref<const EigenMat> const &input)
+{
+    predicts_.resize(input.cols());
+    compute_hypothesis(input, weight_);
+    for(size_t i = 0; i != predicts_.size(); ++i){
+        probability_ = (hypothesis_.col(i) *
+                        input.col(i).transpose()).
+                rowwise().sum();
+        EigenMat::Index max_row = 0, max_col = 0;
+        probability_.maxCoeff(&max_row, &max_col);
+        predicts_[i] = max_row;
+    }
+
+    return predicts_;
+}
+
+/**
+ *@brief Predicts the response for input samples(multiple samples)
+ *@param input input data for prediction, each col associate\n
+ * with one sample
+ *@return Output prediction responses for corresponding samples
+ *@pre rows are the features, cols are the corresponding samples.\n
+ * This function can predict multiple samples
+ */
+template<typename T>
+std::vector<int> const& softmax<T>::
+batch_predicts(cv::Mat const &input)
+{
+    Eigen::Map<EigenMat> const Map(reinterpret_cast<*>(input.data),
+                                   input.rows,
+                                   input.step / sizeof(T));
+    return batch_predicts(Map.block(0, 0, input.rows, input.cols));
+}
+
+/**
  *@brief Predicts the response for input sample(one sample)
- *@param input input data for prediction
+ *@param input input data for prediction, each col associate\n
+ * with one sample
  *@return Output prediction responses for corresponding sample
  *@pre rows are the features, col is the corresponding sample.\n
  * This function can predict one sample only
@@ -354,7 +403,7 @@ void softmax<T>::compute_hypothesis(Eigen::Ref<const EigenMat> const &train,
     for(size_t i = 0; i != hypothesis_.cols(); ++i){
         if(weight_sum_(0, i) != T(0)){
             hypothesis_.col(i) /= weight_sum_(0, i);
-        }        
+        }
     }
     hypothesis_ = (hypothesis_.array() != 0 ).
             select(hypothesis_, T(0.1));
