@@ -220,7 +220,7 @@ batch_predicts(Eigen::Ref<const EigenMat> const &input)
                 rowwise().sum();
         EigenMat::Index max_row = 0, max_col = 0;
         probability_.maxCoeff(&max_row, &max_col);
-        predicts_[i] = max_row;
+        predicts_[i] = static_cast<int>(max_row);
     }
 
     return predicts_;
@@ -320,7 +320,8 @@ void softmax<T>::train(const Eigen::Ref<const EigenMat> &train,
     weight_ = EigenMat::Random(NumClass, train.rows());
     grad_ = EigenMat::Zero(NumClass, train.rows());
     auto const TrainCols = static_cast<int>(train.cols());
-    EigenMat const GroundTruth = get_ground_truth(NumClass, TrainCols,
+    EigenMat const GroundTruth = get_ground_truth(static_cast<int>(NumClass),
+                                                  TrainCols,
                                                   UniqueLabels,
                                                   labels);
 
