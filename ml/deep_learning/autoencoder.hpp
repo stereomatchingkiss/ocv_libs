@@ -77,7 +77,8 @@ public:
         double cost_;
     };
 
-    explicit autoencoder(cv::AutoBuffer<int> const &hidden_size)
+    explicit autoencoder(cv::AutoBuffer<int> const &hidden_size) :
+        reuse_layer_{false}
     {
         set_hidden_layer_size(hidden_size);
     }
@@ -221,6 +222,16 @@ public:
     }
 
     /**
+     * @brief set the trained layer should be reuse or not
+     * @param reuse true will reuse the trained layer if exist;else\n
+     * the train function will start a new training process
+     */
+    void set_reuse_layer(bool reuse)
+    {
+        reuse_layer_ = reuse;
+    }
+
+    /**
      * @brief train by sparse autoencoder
      * @param input the input image, type must be double.\n
      * input contains one training example per column
@@ -246,7 +257,9 @@ public:
     template<typename Derived>
     void train(Eigen::MatrixBase<Derived> const &input)
     {
-        layers_.clear();
+        if(!reuse_layer_){
+            layers_.clear();
+        }
         std::random_device rd;
         std::default_random_engine re(rd());
         int const Batch = get_batch_size(input.cols());
@@ -263,11 +276,17 @@ public:
             Eigen::MatrixBase<Derived> const &TmpInput =
                     i == 0 ? input
                            : eactivation_;
-            layer es(TmpInput.rows(), params_.hidden_size_[i]);
-            reduce_cost(uni_int, re, Batch, TmpInput, es);
-            generate_activation(es, TmpInput,
-                                i==0?true:false);
-            layers_.push_back(es);
+            if(!reuse_layer_){
+                layer es(TmpInput.rows(), params_.hidden_size_[i]);
+                reduce_cost(uni_int, re, Batch, TmpInput, es);
+                generate_activation(es, TmpInput,
+                                    i==0?true:false);
+                layers_.push_back(es);
+            }else{
+                reduce_cost(uni_int, re, Batch, TmpInput, layers_[i]);
+                generate_activation(layers_[i], TmpInput,
+                                    i==0?true:false);
+            }
         }
         act_.clear();
         buffer_.clear();//*/
@@ -670,6 +689,7 @@ private:
     criteria params_;
     EigenMat eactivation_;
     std::vector<layer> layers_;
+    bool reuse_layer_;
 };
 
 } /*! @} End of Doxygen Groups*/
