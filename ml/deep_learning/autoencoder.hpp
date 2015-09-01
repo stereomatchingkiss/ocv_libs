@@ -159,6 +159,15 @@ public:
     }
 
     /**
+         * @brief set the epsillon
+         * @param eps The desired accuracy or change in parameters\n
+         *  at which the iterative algorithm stops.
+         */
+    void set_epsillon(double eps){
+        params_.eps_ = eps;
+    }
+
+    /**
      * @brief set the hidden layers size
      * @param size size of each hidden layers,must bigger\n
      * than zero.The default value is 0
@@ -445,9 +454,9 @@ private:
         buffer_.pj_ = act_.hidden_.rowwise().sum() / NSamples;
         //prevent division by zero
         buffer_.pj_r0_ = (buffer_.pj_.array() != 0.0).
-                select(buffer_.pj_, std::numeric_limits<T>::max());
+                select(buffer_.pj_, 1000);
         buffer_.pj_r1_ = (buffer_.pj_.array() != 1.0).
-                select(buffer_.pj_, std::numeric_limits<T>::max());//*/
+                select(buffer_.pj_, -1000);//*/
 
         //the third part of overall cost function is the sparsity part
         double const Sparse = params_.sparse_;
@@ -457,6 +466,7 @@ private:
                 ( (Sparse * (Sparse / (buffer_.pj_r0_.array())).log()) +
                   (1.0-Sparse)*((1.0-Sparse)/(1.0-buffer_.pj_r1_.array())).log()).sum() *
                 params_.beta_;
+        //std::cout<<"Sparse error : "<<SparseError<<"\n";
         es.cost_ = SquareError + WeightError + SparseError;//*/
     }
 
@@ -569,24 +579,26 @@ private:
                      int batch, Eigen::MatrixBase<Derived> const &input,
                      layer &ls)
     {
-        double last_cost = std::numeric_limits<double>::max();
+        double last_cost = 0.0;
         auto const LRate = params_.lrate_;
 #ifndef  OCV_MEASURE_TIME
         for(int j = 0; j != params_.max_iter_; ++j){
             int const X = uni_int(re);
-            compute_cost(input.block(0, X,
-                                     input.rows(), batch), ls);
+            auto const &Temp = input.block(0, X,
+                                           input.rows(), batch);
+            compute_cost(Temp, ls);
+
+#ifdef OCV_PRINT_COST
+            std::cout<<j<<" : cost : "<<ls.cost_
+                    <<", random : "<<X<<"\n";
+#endif
 
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
             }
 
-            compute_gradient(input.block(0, X,
-                                         input.rows(), batch), ls);
-            if(ls.cost_ > last_cost){
-                params_.lrate_ /= 2;
-            }
+            compute_gradient(Temp, ls);
 
             last_cost = ls.cost_;
             update_weight(ls);
@@ -598,25 +610,31 @@ private:
         int iter_time = 1;
         for(int j = 0; j != params_.max_iter_; ++j){
             int const X = uni_int(re);
+            auto const &Temp = input.block(0, X,
+                                           input.rows(), batch);
             t_cost +=
                     time::measure<>::execution([&]()
-            { encoder_cost(input.block(0, X,
-                                       input.rows(), batch), ls); });
-            t_gra +=
-                    time::measure<>::execution([&]()
-            { encoder_gradient(input.block(0, X,
-                                           input.rows(), batch), ls); });
-            ++iter_time;
+            { compute_cost(Temp, ls); });
+
+#ifdef OCV_PRINT_COST
+            std::cout<<j<<" : cost : "<<ls.cost_
+                    <<", random : "<<X<<"\n";
+#endif
 
             if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
                     ls.cost_ <= 0.0){
                 break;
             }
 
+            t_gra +=
+                    time::measure<>::execution([&]()
+            { compute_gradient(Temp, ls); });
+            ++iter_time;
+
             last_cost = ls.cost_;
             t_update +=
                     time::measure<>::execution([&]()
-            { update_weight_and_bias(ls); });
+            { update_weight(ls); });
         }
 
         std::cout<<"total encoder cost time : "<<t_cost<<"\n";
