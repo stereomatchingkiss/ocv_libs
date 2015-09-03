@@ -13,6 +13,8 @@
 
 #include <Eigen/Dense>
 
+#include <dlib/optimization.h>
+
 #include <opencv2/core.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <Eigen/Dense>
@@ -54,11 +56,31 @@ public:
         layer(int input_size, int hidden_size,
               double cost = 0) :
             cost_{cost}
-        {
-            w1_ = EigenMat::Random(hidden_size, input_size);
-            w2_ = EigenMat::Random(input_size, hidden_size);
-            b1_ = EigenMat::Random(hidden_size, 1);
-            b2_ = EigenMat::Random(input_size, 1);
+        {            
+            std::random_device rd;
+            std::default_random_engine re(rd());
+            std::uniform_real_distribution<T> ur(0, 1);
+            ur(re);
+            w1_.resize(hidden_size, input_size);
+            w2_.resize(input_size, hidden_size);
+            b1_ = EigenMat::Zero(hidden_size, 1);
+            b2_ = EigenMat::Zero(input_size, 1);
+
+            for(size_t row = 0; row != w1_.rows(); ++row){
+                for(size_t col = 0; col != w1_.cols(); ++col){
+                    w1_(row, col) = ur(re);
+                }
+            }
+            for(size_t row = 0; row != w2_.rows(); ++row){
+                for(size_t col = 0; col != w2_.cols(); ++col){
+                    w2_(row, col) = ur(re);
+                }
+            }
+
+            double const R  = std::sqrt(6) /
+                    std::sqrt(hidden_size + input_size + 1);
+            w1_ = w1_.array() * 2 * R - R;
+            w2_ = w2_.array() * 2 * R - R;
 
             w1_grad_ = EigenMat::Zero(hidden_size, input_size);
             w2_grad_ = EigenMat::Zero(input_size, hidden_size);
@@ -277,7 +299,7 @@ public:
                     i == 0 ? input
                            : eactivation_;
             if(!reuse_layer_){
-                layer es(TmpInput.rows(), params_.hidden_size_[i]);
+                layer es(TmpInput.rows(), params_.hidden_size_[i]);               
                 reduce_cost(uni_int, re, Batch, TmpInput, es);
                 generate_activation(es, TmpInput,
                                     i==0?true:false);
@@ -497,6 +519,7 @@ private:
         buffer_.delta3_ =
                 ((act_.output_.array() - input.array()) / NSamples) *
                 ((1.0 - act_.output_.array()) * act_.output_.array());
+        //std::cout<<buffer_.delta3_<<"\n\n";
         es.w2_grad_.noalias() = buffer_.delta3_*act_.hidden_.transpose();
         es.w2_grad_ = (es.w2_grad_.array()) +
                 params_.lambda_ * es.w2_.array();
@@ -605,7 +628,7 @@ private:
             int const X = uni_int(re);
             auto const &Temp = input.block(0, X,
                                            input.rows(), batch);
-            compute_cost(Temp, ls);
+            compute_cost(Temp, ls);            
 
 #ifdef OCV_PRINT_COST
             std::cout<<j<<" : cost : "<<ls.cost_
@@ -618,9 +641,11 @@ private:
             }
 
             compute_gradient(Temp, ls);
+            //std::cout<<ls.w1_<<"\n\n";
 
             last_cost = ls.cost_;
             update_weight(ls);
+            //std::cout<<ls.b2_grad_<<"\n\n";
         }
 #else
         double t_cost = 0;
@@ -653,7 +678,7 @@ private:
             last_cost = ls.cost_;
             t_update +=
                     time::measure<>::execution([&]()
-            { update_weight(ls); });
+            { update_weight(ls); });            
         }
 
         std::cout<<"total encoder cost time : "<<t_cost<<"\n";
