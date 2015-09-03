@@ -56,7 +56,7 @@ public:
         layer(int input_size, int hidden_size,
               double cost = 0) :
             cost_{cost}
-        {            
+        {
             std::random_device rd;
             std::default_random_engine re(rd());
             std::uniform_real_distribution<T> ur(0, 1);
@@ -86,6 +86,11 @@ public:
             w2_grad_ = EigenMat::Zero(input_size, hidden_size);
             b1_grad_ = EigenMat::Zero(hidden_size, 1);
             b2_grad_ = EigenMat::Zero(input_size, 1);
+        }
+
+        size_t size_of_weights() const
+        {
+            return w1_.size() + w2_.size() + b1_.size() + b2_.size();
         }
 
         EigenMat w1_;
@@ -299,7 +304,7 @@ public:
                     i == 0 ? input
                            : eactivation_;
             if(!reuse_layer_){
-                layer es(TmpInput.rows(), params_.hidden_size_[i]);               
+                layer es(TmpInput.rows(), params_.hidden_size_[i]);
                 reduce_cost(uni_int, re, Batch, TmpInput, es);
                 generate_activation(es, TmpInput,
                                     i==0?true:false);
@@ -351,6 +356,7 @@ private:
     using MatType = Eigen::Matrix<T, Eigen::Dynamic, 1>;
     using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
     using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
+    using ColVec = dlib::matrix<double, 0, 1>;
 
     struct activation
     {
@@ -445,6 +451,58 @@ private:
         int max_iter_;
         double sparse_;
     };
+
+    template<typename Derived>
+    size_t convert(Eigen::MatrixBase<Derived> const &input,
+                   ColVec &output, size_t begin) const
+    {
+        for(size_t row = 0; row != input.rows(); ++row){
+            for(size_t col = 0; col != input.cols(); ++col){
+                output(begin++) = input(row, col);
+            }
+        }
+        return begin;
+    }
+
+    template<typename Derived>
+    size_t convert(ColVec const &input,
+                   Eigen::MatrixBase<Derived> &output,
+                   size_t begin) const
+    {
+        for(size_t row = 0; row != output.rows(); ++row){
+            for(size_t col = 0; col != output.cols(); ++col){
+                output(row, col) = input(begin++);
+            }
+        }
+        return begin;
+    }
+
+    void convert_grad(layer const &input,
+                      ColVec &output) const
+    {
+        size_t index = convert(input.w1_grad_, output, 0);
+        index = convert(input.w2_grad_, output, index);
+        index = convert(input.b1_grad_, output, index);
+        convert(input.b2_grad_, output, index);
+    }
+
+    void convert_weights(layer const &input,
+                         ColVec &output) const
+    {
+        size_t index = convert(input.w1_, output, 0);
+        index = convert(input.w2_, output, index);
+        index = convert(input.b1_, output, index);
+        convert(input.b2_, output, index);
+    }
+
+    void convert_weights(ColVec const &input,
+                         layer &output) const
+    {
+        size_t index = convert(input, output.w1_, 0);
+        index = convert(input, output.w2_, index);
+        index = convert(input, output.b1_, index);
+        convert(input, output.b2_, index);
+    }
 
     void convert(cv_layer const &input,
                  layer &output) const
@@ -616,81 +674,34 @@ private:
     }
 
     template<typename Derived>
-    void reduce_cost(std::uniform_int_distribution<int> const &uni_int,
-                     std::default_random_engine &re,
-                     int batch, Eigen::MatrixBase<Derived> const &input,
+    void reduce_cost(std::uniform_int_distribution<int> const&,
+                     std::default_random_engine&,
+                     int, Eigen::MatrixBase<Derived> const &input,
                      layer &ls)
     {
-        double last_cost = 0.0;
-        auto const LRate = params_.lrate_;
-#ifndef  OCV_MEASURE_TIME
-        for(int j = 0; j != params_.max_iter_; ++j){
-            int const X = uni_int(re);
-            auto const &Temp = input.block(0, X,
-                                           input.rows(), batch);
-            compute_cost(Temp, ls);            
+        ColVec cvec(ls.size_of_weights());
+        convert_weights(ls, cvec);
 
-#ifdef OCV_PRINT_COST
-            std::cout<<j<<" : cost : "<<ls.cost_
-                    <<", random : "<<X<<"\n";
-#endif
+        auto cost_func = [&](ColVec const&)->double
+        {
+            compute_cost(input, ls);
 
-            if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
-                    ls.cost_ <= 0.0){
-                break;
-            }
+            return ls.cost_;
+        };
 
-            compute_gradient(Temp, ls);
-            //std::cout<<ls.w1_<<"\n\n";
+        auto grad_func = [&](ColVec const&)->ColVec
+        {
+            compute_gradient(input, ls);
+            ColVec result(ls.size_of_weights());
+            convert_grad(ls, result);
 
-            last_cost = ls.cost_;
-            update_weight(ls);
-            //std::cout<<ls.b2_grad_<<"\n\n";
-        }
-#else
-        double t_cost = 0;
-        double t_gra = 0;
-        double t_update = 0;
-        int iter_time = 1;
-        for(int j = 0; j != params_.max_iter_; ++j){
-            int const X = uni_int(re);
-            auto const &Temp = input.block(0, X,
-                                           input.rows(), batch);
-            t_cost +=
-                    time::measure<>::execution([&]()
-            { compute_cost(Temp, ls); });
+            return result;
+        };
 
-#ifdef OCV_PRINT_COST
-            std::cout<<j<<" : cost : "<<ls.cost_
-                    <<", random : "<<X<<"\n";
-#endif
-
-            if(std::abs(last_cost - ls.cost_) < params_.eps_ ||
-                    ls.cost_ <= 0.0){
-                break;
-            }
-
-            t_gra +=
-                    time::measure<>::execution([&]()
-            { compute_gradient(Temp, ls); });
-            ++iter_time;
-
-            last_cost = ls.cost_;
-            t_update +=
-                    time::measure<>::execution([&]()
-            { update_weight(ls); });            
-        }
-
-        std::cout<<"total encoder cost time : "<<t_cost<<"\n";
-        std::cout<<"total gradient cost time : "<<t_gra<<"\n";
-        std::cout<<"total update time : "<<t_gra<<"\n";
-        std::cout<<"total time of update weight and bias : "<<t_update<<"\n";
-        std::cout<<"average encoder cost time : "<<t_cost / iter_time<<"\n";
-        std::cout<<"average gradient cost time : "<<t_gra / iter_time<<"\n";
-        std::cout<<"average update time : "<<t_gra / iter_time<<"\n";
-        std::cout<<"average time of update weight and bias : "<<t_update / iter_time<<"\n";
-#endif
-        params_.lrate_ = LRate;
+        dlib::find_min(dlib::lbfgs_search_strategy(10),
+                       dlib::objective_delta_stop_strategy(params_.eps_).
+                       be_verbose(),
+                       cost_func, grad_func, cvec, 0);
     }
 
     void update_weight(layer &ls)
