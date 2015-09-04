@@ -13,8 +13,6 @@
 
 #include <Eigen/Dense>
 
-#include <dlib/optimization.h>
-
 #include <opencv2/core.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <Eigen/Dense>
@@ -110,10 +108,16 @@ public:
     autoencoder(autoencoder const&) = delete;
     autoencoder(autoencoder &&) = delete;
 
-    EigenMat const& get_activation() const
+    void clear_decode_result()
+    {
+        eactivation_.resize(0, 0);
+    }
+
+    EigenMat const& get_decode_result() const
     {
         return eactivation_;
     }
+
     std::vector<layer> const& get_layer() const
     {
         return layers_;
@@ -476,7 +480,7 @@ private:
                       layer &es)
     {
         //std::cout<<&input(0, 0)<<"\n";
-        get_activation(input, es);
+        get_decode_result(input, es);
         //std::cout<<"get activation\n";
         auto const NSamples = input.cols();
         //square error of back propagation(first half)
@@ -559,7 +563,7 @@ private:
     }
 
     template<typename Derived>
-    void get_activation(Eigen::MatrixBase<Derived> const &input,
+    void get_decode_result(Eigen::MatrixBase<Derived> const &input,
                         layer &es)
     {
         forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
