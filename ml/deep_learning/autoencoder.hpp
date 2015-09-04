@@ -106,12 +106,7 @@ public:
     autoencoder& operator=(autoencoder const&) = delete;
     autoencoder& operator=(autoencoder &&) = delete;
     autoencoder(autoencoder const&) = delete;
-    autoencoder(autoencoder &&) = delete;
-
-    void clear_decode_result()
-    {
-        eactivation_.resize(0, 0);
-    }
+    autoencoder(autoencoder &&) = delete;    
 
     EigenMat const& get_decode_result() const
     {
