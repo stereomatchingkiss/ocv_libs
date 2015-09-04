@@ -2,9 +2,7 @@
 #define AUTOENCODER_H
 
 #include "../../core/utility.hpp"
-#include "../../eigen/eigen.hpp"
 
-#include "../../profile/measure.hpp"
 #include "propagation.hpp"
 
 #include <Eigen/Dense>
