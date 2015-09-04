@@ -108,7 +108,7 @@ public:
     autoencoder(autoencoder const&) = delete;
     autoencoder(autoencoder &&) = delete;    
 
-    EigenMat const& get_decode_result() const
+    EigenMat const& get_last_features() const
     {
         return eactivation_;
     }
@@ -475,7 +475,7 @@ private:
                       layer &es)
     {
         //std::cout<<&input(0, 0)<<"\n";
-        get_decode_result(input, es);
+        get_last_features(input, es);
         //std::cout<<"get activation\n";
         auto const NSamples = input.cols();
         //square error of back propagation(first half)
@@ -558,7 +558,7 @@ private:
     }
 
     template<typename Derived>
-    void get_decode_result(Eigen::MatrixBase<Derived> const &input,
+    void get_last_features(Eigen::MatrixBase<Derived> const &input,
                         layer &es)
     {
         forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
