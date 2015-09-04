@@ -4,10 +4,6 @@
 #include "../../core/utility.hpp"
 #include "../../eigen/eigen.hpp"
 
-#ifdef OCV_TEST_AUTOENCODER
-#include "../utility/gradient_checking.hpp"
-#endif
-
 #include "../../profile/measure.hpp"
 #include "propagation.hpp"
 
@@ -15,8 +11,6 @@
 
 #include <dlib/optimization.h>
 
-#include <opencv2/core.hpp>
-#include <opencv2/core/eigen.hpp>
 #include <Eigen/Dense>
 
 #include <fstream>
@@ -122,47 +116,7 @@ public:
     std::vector<layer> const& get_layer() const
     {
         return layers_;
-    }
-
-    /**
-     * @brief read the train result from the file(xml)
-     * @param file the file save the train result
-     */
-    void read(std::string const &file)
-    {
-        cv::FileStorage in(file, cv::FileStorage::READ);
-        int layer_size = 0;
-        in["layer_size"]>>layer_size;
-        in["batch_size"]>>params_.batch_size_;
-        in["beta_"]>>params_.beta_;
-        in["eps_"]>>params_.eps_;
-        in["lambda_"]>>params_.lambda_;
-        in["lrate_"]>>params_.lrate_;
-        in["max_iter_"]>>params_.max_iter_;
-        in["sparse_"]>>params_.sparse_;
-        params_.hidden_size_.resize(layer_size);
-        layers_.clear();
-        for(int i = 0; i != layer_size; ++i){
-            cv_layer ls;
-            auto const Index = std::to_string(i);
-            in["w1_" + Index] >> ls.w1_;
-            in["w2_" + Index] >> ls.w2_;
-            in["w1_grad_" + Index] >> ls.w1_grad_;
-            in["w2_grad_" + Index] >> ls.w2_grad_;
-            in["b1_" + Index] >> ls.b1_;
-            in["b2_" + Index] >> ls.b2_;
-            in["b1_grad_" + Index] >> ls.b1_grad_;
-            in["b2_grad_" + Index] >> ls.b2_grad_;
-            in["hidden_size_" + Index]>>
-                                         params_.hidden_size_[i];
-            layer el;
-            convert(ls, el);
-            layers_.emplace_back(el);
-        }
-        cv::Mat activation;
-        in["activation"] >> activation;
-        eigen::cv2eigen_cpy(activation, eactivation_);
-    }
+    }    
 
     /**
      * @brief Set the batch divide parameter, this parameter\n
@@ -286,18 +240,7 @@ public:
     {
         if(!reuse_layer_){
             layers_.clear();
-        }
-        std::random_device rd;
-        std::default_random_engine re(rd());
-        int const Batch = get_batch_size(input.cols());
-        int const RandomSize = input.cols() != Batch ?
-                    input.cols() - Batch - 1 : 0;
-        std::uniform_int_distribution<int>
-                uni_int(0, RandomSize);
-
-#ifdef OCV_TEST_AUTOENCODER
-        gradient_check();
-#endif
+        }       
 
         for(size_t i = 0; i < params_.hidden_size_.size(); ++i){
             Eigen::MatrixBase<Derived> const &TmpInput =
@@ -305,12 +248,12 @@ public:
                            : eactivation_;
             if(!reuse_layer_){
                 layer es(TmpInput.rows(), params_.hidden_size_[i]);
-                reduce_cost(uni_int, re, Batch, TmpInput, es);
+                reduce_cost(TmpInput, es);
                 generate_activation(es, TmpInput,
                                     i==0?true:false);
                 layers_.push_back(es);
             }else{
-                reduce_cost(uni_int, re, Batch, TmpInput, layers_[i]);
+                reduce_cost(TmpInput, layers_[i]);
                 generate_activation(layers_[i], TmpInput,
                                     i==0?true:false);
             }
@@ -319,43 +262,10 @@ public:
         buffer_.clear();//*/
     }
 
-    /**
-     * @brief write the training result into the file(xml)
-     * @param file the name of the file
-     */
-    void write(std::string const &file) const
-    {
-        cv::FileStorage out(file, cv::FileStorage::WRITE);
-        out<<"layer_size"<<static_cast<int>(layers_.size());
-        out<<"batch_size"<<params_.batch_size_;
-        out<<"beta_"<<params_.beta_;
-        out<<"eps_"<<params_.eps_;
-        out<<"lambda_"<<params_.lambda_;
-        out<<"lrate_"<<params_.lrate_;
-        out<<"max_iter_"<<params_.max_iter_;
-        out<<"sparse_"<<params_.sparse_;
-        for(size_t i = 0; i != layers_.size(); ++i){
-            cv_layer ls;
-            convert(layers_[i], ls);
-            auto const Index = std::to_string(i);
-            out<<("w1_" + Index)<<ls.w1_;
-            out<<("w2_" + Index)<<ls.w2_;
-            out<<("w1_grad_" + Index)<<ls.w1_grad_;
-            out<<("w2_grad_" + Index)<<ls.w2_grad_;
-            out<<("b1_" + Index)<<ls.b1_;
-            out<<("b2_" + Index)<<ls.b2_;
-            out<<("b1_grad_" + Index)<<ls.b1_grad_;
-            out<<("b2_grad_" + Index)<<ls.b2_grad_;
-            out<<("hidden_size_" + Index)<<
-                 params_.hidden_size_[i];
-        }
-        cv::Mat const Activation = eigen::eigen2cv_ref(eactivation_);
-        out<<"activation"<<Activation;
-    }
+
 private:
     using MatType = Eigen::Matrix<T, Eigen::Dynamic, 1>;
-    using Mapper = Eigen::Map<MatType, Eigen::Aligned>;
-    using MapperConst = Eigen::Map<const MatType, Eigen::Aligned>;
+    using Mapper = Eigen::Map<MatType, Eigen::Aligned>;    
     using ColVec = dlib::matrix<double, 0, 1>;
 
     struct activation
@@ -388,45 +298,7 @@ private:
         EigenMat pj_; //the average activation of hidden units
         EigenMat pj_r0_; //same as pj_ expect 0(set to max() of double)
         EigenMat pj_r1_; //same as pj_ expect 1(set to max() of double)
-    };
-
-    struct cv_layer
-    {
-        cv_layer() :
-            cost_{0}
-        {
-        }
-        cv_layer(int input_size, int hidden_size,
-                 int mat_type,
-                 double cost = 0) :
-            cost_{cost}
-        {
-            w1_.create(hidden_size, input_size, mat_type);
-            w2_.create(input_size, hidden_size, mat_type);
-            b1_.create(hidden_size, 1, mat_type);
-            b2_.create(input_size, 1, mat_type);
-
-            generate_random_value<T>(w1_, 0.12);
-            generate_random_value<T>(w2_, 0.12);
-            generate_random_value<T>(b1_, 0.12);
-            generate_random_value<T>(b2_, 0.12);
-
-            w1_grad_ = cv::Mat::zeros(hidden_size, input_size, mat_type);
-            w2_grad_ = cv::Mat::zeros(input_size, hidden_size, mat_type);
-            b1_grad_ = cv::Mat::zeros(hidden_size, 1, mat_type);
-            b2_grad_ = cv::Mat::zeros(input_size, 1, mat_type);
-        }
-
-        cv::Mat w1_;
-        cv::Mat w2_;
-        cv::Mat b1_;
-        cv::Mat b2_;
-        cv::Mat w1_grad_;
-        cv::Mat w2_grad_;
-        cv::Mat b1_grad_;
-        cv::Mat b2_grad_;
-        double cost_;
-    };
+    };    
 
     struct criteria
     {
@@ -502,32 +374,7 @@ private:
         index = convert(input, output.w2_, index);
         index = convert(input, output.b1_, index);
         convert(input, output.b2_, index);
-    }
-
-    void convert(cv_layer const &input,
-                 layer &output) const
-    {
-        eigen::cv2eigen_cpy(input.b1_, output.b1_);
-        eigen::cv2eigen_cpy(input.b2_, output.b2_);
-        eigen::cv2eigen_cpy(input.w1_, output.w1_);
-        eigen::cv2eigen_cpy(input.w2_, output.w2_);
-        eigen::cv2eigen_cpy(input.b1_grad_, output.b1_grad_);
-        eigen::cv2eigen_cpy(input.b2_grad_, output.b2_grad_);
-        eigen::cv2eigen_cpy(input.w1_grad_, output.w1_grad_);
-        eigen::cv2eigen_cpy(input.w2_grad_, output.w2_grad_);
-    }
-    void convert(layer const &input,
-                 cv_layer &output) const
-    {
-        eigen::eigen2cv_cpy(input.b1_, output.b1_);
-        eigen::eigen2cv_cpy(input.b2_, output.b2_);
-        eigen::eigen2cv_cpy(input.w1_, output.w1_);
-        eigen::eigen2cv_cpy(input.w2_, output.w2_);
-        eigen::eigen2cv_cpy(input.b1_grad_, output.b1_grad_);
-        eigen::eigen2cv_cpy(input.b2_grad_, output.b2_grad_);
-        eigen::eigen2cv_cpy(input.w1_grad_, output.w1_grad_);
-        eigen::eigen2cv_cpy(input.w2_grad_, output.w2_grad_);
-    }
+    }    
 
     template<typename Derived>
     void compute_cost(Eigen::MatrixBase<Derived> const &input,
@@ -595,26 +442,11 @@ private:
                              Eigen::MatrixBase<Derived> const &temp_input,
                              bool no_overlap = true)
     {
-#ifdef OCV_MEASURE_TIME
-        auto const TGen =
-                time::measure<>::duration([&]()
-        { generate_activation_impl(ls, temp_input,
-                                   no_overlap); });
-        std::cout<<"time of generate last layer activation : "<<TGen.count()<<"\n\n";
-#else
-        generate_activation_impl(ls, temp_input, no_overlap);
-#endif
-    }
 
-    template<typename Derived>
-    void generate_activation_impl(layer const &ls,
-                                  Eigen::MatrixBase<Derived> const &temp_input,
-                                  bool no_overlap = true)
-    {
         forward_propagation(temp_input, ls.w1_,
                             ls.b1_, eactivation_,
                             no_overlap);
-    }
+    }    
 
     template<typename Derived>
     void get_activation(Eigen::MatrixBase<Derived> const &input,
@@ -623,6 +455,7 @@ private:
         forward_propagation(input, es.w1_, es.b1_, act_.hidden_);
         forward_propagation(act_.hidden_, es.w2_, es.b2_, act_.output_);
     }
+
     int get_batch_size(int sample_size) const
     {
         return std::min(params_.batch_size_, sample_size);
@@ -645,45 +478,18 @@ private:
         buffer_.delta2_ =
                 buffer_.delta2_.array() *
                 ((1.0 - act_.hidden_.array()) * act_.hidden_.array());
-    }
-
-    void gradient_check()
-    {
-        EigenMat const Input = EigenMat::Random(8, 2);
-        layer es(Input.rows(), Input.rows() / 2);
-        layer es_copy = es;
-        gradient_checking gc;
-        auto func = [&](EigenMat &theta)->T
-        {
-            es.w1_.swap(theta);
-            compute_cost(Input, es);
-            auto const Cost = es.cost_;
-            es.w1_.swap(theta);
-
-            return Cost;
-        };
-        EigenMat const Gradient =
-                gc.compute_gradient(es.w1_,
-                                    func);
-
-        compute_cost(Input, es_copy);
-        compute_gradient(Input, es_copy);
-
-        std::cout<<std::boolalpha<<"pass : "<<
-                   gc.compare_gradient(Gradient, es_copy.w1_grad_)<<"\n";
-    }
+    }    
 
     template<typename Derived>
-    void reduce_cost(std::uniform_int_distribution<int> const&,
-                     std::default_random_engine&,
-                     int, Eigen::MatrixBase<Derived> const &input,
+    void reduce_cost(Eigen::MatrixBase<Derived> const &input,
                      layer &ls)
     {
         ColVec cvec(ls.size_of_weights());
         convert_weights(ls, cvec);
 
-        auto cost_func = [&](ColVec const&)->double
+        auto cost_func = [&](ColVec const &vec)->double
         {
+            convert_weights(vec, ls);
             compute_cost(input, ls);
 
             return ls.cost_;
