@@ -303,11 +303,11 @@ public:
                 generate_activation(es, TmpInput,
                                     i==0?true:false);
                 layers_.push_back(es);
-            }else{
-                reduce_cost(uni_int, re, Batch, TmpInput, layers_[i]);
-                if(layers_.size() < i){
+            }else{                
+                if(layers_.size() <= i){
                     layers_.emplace_back(TmpInput.rows(), params_.hidden_size_[i]);
                 }
+                reduce_cost(uni_int, re, Batch, TmpInput, layers_[i]);                
                 generate_activation(layers_[i], TmpInput,
                                     i==0?true:false);
             }
