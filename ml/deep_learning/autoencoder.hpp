@@ -305,6 +305,9 @@ public:
                 layers_.push_back(es);
             }else{
                 reduce_cost(uni_int, re, Batch, TmpInput, layers_[i]);
+                if(layers_.size() < i){
+                    layers_.emplace_back(TmpInput.rows(), params_.hidden_size_[i]);
+                }
                 generate_activation(layers_[i], TmpInput,
                                     i==0?true:false);
             }
