@@ -151,7 +151,7 @@ private:
         EigenMat const Train = EigenMat::Random(10, 2);
         weight_ = EigenMat::Random(NumClass, Train.rows());
         grad_ = EigenMat::Zero(NumClass, Train.rows());
-        auto const TrainCols = static_cast<int>(Train.cols());
+        int const TrainCols = static_cast<int>(Train.cols());
         EigenMat const GroundTruth = get_ground_truth(NumClass, TrainCols,
                                                       UniqueLabels,
                                                       Labels);
