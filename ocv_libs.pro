@@ -25,7 +25,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     qt/io_img.cpp \
     core/wavelet_transform.cpp \        
     ml/utility/feature_scaling.cpp \    
-    ml/utility/activation.cpp
+    ml/utility/activation.cpp \
+    core/crop_images.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -44,4 +45,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \    
     profile/measure.hpp \
     eigen/eigen.hpp \
-    ml/deep_learning/softmax.hpp
+    ml/deep_learning/softmax.hpp \
+    core/crop_images.hpp
