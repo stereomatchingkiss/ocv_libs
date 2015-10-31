@@ -157,10 +157,12 @@ UnaryFunc for_each_channels(Mat &&input, UnaryFunc func)
     return func;
 }
 
-template<typename T, typename BinaryFunc, typename Mat>
-BinaryFunc for_each_channels(Mat &&input_1, Mat &&input_2, BinaryFunc func)
+template<typename T, typename BinaryFunc, typename MatA, typename MatB>
+BinaryFunc for_each_channels(MatA &&input_1, MatB &&input_2, BinaryFunc func)
 {    
-    CV_Assert(input_1.rows == input_2.rows && input_1.cols == input_2.cols && input_1.type() == input_2.type());
+    CV_Assert(input_1.rows == input_2.rows &&
+              input_1.cols == input_2.cols &&
+              input_1.type() == input_2.type());
 
     int rows = input_1.rows;
     int cols = input_1.cols;
@@ -260,9 +262,9 @@ Func for_each(Mat &&inout, Func func, Args... args)
  * });
  *\endcode
 */
-template<typename T, typename Mat, typename Func,
+template<typename T, typename MatA, typename MatB, typename Func,
          typename... Args>
-Func for_each(Mat &&inout_1, Mat &&inout_2,
+Func for_each(MatA &&inout_1, MatB &&inout_2,
               Func func, Args... args)
 {
     CV_Assert(inout_1.total() == inout_2.total());
