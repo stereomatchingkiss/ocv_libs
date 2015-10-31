@@ -19,6 +19,7 @@ INCLUDEPATH += ..
 include(../pri/boost.pri)
 include(../pri/cv_dev_cuda.pri)
 include(../pri/eigen.pri)
+include(../pri/tbb.pri)
 
 SOURCES += qt/mat_and_qimage.cpp \
     core/histogram.cpp \
@@ -26,7 +27,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/wavelet_transform.cpp \        
     ml/utility/feature_scaling.cpp \    
     ml/utility/activation.cpp \
-    core/crop_images.cpp
+    core/crop_images.cpp \
+    core/bitplane.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -46,4 +48,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     profile/measure.hpp \
     eigen/eigen.hpp \
     ml/deep_learning/softmax.hpp \
-    core/crop_images.hpp
+    core/crop_images.hpp \
+    core/bitplane.hpp
