@@ -21,7 +21,7 @@ void bitplane_generator(const cv::Mat &input, std::vector<cv::Mat> &output)
             ocv::for_each_channels<uchar>(input, output[i],
                                           [&](uchar a, uchar &b)
             {
-                b = a & mask[i];
+                b = (a & mask[i]) == mask[i] ? 1 : 0;
             });
         }
     });
