@@ -279,13 +279,13 @@ Func for_each(MatA &&inout_1, MatB &&inout_2,
     }
 
     for(int row = 0; row != rows; ++row){
-        auto begin_1 = inout_1.template ptr<T>(row);
-        auto begin_2 = inout_2.template ptr<T>(row);
-        auto end = begin_1 + cols;
-        while(begin != end){
-            func(*begin_1, *begin_2,
+        auto begin_a = inout_1.template ptr<T>(row);
+        auto begin_b = inout_2.template ptr<T>(row);
+        auto end = begin_a + cols;
+        while(begin_a != end){
+            func(*begin_a, *begin_b,
                  std::forward<Args>(args)...);
-            ++begin;
+            ++begin_a;
         }
     }
 
