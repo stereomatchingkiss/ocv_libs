@@ -1,5 +1,5 @@
-#ifndef HISTOGRAM_HPP
-#define HISTOGRAM_HPP
+#ifndef OCV_HISTOGRAM_HPP
+#define OCV_HISTOGRAM_HPP
 
 #include <array>
 #include <initializer_list>
@@ -8,6 +8,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+/*!
+ *  \addtogroup ocv
+ *  @{
+ */
 namespace ocv
 {	
 
@@ -103,6 +107,6 @@ cv::Mat calc_histogram(std::initializer_list<cv::Mat> images, std::initializer_l
     return output;
 }
 
-}
+} /*! @} End of Doxygen Groups*/
 
-#endif // HISTOGRAM_HPP
+#endif // OCV_HISTOGRAM_HPP

@@ -1,11 +1,15 @@
-#ifndef WAVELET_TRANSFORM_HPP
-#define WAVELET_TRANSFORM_HPP
+#ifndef OCV_WAVELET_TRANSFORM_HPP
+#define OCV_WAVELET_TRANSFORM_HPP
 
 #include <opencv2/opencv.hpp>
 
 #include <iostream>
 #include <vector>
 
+/*!
+ *  \addtogroup ocv
+ *  @{
+ */
 namespace ocv{
 
 enum class HaarShrink{
@@ -24,7 +28,7 @@ void haar_wavelet_inv(cv::Mat &src, cv::Mat &dst,
 std::vector<cv::Rect> haar_wavelet_region(cv::Size2i const &size,
                                           int n_iter);
 
-}
+} /*! @} End of Doxygen Groups*/
 
 #endif // WAVELET_TRANSFORM_HPP
 

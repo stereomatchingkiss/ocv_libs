@@ -1,5 +1,5 @@
-#ifndef GENERICFOREACH_HPP
-#define GENERICFOREACH_HPP
+#ifndef OCV_GENERICFOREACH_HPP
+#define OCV_GENERICFOREACH_HPP
 
 #include <cmath>
 #include <functional>
@@ -9,6 +9,10 @@
 
 #include <opencv2/core/core.hpp>
 
+/*!
+ *  \addtogroup ocv
+ *  @{
+ */
 namespace ocv
 {
 
@@ -292,6 +296,6 @@ Func for_each(MatA &&inout_1, MatB &&inout_2,
     return func;
 }
 
-}
+} /*! @} End of Doxygen Groups*/
 
 #endif // GENERICFOREACH_HPP

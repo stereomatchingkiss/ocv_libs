@@ -1,5 +1,5 @@
-#ifndef BITPLANE_HPP
-#define BITPLANE_HPP
+#ifndef OCV_BITPLANE_HPP
+#define OCV_BITPLANE_HPP
 
 #include <opencv2/core.hpp>
 
