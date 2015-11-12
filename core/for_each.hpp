@@ -1,5 +1,5 @@
-#ifndef OCV_GENERICFOREACH_HPP
-#define OCV_GENERICFOREACH_HPP
+#ifndef OCV_FOREACH_HPP
+#define OCV_FOREACH_HPP
 
 #include <cmath>
 #include <functional>
