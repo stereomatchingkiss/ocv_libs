@@ -30,7 +30,7 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/crop_images.cpp \
     core/bitplane.cpp \
     core/merge_rectangle.cpp \
-    cmd/command_prompty_utility.cpp
+    cmd/command_prompt_utility.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
