@@ -28,7 +28,9 @@ SOURCES += qt/mat_and_qimage.cpp \
     ml/utility/feature_scaling.cpp \    
     ml/utility/activation.cpp \
     core/crop_images.cpp \
-    core/bitplane.cpp
+    core/bitplane.cpp \
+    core/merge_rectangle.cpp \
+    cmd/command_prompty_utility.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -49,4 +51,6 @@ HEADERS += qt/mat_and_qimage.hpp \
     eigen/eigen.hpp \
     ml/deep_learning/softmax.hpp \
     core/crop_images.hpp \
-    core/bitplane.hpp
+    core/bitplane.hpp \
+    core/merge_rectangle.hpp \    
+    cmd/command_prompt_utility.hpp
