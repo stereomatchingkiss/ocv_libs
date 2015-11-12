@@ -1,8 +1,14 @@
 # ocv_libs
-libraries based on opencv and eigen
+libraries based on opencv,eigen,boost and intel tbb
 
-This library is intent to provide some algorithms do not exist in the opencv yet, like generic for_each algorithm,
-some of the deep learning algorithms and so on.
+This library is intent to 
+
+1 : provide some algorithms do not exist in the opencv yet, like generic for_each algorithm, generic parallel_for_each algorithm
+
+2 : machine learning part is only for practice, I use(and contribute to) mlpack to perform the deep learning tasks
+
+3 : wrap up some tedious to use algorithms of opencv
+
 
 License 
 
