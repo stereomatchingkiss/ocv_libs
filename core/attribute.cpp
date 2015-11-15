@@ -7,28 +7,11 @@
 
 namespace ocv{
 
-contour_attribute::
-contour_attribute(std::vector<cv::Point> const &contour, double epsillon):    
-    counter_area_{cv::contourArea(contour)},
-    bounding_rect_{cv::boundingRect(contour)},
-    bounding_area_{static_cast<double>(bounding_rect_.area())},
-    aspect_ratio_{bounding_rect_.width / static_cast<double>(bounding_rect_.height)},
-    perimeter_{cv::arcLength(contour, true)},
-    extent_{counter_area_/bounding_area_}
-{
-    cv::convexHull(contour, buffer_);
-    solidity_ = counter_area_/cv::contourArea(buffer_);
-
-    cv::approxPolyDP(contour, buffer_, perimeter_ * epsillon, true);
-    poly_size_ = buffer_.size();
-}
-
 void print_contour_attribute(std::vector<cv::Point> const &contour,
                              double epsillon,
                              std::ostream &out)
 {    
-    contour_attribute const ca(contour, epsillon);
-
+    contour_attribute const ca = contour_analyzer().analyze(contour, epsillon);
     std::ostringstream ostr;
     ostr<<boost::format("%=11.2f|%=11.2f|%=11.2f|%=11.2f|"
                         "%=11.2f|%=11.2f|%=11.2f")
@@ -46,6 +29,29 @@ void print_contour_attribute_name(std::ostream &out)
           % "CArea" % "BArea" %"Perimeter" % "Aspect"
           % "Extent" % "Solidity" % "PolySize";
     out<<ostr.str()<<std::endl;
+}
+
+contour_attribute
+contour_analyzer::analyze(std::vector<cv::Point> const &contour,
+                          double epsillon)
+{
+    contour_attribute ca;
+
+    ca.counter_area_ = cv::contourArea(contour);
+    ca.bounding_rect_ = cv::boundingRect(contour);
+    ca.bounding_area_ = static_cast<double>(ca.bounding_rect_.area());
+    ca.aspect_ratio_ = ca.bounding_rect_.width /
+            static_cast<double>(ca.bounding_rect_.height);
+    ca.perimeter_ = cv::arcLength(contour, true);
+    ca.extent_ = ca.counter_area_/ca.bounding_area_;
+
+    cv::convexHull(contour, buffer_);
+    ca.solidity_ = ca.counter_area_/cv::contourArea(buffer_);
+
+    cv::approxPolyDP(contour, buffer_, ca.perimeter_ * epsillon, true);
+    ca.poly_size_ = buffer_.size();
+
+    return ca;
 }
 
 }

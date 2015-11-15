@@ -13,26 +13,35 @@
 namespace ocv{
 
 /**
- * Analyze attributes of contour
+ * Store the attributes of contour
  */
 struct contour_attribute
-{
-    /**
-     * Generate contour attributes
-     * @param contour the contour want to measure the attributes
-     * @param epsillon epsillon value to approximate the contour
-     */
-    contour_attribute(std::vector<cv::Point> const &contour,
-                      double epsillon);
+{   
+    double counter_area_ = 0;
+    cv::Rect bounding_rect_ = {};
+    double bounding_area_ = 0;
+    double aspect_ratio_ = 0;
+    double perimeter_ = 0;
+    double extent_ = 0;
+    double solidity_ = 0;
+    size_t poly_size_ = 0;
+};
 
-    double counter_area_;
-    cv::Rect bounding_rect_;
-    double bounding_area_;
-    double aspect_ratio_;
-    double perimeter_;
-    double extent_;
-    double solidity_;
-    size_t poly_size_;
+/**
+ * Analyze attributes of contour
+ */
+struct contour_analyzer
+{
+public:
+    /**
+     * Analyze attributes of contour
+     * @param contour contour want to do attribute analyze
+     * @param epsillon epsillon value to approximate the contour
+     * (use by 3rd argument of cv::approxPolyDP())
+     * @return attribute of contour
+     */
+    contour_attribute analyze(std::vector<cv::Point> const &contour,
+                              double epsillon);
 
 private:
     std::vector<cv::Point> buffer_;
