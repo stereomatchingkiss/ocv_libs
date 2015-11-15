@@ -7,28 +7,32 @@
 
 namespace ocv{
 
+contour_attribute::
+contour_attribute(std::vector<cv::Point> const &contour, double epsillon):
+    area_{cv::contourArea(contour)},
+    bounding_rect_{cv::boundingRect(contour)},
+    aspect_ratio_{bounding_rect_.width / bounding_rect_.height},
+    perimeter_{cv::arcLength(contour, true)}
+{
+    std::vector<cv::Point> buffer;
+    cv::convexHull(contour, buffer);
+    solidity_ = area_/cv::contourArea(buffer);
+
+    cv::approxPolyDP(contour, buffer, perimeter_ * epsillon, true);
+    poly_size_ = buffer.size();
+}
+
 void print_contour_attribute(std::vector<cv::Point> const &contour,
                              double epsillon,
                              std::ostream &out)
-{
-    double const area = cv::contourArea(contour);
-    auto const bounding_rect = cv::boundingRect(contour);
-    double const aspect_ratio =
-            bounding_rect.width / bounding_rect.height;
-    double const perimeter = cv::arcLength(contour, true);    
-    double const Extent = area/static_cast<double>(bounding_rect.area());
-
-    std::vector<cv::Point> buffer;
-    cv::convexHull(contour, buffer);
-    double const Solidity = area/cv::contourArea(buffer);
-
-    cv::approxPolyDP(contour, buffer, perimeter * epsillon, true);
-    size_t const poly_size = buffer.size();
+{    
+    contour_attribute const ca(contour, epsillon);
 
     std::ostringstream ostr;
     ostr<<boost::format("%=11f|%=11f|%=11f|%=11f|"
-                        "%=11f|%=11f")%area%perimeter
-          %aspect_ratio%Extent%Solidity%poly_size;
+                        "%=11f|%=11f")
+          %ca.area_%ca.perimeter_%ca.aspect_ratio_
+          %ca.extent_%ca.solidity_%ca.poly_size_;
     out<<ostr.str()<<std::endl;
 }
 
