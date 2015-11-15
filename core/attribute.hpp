@@ -17,7 +17,7 @@ namespace ocv{
  */
 struct contour_attribute
 {   
-    double counter_area_ = 0;
+    double contour_area_ = 0;
     cv::Rect bounding_rect_ = {};
     double bounding_area_ = 0;
     double aspect_ratio_ = 0;
