@@ -23,18 +23,7 @@ struct contour_attribute
      * @param epsillon epsillon value to approximate the contour
      */
     contour_attribute(std::vector<cv::Point> const &contour,
-                      double epsillon):
-        area_{cv::contourArea(contour)},
-        bounding_rect_{cv::boundingRect(contour)},
-        aspect_ratio_{bounding_rect_.width / bounding_rect_.height},
-        perimeter_{cv::arcLength(contour, true)}
-    {
-        cv::convexHull(contour, buffer_);
-        solidity_ = area_/cv::contourArea(buffer_);
-
-        cv::approxPolyDP(contour, buffer_, perimeter_ * epsillon, true);
-        poly_size_ = buffer_.size();
-    }
+                      double epsillon);
 
     double area_;
     cv::Rect bounding_rect_;
