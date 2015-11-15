@@ -29,12 +29,11 @@ struct contour_attribute
         aspect_ratio_{bounding_rect_.width / bounding_rect_.height},
         perimeter_{cv::arcLength(contour, true)}
     {
-        std::vector<cv::Point> buffer;
-        cv::convexHull(contour, buffer);
-        solidity_ = area_/cv::contourArea(buffer);
+        cv::convexHull(contour, buffer_);
+        solidity_ = area_/cv::contourArea(buffer_);
 
-        cv::approxPolyDP(contour, buffer, perimeter_ * epsillon, true);
-        poly_size_ = buffer.size();
+        cv::approxPolyDP(contour, buffer_, perimeter_ * epsillon, true);
+        poly_size_ = buffer_.size();
     }
 
     double area_;
@@ -44,6 +43,9 @@ struct contour_attribute
     double extent_;
     double solidity_;
     size_t poly_size_;
+
+private:
+    std::vector<cv::Point> buffer_;
 };
 
 /**
