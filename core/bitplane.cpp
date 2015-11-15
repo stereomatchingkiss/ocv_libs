@@ -2,7 +2,9 @@
 
 #include "for_each.hpp"
 
+#ifdef OCV_SUPPORT_INTEL_TBB
 #include <tbb/tbb.h>
+#endif
 
 namespace ocv{
 
