@@ -25,8 +25,9 @@ struct contour_attribute
     contour_attribute(std::vector<cv::Point> const &contour,
                       double epsillon);
 
-    double area_;
+    double counter_area_;
     cv::Rect bounding_rect_;
+    double bounding_area_;
     double aspect_ratio_;
     double perimeter_;
     double extent_;
