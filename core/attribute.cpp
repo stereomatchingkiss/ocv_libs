@@ -7,18 +7,25 @@
 
 namespace ocv{
 
+std::ostream& operator<<(std::ostream &out, contour_attribute const &attr)
+{
+    std::ostringstream ostr;
+    ostr<<boost::format("%=11.2f|%=11.2f|%=11.2f|%=11.2f|"
+                        "%=11.2f|%=11.2f|%=11.2f")
+          %attr.contour_area_%attr.bounding_area_%attr.perimeter_
+          %attr.aspect_ratio_%attr.extent_%attr.solidity_
+          %attr.poly_size_;
+    out<<ostr.str()<<std::endl;
+
+    return out;
+}
+
 void print_contour_attribute(std::vector<cv::Point> const &contour,
                              double epsillon,
                              std::ostream &out)
 {    
     contour_attribute const ca = contour_analyzer().analyze(contour, epsillon);
-    std::ostringstream ostr;
-    ostr<<boost::format("%=11.2f|%=11.2f|%=11.2f|%=11.2f|"
-                        "%=11.2f|%=11.2f|%=11.2f")
-          %ca.contour_area_%ca.bounding_area_%ca.perimeter_
-          %ca.aspect_ratio_%ca.extent_%ca.solidity_
-          %ca.poly_size_;
-    out<<ostr.str()<<std::endl;
+    out<<ca;
 }
 
 void print_contour_attribute_name(std::ostream &out)
@@ -31,9 +38,25 @@ void print_contour_attribute_name(std::ostream &out)
     out<<ostr.str()<<std::endl;
 }
 
-contour_attribute
-contour_analyzer::analyze(std::vector<cv::Point> const &contour,
-                          double epsillon)
+contour_attribute contour_analyzer::
+analyze(std::vector<cv::Point> const &contour,
+        double epsillon)
+{      
+    return analyze(contour, epsillon, buffer_);
+}
+
+contour_attribute contour_analyzer::
+analyze(std::vector<cv::Point> const &contour,
+        double epsillon) const
+{
+    std::vector<cv::Point> buffer;
+    return analyze(contour, epsillon, buffer);
+}
+
+contour_attribute contour_analyzer::
+analyze(std::vector<cv::Point> const &contour,
+        double epsillon,
+        std::vector<cv::Point> &buffer) const
 {
     contour_attribute ca;
 
@@ -45,11 +68,11 @@ contour_analyzer::analyze(std::vector<cv::Point> const &contour,
     ca.perimeter_ = cv::arcLength(contour, true);
     ca.extent_ = ca.contour_area_/ca.bounding_area_;
 
-    cv::convexHull(contour, buffer_);
-    ca.solidity_ = ca.contour_area_/cv::contourArea(buffer_);
+    cv::convexHull(contour, buffer);
+    ca.solidity_ = ca.contour_area_/cv::contourArea(buffer);
 
-    cv::approxPolyDP(contour, buffer_, ca.perimeter_ * epsillon, true);
-    ca.poly_size_ = buffer_.size();
+    cv::approxPolyDP(contour, buffer, ca.perimeter_ * epsillon, true);
+    ca.poly_size_ = buffer.size();
 
     return ca;
 }

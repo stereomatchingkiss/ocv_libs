@@ -25,6 +25,8 @@ struct contour_attribute
     double extent_ = 0;
     double solidity_ = 0;
     size_t poly_size_ = 0;
+
+    friend std::ostream& operator<<(std::ostream &out, contour_attribute const &attr);
 };
 
 /**
@@ -43,7 +45,14 @@ public:
     contour_attribute analyze(std::vector<cv::Point> const &contour,
                               double epsillon);
 
+    contour_attribute analyze(std::vector<cv::Point> const &contour,
+                              double epsillon) const;
+
 private:
+    contour_attribute analyze(std::vector<cv::Point> const &contour,
+                              double epsillon,
+                              std::vector<cv::Point> &buffer) const;
+
     std::vector<cv::Point> buffer_;
 };
 
