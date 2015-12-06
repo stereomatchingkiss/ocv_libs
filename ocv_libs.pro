@@ -31,7 +31,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/bitplane.cpp \
     core/merge_rectangle.cpp \
     cmd/command_prompt_utility.cpp \
-    core/attribute.cpp
+    core/attribute.cpp \
+    file/utility.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -55,4 +56,6 @@ HEADERS += qt/mat_and_qimage.hpp \
     core/bitplane.hpp \
     core/merge_rectangle.hpp \    
     cmd/command_prompt_utility.hpp \
-    core/attribute.hpp
+    core/attribute.hpp \
+    file/utility.hpp \
+    ml/utility/split_train_test.hpp
