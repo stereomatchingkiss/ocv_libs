@@ -5,6 +5,10 @@
     \brief split input data to two sets of data
 */
 
+#include <opencv2/core.hpp>
+
+#include <dlib/image_processing.h>
+
 #include <random>
 #include <tuple>
 #include <vector>
@@ -20,6 +24,37 @@ namespace ocv{
  *  @{
  */
 namespace ml{
+
+namespace details{
+
+inline
+void split_swap(cv::Mat &lhs, cv::Mat &rhs)
+{
+    cv::swap(lhs, rhs);
+}
+
+template<typename T>
+inline
+void split_swap(cv::Mat_<T> &lhs, cv::Mat_<T> &rhs)
+{
+    cv::swap(lhs, rhs);
+}
+
+template<typename T>
+inline
+void split_swap(dlib::array2d<T> &lhs, dlib::array2d<T> &rhs)
+{
+    lhs.swap(rhs);
+}
+
+template<typename T>
+inline
+void split_swap(T &lhs, T &rhs)
+{
+    std::swap(lhs, rhs);
+}
+
+}
 
 /**
  * split input data and input label to two sets of data, this function
@@ -63,12 +98,12 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     size_t train_index = 0;
     for(size_t i = 0; i != seed.size(); ++i){
         if(seed[i] == tag::train_tag){
-            train_label[train_index].swap(input_label[train_index]);
-            train_data[train_index].swap(input_data[train_index]);
+            details::split_swap(train_label[train_index], input_label[train_index]);
+            details::split_swap(train_data[train_index], input_data[train_index]);
             ++train_index;
         }else{
-            test_label[test_index].swap(input_label[test_index]);
-            test_data[test_index].swap(input_data[test_index]);
+            details::split_swap(test_label[test_index], input_label[test_index]);
+            details::split_swap(test_data[test_index], input_data[test_index]);
             ++test_index;
         }
     }
@@ -91,7 +126,7 @@ std::tuple<Data, Label, Data, Label>
 split_train_test_inplace(Data &input_data, Label &input_label, double test_ratio)
 {
     static_assert((std::is_copy_constructible<Data>::value &&
-                  std::is_copy_constructible<Label>::value) ||
+                   std::is_copy_constructible<Label>::value) ||
                   (std::is_move_constructible<Data>::value &&
                    std::is_move_constructible<Label>::value),
                   "type Data and type Label must be copy constructible or "
