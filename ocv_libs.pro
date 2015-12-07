@@ -18,6 +18,7 @@ INCLUDEPATH += ..
 
 include(../pri/boost.pri)
 include(../pri/cv_dev_cuda.pri)
+include(../pri/dlibs.pri)
 include(../pri/eigen.pri)
 include(../pri/tbb.pri)
 
