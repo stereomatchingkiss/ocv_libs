@@ -28,28 +28,28 @@ namespace ml{
 namespace details{
 
 inline
-void split_swap(cv::Mat &lhs, cv::Mat &rhs)
+void swap(cv::Mat &lhs, cv::Mat &rhs)
 {
     cv::swap(lhs, rhs);
 }
 
 template<typename T>
 inline
-void split_swap(cv::Mat_<T> &lhs, cv::Mat_<T> &rhs)
+void swap(cv::Mat_<T> &lhs, cv::Mat_<T> &rhs)
 {
     cv::swap(lhs, rhs);
 }
 
 template<typename T>
 inline
-void split_swap(dlib::array2d<T> &lhs, dlib::array2d<T> &rhs)
+void swap(dlib::array2d<T> &lhs, dlib::array2d<T> &rhs)
 {
     lhs.swap(rhs);
 }
 
 template<typename T>
 inline
-void split_swap(T &lhs, T &rhs)
+void swap(T &lhs, T &rhs)
 {
     std::swap(lhs, rhs);
 }
@@ -98,12 +98,12 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     size_t train_index = 0;
     for(size_t i = 0; i != seed.size(); ++i){
         if(seed[i] == tag::train_tag){
-            details::split_swap(train_label[train_index], input_label[train_index]);
-            details::split_swap(train_data[train_index], input_data[train_index]);
+            details::swap(train_label[train_index], input_label[train_index]);
+            details::swap(train_data[train_index], input_data[train_index]);
             ++train_index;
         }else{
-            details::split_swap(test_label[test_index], input_label[test_index]);
-            details::split_swap(test_data[test_index], input_data[test_index]);
+            details::swap(test_label[test_index], input_label[test_index]);
+            details::swap(test_data[test_index], input_data[test_index]);
             ++test_index;
         }
     }
