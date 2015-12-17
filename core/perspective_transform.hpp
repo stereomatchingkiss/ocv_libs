@@ -120,11 +120,11 @@ U point_euclidean_dist(T const &lhs, V const &rhs)
  *@param output_corners corners of the output image, sorted by
  * top left, top right, bottom right, bottom left
  */
-template<typename T>
+template<typename T, typename U>
 void four_points_transform(cv::Mat const &input,
                            cv::Mat &output,
                            T const (&input_corners)[4],
-                           T const (&output_corners)[4])
+                           U const (&output_corners)[4])
 {
     output.create(output_corners[0].y - output_corners[2].y,
                   output_corners[1].x - output_corners[0].x,
