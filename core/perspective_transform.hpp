@@ -114,13 +114,37 @@ U point_euclidean_dist(T const &lhs, V const &rhs)
 /**
  *transform the input to bird eyes view
  *@param input input image want to transform to bird eyes view
- *@param corners corners(4 points) of the input image
  *@param output bird eyes view of input
+ *@param input_corners corners of the input image, sorted by
+ * top left, top right, bottom right, bottom left
+ *@param output_corners corners of the output image, sorted by
+ * top left, top right, bottom right, bottom left
  */
 template<typename T>
 void four_points_transform(cv::Mat const &input,
-                           T const &input_corners,
-                           cv::Mat &output)
+                           cv::Mat &output,
+                           T const (&input_corners)[4],
+                           T const (&output_corners)[4])
+{
+    output.create(output_corners[0].y - output_corners[2].y,
+                  output_corners[1].x - output_corners[0].x,
+                  input.type());
+
+    auto const trans_mat =
+            cv::getPerspectiveTransform(input_corners, output_corners);
+    cv::warpPerspective(input, output, trans_mat, output.size());
+}
+
+/**
+ *transform the input to bird eyes view
+ *@param input input image want to transform to bird eyes view
+ *@param output bird eyes view of input
+ *@param corners corners(4 points) of the input image
+ */
+template<typename T>
+void four_points_transform(cv::Mat const &input,
+                           cv::Mat &output,
+                           T const &input_corners)
 {
     using value_type = decltype(input_corners[0]);
 
@@ -142,9 +166,7 @@ void four_points_transform(cv::Mat const &input,
         {0, max_height - 1}
     };
 
-    auto const trans_mat =
-            cv::getPerspectiveTransform(sorted_input, trans_corners);
-    cv::warpPerspective(input, output, trans_mat, output.size());
+    four_points_transform(input, output, sorted_input, trans_corners);
 }
 
 /**
