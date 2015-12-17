@@ -59,4 +59,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cmd/command_prompt_utility.hpp \
     core/attribute.hpp \
     file/utility.hpp \
-    ml/utility/split_train_test.hpp
+    ml/utility/split_train_test.hpp \
+    core/perspective_transform.hpp
