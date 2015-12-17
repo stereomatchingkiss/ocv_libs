@@ -94,9 +94,15 @@ void sort_corners(T const &corners, OutIter out)
     sort_corners(std::begin(corners), std::end(corners), out);
 }
 
-template<typename U, typename T>
+/**
+ * find euclidean distance between two points
+ * @param lhs first point
+ * @param rhs second point
+ * @return euclidean distance of two points
+ */
+template<typename U = double, typename T, typename V>
 inline
-U point_euclidean_dist(T const &lhs, T const &rhs)
+U point_euclidean_dist(T const &lhs, V const &rhs)
 {
     U const width_diff = static_cast<U>(lhs.x - rhs.x);
     U const height_diff = static_cast<U>(lhs.y - rhs.y);
