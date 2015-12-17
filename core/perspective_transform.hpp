@@ -151,10 +151,10 @@ void four_points_transform(cv::Mat const &input,
     value_type sorted_input[4];
     sort_corners(input_corners, std::begin(sorted_input));
 
-    size_t const max_width =
+    float const max_width =
             std::max(point_euclidean_dist<float>(sorted_input[0], sorted_input[1]),
                      point_euclidean_dist<float>(sorted_input[2], sorted_input[3]));
-    size_t const max_height =
+    float const max_height =
             std::max(point_euclidean_dist<float>(sorted_input[0], sorted_input[1]),
                      point_euclidean_dist<float>(sorted_input[2], sorted_input[3]));
 
