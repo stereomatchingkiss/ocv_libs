@@ -129,14 +129,12 @@ void four_points_transform(cv::Mat const &input,
                            cv::Mat &output,
                            T const (&input_corners)[4],
                            U const (&output_corners)[4])
-{
-    output.create(static_cast<int>(output_corners[0].y - output_corners[2].y),
-                  static_cast<int>(output_corners[1].x - output_corners[0].x),
-                  input.type());
-
+{    
     auto const trans_mat =
             cv::getPerspectiveTransform(input_corners, output_corners);
-    cv::warpPerspective(input, output, trans_mat, output.size());
+    cv::warpPerspective(input, output, trans_mat,
+    {static_cast<int>(output_corners[2].x+1),
+     static_cast<int>(output_corners[2].y+1)});
 }
 
 /**
@@ -149,7 +147,7 @@ template<typename T>
 void four_points_transform(cv::Mat const &input,
                            cv::Mat &output,
                            T const (&input_corners)[4])
-{    
+{        
     T sorted_input[4];
     sort_corners(input_corners, std::begin(sorted_input));
 
@@ -157,8 +155,8 @@ void four_points_transform(cv::Mat const &input,
             std::max(point_euclidean_dist<float>(sorted_input[0], sorted_input[1]),
                      point_euclidean_dist<float>(sorted_input[2], sorted_input[3]));
     float const max_height =
-            std::max(point_euclidean_dist<float>(sorted_input[0], sorted_input[1]),
-                     point_euclidean_dist<float>(sorted_input[2], sorted_input[3]));
+            std::max(point_euclidean_dist<float>(sorted_input[0], sorted_input[2]),
+                     point_euclidean_dist<float>(sorted_input[1], sorted_input[3]));
 
     cv::Point2f const trans_corners[]
     {
