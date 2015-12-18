@@ -144,11 +144,9 @@ void four_points_transform(cv::Mat const &input,
 template<typename T>
 void four_points_transform(cv::Mat const &input,
                            cv::Mat &output,
-                           T const &input_corners)
-{
-    using value_type = decltype(input_corners[0]);
-
-    value_type sorted_input[4];
+                           T const (&input_corners)[4])
+{    
+    T sorted_input[4];
     sort_corners(input_corners, std::begin(sorted_input));
 
     float const max_width =
@@ -167,6 +165,43 @@ void four_points_transform(cv::Mat const &input,
     };
 
     four_points_transform(input, output, sorted_input, trans_corners);
+}
+
+/**
+ *transform the input to bird eyes view
+ *@param input input image want to transform to bird eyes view
+ *@param output bird eyes view of input
+ *@param corners corners(4 points) of the input image
+ */
+template<typename T>
+inline
+void four_points_transform(cv::Mat const &input,
+                           cv::Mat &output,
+                           T const &input_corners)
+{
+    using value_type = decltype(input_corners[0]);
+
+    value_type copy_input[4];
+    std::copy(std::begin(input_corners), std::end(input_corners),
+              std::begin(copy_input));
+    four_points_transform(input, output, copy_input);
+}
+
+/**
+ *transform the input to bird eyes view
+ *@param input input image want to transform to bird eyes view
+ *@param corners corners(4 points) of the input image
+ *@return output bird eyes view of input
+ */
+template<typename T>
+inline
+cv::Mat four_points_transform(cv::Mat const &input,
+                              T const (&input_corners)[4])
+{
+  cv::Mat output;
+  four_points_transform(input, input_corners, output);
+
+  return output;
 }
 
 /**
