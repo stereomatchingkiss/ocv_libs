@@ -72,14 +72,22 @@ void sort_corners(InputIter begin, InputIter end, OutputIter out)
         }
     }
 
-    *out = top[0].x > top[1].x ? top[1] : top[0]; //top left
+    if(top[0].x > top[1].x){
+        *out = top[1]; ++out; //top left
+        *out = top[0]; //top right
+    }else{
+        *out = top[0]; ++out; //top left
+        *out = top[1]; //top right
+    }
     ++out;
-    *out = top[0].x > top[1].x ? top[0] : top[1]; //top right
-    ++out;
-    *out = bot[0].x > bot[1].x ? bot[0] : bot[1]; //bottom right
-    ++out;
-    *out = bot[0].x > bot[1].x ? bot[1] : bot[0]; //bottom left
-    ++out;
+
+    if(bot[0].x > bot[1].x){
+        *out = bot[0]; ++out; //bottom right
+        *out = bot[1]; //bottom left
+    }else{
+        *out = bot[1]; ++out; //bottom right
+        *out = bot[0]; //bottom right
+    }
 }
 
 /**
@@ -109,7 +117,7 @@ inline
 U point_euclidean_dist(T const &lhs, V const &rhs)
 {
     U const width_diff = static_cast<U>(lhs.x - rhs.x);
-    U const height_diff = static_cast<U>(lhs.y - rhs.y);
+    U const height_diff = static_cast<U>(lhs.y - rhs.y);    
 
     return std::sqrt(width_diff * width_diff +
                      height_diff * height_diff);
