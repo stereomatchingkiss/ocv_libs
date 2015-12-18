@@ -58,7 +58,7 @@ void sort_corners(InputIter begin, InputIter end, OutputIter out)
     auto const center = corners_center(begin, end);
     auto top_iter = top.begin();
     auto bot_iter = bot.begin();
-    while(begin != end){
+    for(; begin != end; ++begin){
         if(begin->y < center.y){
             *top_iter = corners[i];
             ++top_iter;
