@@ -4,7 +4,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <array>
 #include <iostream>
+#include <numeric>
 #include <vector>
 
 /*!
@@ -21,9 +23,9 @@ namespace ocv{
  */
 template<typename InputIter>
 inline
-auto corners_center(InputIter begin, InputIter end)->decltype(*begin)
+auto corners_center(InputIter begin, InputIter end)
 {
-    return std::accumulate(begin, end, decltype(*begin)())
+    return std::accumulate(begin, end, std::decay<decltype(*begin)>::type())
             * (1. / (end - begin));
 }
 
@@ -34,7 +36,7 @@ auto corners_center(InputIter begin, InputIter end)->decltype(*begin)
  */
 template<typename T>
 inline
-auto corners_center(T const &input)->decltype(*std::begin(input))
+auto corners_center(T const &input)
 {
     return corners_center(std::begin(input), std::end(input));
 }
@@ -54,16 +56,16 @@ auto corners_center(T const &input)->decltype(*std::begin(input))
 template<typename InputIter, typename OutputIter>
 void sort_corners(InputIter begin, InputIter end, OutputIter out)
 {
-    std::array<decltype(*begin),2> top, bot;
+    std::array<std::decay<decltype(*begin)>::type,2> top, bot;
     auto const center = corners_center(begin, end);
     auto top_iter = top.begin();
     auto bot_iter = bot.begin();
     for(; begin != end; ++begin){
         if(begin->y < center.y){
-            *top_iter = corners[i];
+            *top_iter = *begin;
             ++top_iter;
         }else{
-            *bot_iter = corners[i];
+            *bot_iter = *begin;
             ++bot_iter;
         }
     }
@@ -126,8 +128,8 @@ void four_points_transform(cv::Mat const &input,
                            T const (&input_corners)[4],
                            U const (&output_corners)[4])
 {
-    output.create(output_corners[0].y - output_corners[2].y,
-                  output_corners[1].x - output_corners[0].x,
+    output.create(static_cast<int>(output_corners[0].y - output_corners[2].y),
+                  static_cast<int>(output_corners[1].x - output_corners[0].x),
                   input.type());
 
     auto const trans_mat =
@@ -199,7 +201,7 @@ cv::Mat four_points_transform(cv::Mat const &input,
                               T const (&input_corners)[4])
 {
   cv::Mat output;
-  four_points_transform(input, input_corners, output);
+  four_points_transform(input, output, input_corners);
 
   return output;
 }
@@ -216,7 +218,7 @@ cv::Mat four_points_transform(cv::Mat const &input,
                               T const &input_corners)
 {
   cv::Mat output;
-  four_points_transform(input, input_corners, output);
+  four_points_transform(input, output, input_corners);
 
   return output;
 }
