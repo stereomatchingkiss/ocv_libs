@@ -6,6 +6,7 @@
 
 #include <array>
 #include <iostream>
+#include <iterator>
 #include <numeric>
 #include <vector>
 
@@ -23,7 +24,8 @@ namespace ocv{
  */
 template<typename InputIter>
 inline
-auto corners_center(InputIter begin, InputIter end)
+typename std::iterator_traits<InputIter>::value_type
+corners_center(InputIter begin, InputIter end)
 {
     return std::accumulate(begin, end, std::decay<decltype(*begin)>::type())
             * (1. / (end - begin));
