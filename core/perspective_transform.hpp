@@ -158,6 +158,11 @@ void four_points_transform(cv::Mat const &input,
 {        
     T sorted_input[4];
     sort_corners(input_corners, std::begin(sorted_input));
+    /**
+     * The geometry of the coordinates
+     * sorted_input[0]      sorted_input[1]
+     * sorted_input[3]      sorted_input[2]
+     */
 
     float const max_width =
             std::max(point_euclidean_dist<float>(sorted_input[0], sorted_input[1]),
