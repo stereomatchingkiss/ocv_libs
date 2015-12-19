@@ -27,7 +27,8 @@ inline
 typename std::iterator_traits<InputIter>::value_type
 corners_center(InputIter begin, InputIter end)
 {
-    return std::accumulate(begin, end, std::decay<decltype(*begin)>::type())
+    using value_type = std::iterator_traits<InputIter>::value_type;
+    return std::accumulate(begin, end, value_type())
             * (1. / (end - begin));
 }
 
@@ -58,36 +59,40 @@ auto corners_center(T const &input)
 template<typename InputIter, typename OutputIter>
 void sort_corners(InputIter begin, InputIter end, OutputIter out)
 {
-    std::array<std::decay<decltype(*begin)>::type,2> top, bot;
-    auto const center = corners_center(begin, end);
-    auto top_iter = top.begin();
-    auto bot_iter = bot.begin();
-    for(; begin != end; ++begin){
-        if(begin->y < center.y){
-            *top_iter = *begin;
-            ++top_iter;
-        }else{
-            *bot_iter = *begin;
-            ++bot_iter;
-        }
+    using value_type = std::iterator_traits<InputIter>::value_type;
+
+    std::array<value_type, 4> buffer;
+    std::copy(begin, end, std::begin(buffer));
+    std::sort(std::begin(buffer), std::end(buffer),
+              [](auto const &lhs, auto const &rhs)
+    {
+       return lhs.x < rhs.x;
+    });
+    for(auto const pt : buffer){
+        std::cout<<"pt : "<<pt<<std::endl;
     }
 
-    if(top[0].x > top[1].x){
-        *out = top[1]; ++out; //top left
-        *out = top[0]; //top right
+    //find out top left and bottom left
+    value_type bl;
+    if(buffer[0].y < buffer[1].y){
+        *out = buffer[0];
+        bl = buffer[1];
     }else{
-        *out = top[0]; ++out; //top left
-        *out = top[1]; //top right
+        *out = buffer[1];
+        bl = buffer[0];
     }
     ++out;
 
-    if(bot[0].x > bot[1].x){
-        *out = bot[0]; ++out; //bottom right
-        *out = bot[1]; //bottom left
+    //find out top right and bottom right
+    if(buffer[2].y < buffer[3].y){
+      *out = buffer[2]; ++out;
+      *out = buffer[3];
     }else{
-        *out = bot[1]; ++out; //bottom right
-        *out = bot[0]; //bottom right
+        *out = buffer[3]; ++out;
+        *out = buffer[2];
     }
+    ++out;
+    *out = bl;
 }
 
 /**
@@ -102,6 +107,13 @@ void sort_corners(InputIter begin, InputIter end, OutputIter out)
 template<typename T, typename OutIter>
 inline
 void sort_corners(T const &corners, OutIter out)
+{
+    sort_corners(std::begin(corners), std::end(corners), out);
+}
+
+template<typename T, typename OutIter, size_t N>
+inline
+void sort_corners(T const (&corners)[N], OutIter out)
 {
     sort_corners(std::begin(corners), std::end(corners), out);
 }
@@ -158,6 +170,8 @@ void four_points_transform(cv::Mat const &input,
 {        
     T sorted_input[4];
     sort_corners(input_corners, std::begin(sorted_input));
+    //std::copy(std::begin(input_corners), std::end(input_corners),
+    //          std::begin(sorted_input));
     /**
      * The geometry of the coordinates
      * sorted_input[0]      sorted_input[1]
