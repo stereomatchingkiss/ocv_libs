@@ -44,6 +44,13 @@ auto corners_center(T const &input)
     return corners_center(std::begin(input), std::end(input));
 }
 
+template<typename T, size_t N>
+inline
+auto corners_center(T const (&input)[N])
+{
+    return corners_center(std::begin(input), std::end(input));
+}
+
 /**
  * sort the corners of the rectangle to top left, top right,
  * bottom right, bottom left.
