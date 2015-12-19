@@ -29,7 +29,7 @@ corners_center(InputIter begin, InputIter end)
 {
     using value_type = std::iterator_traits<InputIter>::value_type;
     return std::accumulate(begin, end, value_type())
-            * (1. / (end - begin));
+            * (1. / std::distance(begin, end));
 }
 
 /**
