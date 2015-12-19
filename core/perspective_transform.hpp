@@ -74,10 +74,7 @@ void sort_corners(InputIter begin, InputIter end, OutputIter out)
               [](auto const &lhs, auto const &rhs)
     {
        return lhs.x < rhs.x;
-    });
-    for(auto const pt : buffer){
-        std::cout<<"pt : "<<pt<<std::endl;
-    }
+    });    
 
     //find out top left and bottom left
     value_type bl;
