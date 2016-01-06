@@ -19,12 +19,12 @@ class block_binary_pixel_sum
 {
 public:
     block_binary_pixel_sum(cv::Size const &target_size,
-                           cv::Size const &block_size);
+                           std::vector<cv::Size> block_sizes);
 
     std::vector<double> const& describe(cv::Mat const &input);
 
 private:
-    cv::Size block_size_;
+    std::vector<cv::Size> block_sizes_;
     std::vector<double> features_;
     cv::Mat gray_mat_;
     cv::Mat resize_mat_;

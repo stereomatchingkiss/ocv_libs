@@ -15,9 +15,9 @@ namespace ocv{
  * pixels to total pixels in each block.
  */
 block_binary_pixel_sum::
-block_binary_pixel_sum(const cv::Size &target_size,
-                       const cv::Size &block_size) :
-    block_size_(block_size),
+block_binary_pixel_sum(cv::Size const &target_size,
+                       std::vector<cv::Size> block_sizes) :
+    block_sizes_(std::move(block_sizes)),
     target_size_(target_size)
 {
 
@@ -45,8 +45,10 @@ block_binary_pixel_sum::describe(const cv::Mat &input)
         features_.emplace_back(cv::countNonZero(data) /
                                static_cast<double>(target_size_.area()));
     };
-    ocv::for_each_block<uchar>(gray_mat_, block_size_,
-                               func, block_size_);
+    for(auto const &bsize : block_sizes_){
+        ocv::for_each_block(gray_mat_, bsize,
+                            func, bsize);
+    }
 
     return features_;
 }
