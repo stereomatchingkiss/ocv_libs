@@ -33,7 +33,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/merge_rectangle.cpp \
     cmd/command_prompt_utility.cpp \
     core/attribute.cpp \
-    file/utility.cpp
+    file/utility.cpp \
+    core/block_binary_pixel_sum.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -60,4 +61,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     core/attribute.hpp \
     file/utility.hpp \
     ml/utility/split_train_test.hpp \
-    core/perspective_transform.hpp
+    core/perspective_transform.hpp \
+    core/block_binary_pixel_sum.hpp
