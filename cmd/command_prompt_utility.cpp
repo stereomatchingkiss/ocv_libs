@@ -42,6 +42,8 @@ default_command_line_parser(int argc, char **argv,
                 ("help,h", "Help screen")
                 ("image,i", value<std::string>(), "Image to process")
                 ("image_folder,I", value<std::string>(), "Specify the folder of the images to process")
+                ("output_folder,o", value<std::string>(), "Specify the output folder")
+                ("random_size,r", value<size_t>(), "Specify the random size")
                 ("video,v", value<std::string>(), "Video to process")
                 ("video_folder,V", value<std::string>(), "Specify the folder of the videos to process");
 
