@@ -30,8 +30,7 @@ public:
 private:
     std::vector<cv::Size> block_sizes_;
     std::vector<T> features_;
-    cv::Mat gray_mat_;
-    cv::Mat resize_mat_;
+    cv::Mat gray_mat_;    
     cv::Size target_size_;
 };
 
@@ -63,14 +62,9 @@ template<typename T>
 std::vector<T> const&
 block_binary_pixel_sum<T>::describe(const cv::Mat &input)
 {
-    CV_Assert(input.channels() == 3 || input.channels() == 1);
+    CV_Assert(input.channels() == 1);
 
-    cv::resize(input, resize_mat_, target_size_);
-    if(resize_mat_.type() != CV_8U){        
-        cv::cvtColor(resize_mat_, gray_mat_, CV_BGR2GRAY);
-    }else{
-        gray_mat_ = resize_mat_;
-    }    
+    cv::resize(input, gray_mat_, target_size_);
 
     features_.clear();
     auto func = [this](int, int, cv::Mat const &data)
