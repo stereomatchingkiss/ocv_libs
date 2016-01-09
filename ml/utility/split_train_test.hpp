@@ -68,13 +68,16 @@ void swap(T &lhs, T &rhs)
  * @param test_label test label split from input data
  * @param test_ratio determine the ratio of the input data
  * split to test data
+ * @param shuffle if true, shuffle the train data and label;
+ * else do not shuffle.Default value is true
  */
 template<typename Data, typename Label>
 void
 split_train_test_inplace(Data &input_data, Label &input_label,
                          Data &train_data, Label &train_label,
                          Data &test_data, Label &test_label,
-                         double test_ratio)
+                         double test_ratio,
+                         bool shuffle = true)
 {
     size_t const train_size = input_data.size() - input_data.size() * test_ratio;
     enum class tag : unsigned char{
@@ -85,9 +88,11 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     for(size_t i = train_size; i != input_data.size(); ++i){
         seed[i] = tag::test_tag;
     }
-    std::random_device rd;
-    std::default_random_engine g(rd());
-    std::shuffle(std::begin(seed), std::end(seed), g);
+    if(shuffle){
+        std::random_device rd;
+        std::default_random_engine g(rd());
+        std::shuffle(std::begin(seed), std::end(seed), g);
+    }
 
     size_t const test_size = input_data.size() - train_size;
     test_data.resize(test_size);
@@ -118,12 +123,16 @@ split_train_test_inplace(Data &input_data, Label &input_label,
  * @param test_ratio determine the ratio of the input data
  * split to test data
  * @return train_data, train_label, test_data, test_label
+ * @param shuffle if true, shuffle the train data and label;
+ * else do not shuffle.Default value is true
  * @warning cannot compile if type Data and Label are not copy constructible
  * or move constructible
  */
 template<typename Data, typename Label>
 std::tuple<Data, Label, Data, Label>
-split_train_test_inplace(Data &input_data, Label &input_label, double test_ratio)
+split_train_test_inplace(Data &input_data, Label &input_label,
+                         double test_ratio,
+                         bool shuffle = true)
 {
     static_assert((std::is_copy_constructible<Data>::value &&
                    std::is_copy_constructible<Label>::value) ||
@@ -138,7 +147,7 @@ split_train_test_inplace(Data &input_data, Label &input_label, double test_ratio
     Label train_label;
 
     split_train_test_inplace(input_data, input_label, train_data, train_label,
-                             test_data, test_label, test_ratio);
+                             test_data, test_label, test_ratio, shuffle);
 
     return std::make_tuple(train_data, train_label,
                            test_data, test_label);
