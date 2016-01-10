@@ -1,5 +1,5 @@
-#ifndef UTILITY_HPP
-#define UTILITY_HPP
+#ifndef OCV_UTILITY_HPP
+#define OCV_UTILITY_HPP
 
 #include <boost/filesystem.hpp>
 
