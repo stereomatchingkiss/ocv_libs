@@ -27,6 +27,16 @@ public:
 
     std::vector<T> const& describe(cv::Mat const &input);
 
+    std::vector<cv::Size> const& get_block_sizes() const
+    {
+        return block_sizes_;
+    }
+
+    cv::Size const get_target_size() const
+    {
+        return target_size();
+    }
+
 private:
     std::vector<cv::Size> block_sizes_;
     std::vector<T> features_;
