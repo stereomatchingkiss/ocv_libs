@@ -22,8 +22,9 @@ template<typename T = float>
 class block_binary_pixel_sum
 {
 public:
-    block_binary_pixel_sum(cv::Size const &target_size,
-                           std::vector<cv::Size> block_sizes);
+    explicit block_binary_pixel_sum(cv::Size const &target_size = {30,15},
+                                    std::vector<cv::Size> block_sizes =
+    {{5,5}, {5,10}, {10,5}, {10,10}});
 
     std::vector<T> const& describe(cv::Mat const &input);
 
