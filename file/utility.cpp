@@ -50,6 +50,43 @@ std::vector<std::string> get_directory_folders(std::string const &dir)
     });
 }
 
+size_t ocv::file::get_minimum_file_size(const std::string &dir)
+{
+    auto const folders = get_directory_folders(dir);
+    size_t min_data = std::numeric_limits<size_t>::max();
+    for(auto const &folder : folders){
+        auto const destination = dir + "/" + folder;
+        size_t const size =
+                get_directory_file_size(destination);
+        if(min_data > size){
+            min_data = size;
+        }
+    }
+    if(min_data == std::numeric_limits<size_t>::max()){
+        min_data = 0;
+    }
+
+    return min_data;
+}
+
+size_t get_directory_file_size(const std::string &dir)
+{
+    using namespace boost::filesystem;
+
+    path const info(dir);
+    size_t size = 0;
+    if(is_directory(info)){
+        directory_iterator it{info};
+        for(; it != directory_iterator{}; ++it){
+            if(is_regular_file(it->path())){
+                ++size;
+            }
+        }
+    }
+
+    return size;
+}
+
 }
 
 }
