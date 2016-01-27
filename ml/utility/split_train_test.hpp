@@ -1,5 +1,5 @@
-#ifndef SPLIT_TRAIN_TEST_HPP
-#define SPLIT_TRAIN_TEST_HPP
+#ifndef OCV_SPLIT_TRAIN_TEST_HPP
+#define OCV_SPLIT_TRAIN_TEST_HPP
 
 /*! \file split_train_test.hpp
     \brief split input data to two sets of data
@@ -7,7 +7,9 @@
 
 #include <opencv2/core.hpp>
 
+#ifdef OCV_SUPPORT_DLIB
 #include <dlib/image_processing.h>
+#endif
 
 #include <random>
 #include <tuple>
@@ -40,12 +42,14 @@ void swap(cv::Mat_<T> &lhs, cv::Mat_<T> &rhs)
     cv::swap(lhs, rhs);
 }
 
+#ifdef OCV_SUPPORT_DLIB
 template<typename T>
 inline
 void swap(dlib::array2d<T> &lhs, dlib::array2d<T> &rhs)
 {
     lhs.swap(rhs);
 }
+#endif
 
 template<typename T>
 inline
