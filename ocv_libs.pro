@@ -62,4 +62,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     file/utility.hpp \
     ml/utility/split_train_test.hpp \
     core/perspective_transform.hpp \
-    core/block_binary_pixel_sum.hpp
+    core/block_binary_pixel_sum.hpp \
+    tiny_cnn/trainer.hpp
