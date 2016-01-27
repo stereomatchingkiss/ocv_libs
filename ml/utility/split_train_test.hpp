@@ -83,15 +83,16 @@ split_train_test_inplace(Data &input_data, Label &input_label,
                          double test_ratio,
                          bool shuffle = true)
 {
-    size_t const train_size = input_data.size() - input_data.size() * test_ratio;
+    size_t const train_size = input_data.size() -
+            static_cast<size_t>(input_data.size() * test_ratio);
     enum class tag : unsigned char{
         test_tag,
         train_tag,
     };
-    std::vector<tag> seed(input_data.size(), tag::train_tag);
+    std::vector<tag> seed(input_data.size(), tag::train_tag);    
     for(size_t i = train_size; i != input_data.size(); ++i){
-        seed[i] = tag::test_tag;
-    }
+        seed[i] = tag::test_tag;        
+    }    
     if(shuffle){
         std::random_device rd;
         std::default_random_engine g(rd());
@@ -107,12 +108,12 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     size_t train_index = 0;
     for(size_t i = 0; i != seed.size(); ++i){
         if(seed[i] == tag::train_tag){
-            details::swap(train_label[train_index], input_label[train_index]);
-            details::swap(train_data[train_index], input_data[train_index]);
+            details::swap(train_label[train_index], input_label[i]);
+            details::swap(train_data[train_index], input_data[i]);
             ++train_index;
         }else{
-            details::swap(test_label[test_index], input_label[test_index]);
-            details::swap(test_data[test_index], input_data[test_index]);
+            details::swap(test_label[test_index], input_label[i]);
+            details::swap(test_data[test_index], input_data[i]);
             ++test_index;
         }
     }
