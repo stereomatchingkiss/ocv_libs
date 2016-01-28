@@ -97,8 +97,10 @@ void trainer::train_and_test(Net &net, std::vector<Img> const &train_img,
     std::cout << "start learning" << std::endl;
     boost::progress_display disp(static_cast<int>(train_img.size()));
     boost::timer t;
+    size_t epoch = 0;
     // create callback
     auto on_enumerate_epoch = [&](){
+        std::cout<<"epoch "<<epoch++<<std::endl;
         std::cout << t.elapsed() << "s elapsed." << std::endl;
         auto res = net.test(test_img, test_label);
         std::cout << res.num_success << "/" << res.num_total << std::endl;
