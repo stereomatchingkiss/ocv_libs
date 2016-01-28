@@ -34,7 +34,7 @@ public:
         output_file_(std::move(output_file))
     {}
 
-    int get_minibatch_size() const
+    size_t get_minibatch_size() const
     {
         return minibatch_size_;
     }
@@ -49,7 +49,7 @@ public:
         return output_file_;
     }
 
-    void set_minibatch_size(int value)
+    void set_minibatch_size(size_t value)
     {
         minibatch_size_ = value;
     }
@@ -82,7 +82,7 @@ public:
                         std::ostream &out);
 
 private:
-    int minibatch_size_ = 1;
+    size_t minibatch_size_ = 1;
     int num_epochs_ = 30;
     std::string output_file_;
 };
@@ -110,7 +110,7 @@ void trainer::train_and_test(Net &net, std::vector<Img> const &train_img,
     };
 
     auto on_enumerate_minibatch = [&](){
-        disp += minibatch_size_;
+        disp += static_cast<unsigned long>(minibatch_size_);
     };
 
     // training
