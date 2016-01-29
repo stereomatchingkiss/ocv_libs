@@ -66,4 +66,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     core/block_binary_pixel_sum.hpp \
     tiny_cnn/trainer.hpp \
     core/augment_data.hpp \
-    ml/utility/shuffle_data.hpp
+    ml/utility/shuffle_data.hpp \
+    tiny_cnn/image_converter.hpp
