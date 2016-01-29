@@ -17,7 +17,7 @@ gcc:QMAKE_CXXFLAGS_RELEASE += -fopenmp
 INCLUDEPATH += ..
 
 include(../pri/boost.pri)
-include(../pri/cv_dev_cuda.pri)
+include(../pri/cv.pri)
 include(../pri/dlibs.pri)
 include(../pri/eigen.pri)
 include(../pri/tbb.pri)
@@ -34,7 +34,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     cmd/command_prompt_utility.cpp \
     core/attribute.cpp \
     file/utility.cpp \
-    core/block_binary_pixel_sum.cpp
+    core/block_binary_pixel_sum.cpp \
+    core/augment_data.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -63,4 +64,6 @@ HEADERS += qt/mat_and_qimage.hpp \
     ml/utility/split_train_test.hpp \
     core/perspective_transform.hpp \
     core/block_binary_pixel_sum.hpp \
-    tiny_cnn/trainer.hpp
+    tiny_cnn/trainer.hpp \
+    core/augment_data.hpp \
+    ml/utility/shuffle_data.hpp
