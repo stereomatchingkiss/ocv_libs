@@ -156,6 +156,32 @@ std::vector<T> copy_to_one_dim_array_ch(cv::Mat const &src, int channel)
     return result;
 }
 
+/**
+ * Expand the region.
+ * ex : x1=30,x2=60,y1=30,y2=60, after expand 16pix,
+ * result would be x1=14, x2=76, y1=14,y2=76.If the
+ * region out of range, the region will be clipped
+ * @param img_size size of the image
+ * @param region region within the image
+ * @param expand_pix how many pixel want to expand
+ * @return region after expand
+ */
+inline
+cv::Rect expand_region(cv::Size const &img_size,
+                       cv::Rect const &region,
+                       int expand_pix)
+{
+    cv::Rect result = region;
+    result.x = std::max(0, result.x - expand_pix);
+    result.width = std::min(result.width + 2*expand_pix,
+                          img_size.width - result.x - 1);
+
+    result.y = std::max(0, result.y - expand_pix);
+    result.height = std::min(result.height + 2*expand_pix,
+                           img_size.height - result.y - 1);
+    return result;
+}
+
 template<typename T,
          typename Distribution =
          typename std::conditional<std::is_integral<T>::value,
