@@ -13,7 +13,7 @@ size_t active_commands_size(variables_map const &input,
                             std::vector<std::string> const &commands)
 {
     return std::accumulate(std::begin(commands), std::end(commands), size_t(0),
-                           [&](size_t init, auto const &cmd)
+                           [&](size_t init, std::string const &cmd)
     {
         return (input.count(cmd) != 0 && !input[cmd].empty()) ?
                     init + 1 : init;
