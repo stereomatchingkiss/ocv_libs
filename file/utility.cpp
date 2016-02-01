@@ -1,5 +1,7 @@
 #include "utility.hpp"
 
+#include <algorithm>
+#include <iostream>
 #include <functional>
 
 namespace ocv{
@@ -8,21 +10,30 @@ namespace file{
 
 namespace{
 
-std::vector<std::string>
-get_directory_info(std::string const &dir,
-                   std::function<bool(boost::filesystem::path const&)> func)
+std::vector<boost::filesystem::path>
+get_directory_path(const std::string &dir,
+                   std::function<bool(boost::filesystem::path const&)> func,
+                   bool recursive = false)
 {
     using namespace boost::filesystem;
 
     path info(dir);
-    std::vector<std::string> result;
+    std::vector<path> result;
     if(is_directory(info)){
-        directory_iterator it{info};
-        while(it != directory_iterator{}){
-            if(func(it->path())){
-                result.emplace_back(it->path().filename().generic_string());
+        if(recursive){
+            recursive_directory_iterator beg(dir), end;
+            for(; beg != end; ++beg){
+                if(func(beg->path())){
+                    result.emplace_back(beg->path());
+                }
             }
-            ++it;
+        }else{
+            directory_iterator beg{dir}, end;
+            for(; beg != end; ++beg){
+                if(func(beg->path())){
+                    result.emplace_back(beg->path());
+                }
+            }
         }
     }
 
@@ -32,22 +43,43 @@ get_directory_info(std::string const &dir,
 }
 
 std::vector<std::string>
-get_directory_files(std::string const &dir)
+get_directory_files(std::string const &dir, bool recursive)
 {
     using namespace boost::filesystem;
-    return get_directory_info(dir, [](path const &p)
+
+    auto func = [](path const &p)
     {
         return is_regular_file(p);
+    };
+
+    auto const paths = get_directory_path(dir, func, recursive);
+    std::vector<std::string> result;
+    std::transform(std::begin(paths), std::end(paths),
+                   std::back_inserter(result), [](path const &p)
+    {
+        return p.filename().generic_string();
     });
+
+    return result;
 }
 
 std::vector<std::string> get_directory_folders(std::string const &dir)
 {
     using namespace boost::filesystem;
-    return get_directory_info(dir, [](path const &p)
+
+    auto const paths = get_directory_path(dir, [](path const &p)
     {
         return is_directory(p);
     });
+
+    std::vector<std::string> result;
+    std::transform(std::begin(paths), std::end(paths),
+                   std::back_inserter(result), [](path const &p)
+    {
+        return p.filename().generic_string();
+    });
+
+    return result;
 }
 
 size_t ocv::file::get_minimum_file_size(const std::string &dir)
@@ -85,6 +117,15 @@ size_t get_directory_file_size(const std::string &dir)
     }
 
     return size;
+}
+
+std::vector<boost::filesystem::path>
+get_directory_path(const std::string &dir, bool recursive)
+{
+    using namespace boost::filesystem;
+
+    auto func = [](path const&){ return true;};
+    return get_directory_path(dir, func, recursive);
 }
 
 }

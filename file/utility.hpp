@@ -1,5 +1,5 @@
-#ifndef OCV_UTILITY_HPP
-#define OCV_UTILITY_HPP
+#ifndef OCV_FILE_UTILITY_HPP
+#define OCV_FILE_UTILITY_HPP
 
 #include <boost/filesystem.hpp>
 
@@ -19,13 +19,24 @@ namespace ocv{
 namespace file{
 
 /**
- * Get the files of the directory without recursively get
+ * Get the files of the directory with/without recursively get
  * the other files of the folder underlying the folder
  * @param dir directory want to get files
+ * @param recursive true, get the files recursive and vice versa
  * @return file names of dir(without path but with suffix)
  */
 std::vector<std::string>
-get_directory_files(std::string const &dir);
+get_directory_files(std::string const &dir, bool recursive = false);
+
+/**
+ * Get the boost::filesystem::path of the directory with/without
+ * recursively get the other files of the folder underlying the folder
+ * @param dir directory want to get files
+ * @param recursive true, get the paths recursive and vice versa
+ * @return paths under the directory
+ */
+std::vector<boost::filesystem::path>
+get_directory_path(const std::string &dir, bool recursive = false);
 
 /**
  * Get the file size of the directory without recursively get
