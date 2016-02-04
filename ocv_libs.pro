@@ -35,7 +35,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/attribute.cpp \
     file/utility.cpp \
     core/block_binary_pixel_sum.cpp \
-    core/augment_data.cpp
+    core/augment_data.cpp \
+    cbir/color_descriptor.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -67,4 +68,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     tiny_cnn/trainer.hpp \
     core/augment_data.hpp \
     ml/utility/shuffle_data.hpp \
-    tiny_cnn/image_converter.hpp
+    tiny_cnn/image_converter.hpp \
+    cbir/color_descriptor.hpp
