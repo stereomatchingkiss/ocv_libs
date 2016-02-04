@@ -28,15 +28,16 @@ public:
     explicit color_descriptor();
 
     void get_descriptor(cv::Mat const &input,
-                        std::vector<cv::Mat> &output,
+                        cv::Mat &output,
                         cv::Mat const &mask = cv::Mat());
-    std::vector<cv::Mat> get_descriptor(cv::Mat const &input,
-                                        cv::Mat const &mask = cv::Mat());
+    cv::Mat get_descriptor(cv::Mat const &input,
+                           cv::Mat const &mask = cv::Mat());
 
     void set_accumulate(bool accu);
     void set_channels(std::vector<int> const &channels);
     void set_dim(int dim);
     void set_hist_size(std::vector<int> const &hist_size);
+    void set_normalize(bool norm);
     void set_ranges(std::vector<std::array<float,2>> const &ranges);
     void set_uniform(bool uniform);
 
@@ -46,6 +47,7 @@ private:
     int dim_;
     std::vector<float const*> hist_range_;
     std::vector<int> hist_size_;
+    bool norm_;
     std::vector<cv::Mat> planes_;
     std::vector<std::array<float,2>> ranges_;
     bool uniform_;
