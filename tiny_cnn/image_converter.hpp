@@ -43,9 +43,12 @@ Img cvmat_to_img(cv::Mat const& input,
             }
         }
     }else{
+        int const area = input.rows * input.cols;
+        img.resize(area);
+        size_t index = 0;
         ocv::for_each_channels<uchar>(input, [&](uchar c)
         {
-            img.emplace_back(scale_min + (scale_max - scale_min) * c / 255.0);
+            img[index++] = scale_min + (scale_max - scale_min) * c / 255.0;
         });
     }
 
