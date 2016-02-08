@@ -11,7 +11,7 @@ inline
 QImage mat_to_qimage_ref(cv::Mat &mat, QImage::Format format)
 {
     return QImage(mat.data, mat.cols, mat.rows,
-                  mat.step, format);
+                  static_cast<int>(mat.step), format);
 }
 
 inline
