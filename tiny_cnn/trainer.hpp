@@ -72,14 +72,16 @@ public:
     void train_and_test(Net &net, std::vector<Img> const &train_img,
                         std::vector<Label> const &train_label,
                         std::vector<Img> const &test_img,
-                        std::vector<Label> const &test_label);
+                        std::vector<Label> const &test_label,
+                        bool reset_weights = true);
 
     template<typename Net, typename Img, typename Label>
     void train_and_test(Net &net, std::vector<Img> const &train_img,
                         std::vector<Label> const &train_label,
                         std::vector<Img> const &test_img,
                         std::vector<Label> const &test_label,
-                        std::ostream &out);
+                        std::ostream &out,
+                        bool reset_weights = true);
 
 private:
     size_t minibatch_size_ = 1;
@@ -92,7 +94,8 @@ void trainer::train_and_test(Net &net, std::vector<Img> const &train_img,
                              std::vector<Label> const &train_label,
                              std::vector<Img> const &test_img,
                              std::vector<Label> const &test_label,
-                             std::ostream &out)
+                             std::ostream &out,
+                             bool reset_weights)
 {
     std::cout << "start learning" << std::endl;
     boost::progress_display disp(static_cast<int>(train_img.size()));
@@ -115,7 +118,8 @@ void trainer::train_and_test(Net &net, std::vector<Img> const &train_img,
 
     // training
     net.train(train_img, train_label, minibatch_size_, num_epochs_,
-              on_enumerate_minibatch, on_enumerate_epoch);
+              on_enumerate_minibatch, on_enumerate_epoch,
+              reset_weights);
 
     std::cout << "end training." << std::endl;
 
@@ -131,10 +135,12 @@ inline
 void trainer::train_and_test(Net &net, std::vector<Img> const &train_img,
                              std::vector<Label> const &train_label,
                              std::vector<Img> const &test_img,
-                             std::vector<Label> const &test_label)
+                             std::vector<Label> const &test_label,
+                             bool reset_weights)
 {
     train_and_test(net, train_img, train_label,
-                   test_img, test_label, std::cout);
+                   test_img, test_label, std::cout,
+                   reset_weights);
 }
 
 } /*! @} End of Doxygen Groups*/
