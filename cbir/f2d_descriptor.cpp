@@ -13,21 +13,23 @@ f2d_detector::f2d_detector(cv::Ptr<cv::FeatureDetector> detector,
 }
 
 void f2d_detector::get_descriptor(const cv::Mat &input,
-                                  cv::Mat &output)
+                                  result_type &output)
 {
-    std::vector<cv::KeyPoint> keypoints;
     if(detector_ == extractor_){
         detector_->detectAndCompute(input, cv::noArray(),
-                                    keypoints, output);
+                                    output.first,
+                                    output.second);
     }else{
-        detector_->detect(input, keypoints);
-        extractor_->compute(input, keypoints, output);
+        detector_->detect(input, output.first);
+        extractor_->compute(input, output.first,
+                            output.second);
     }
 }
 
-cv::Mat f2d_detector::get_descriptor(const cv::Mat &input)
+f2d_detector::result_type
+f2d_detector::get_descriptor(const cv::Mat &input)
 {
-    cv::Mat output;
+    result_type output;
     get_descriptor(input, output);
 
     return output;

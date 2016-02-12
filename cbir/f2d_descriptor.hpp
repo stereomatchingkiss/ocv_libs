@@ -21,13 +21,16 @@ namespace cbir{
 class f2d_detector
 {
 public:
+    using result_type =
+    std::pair<std::vector<cv::KeyPoint>, cv::Mat>;
+
     explicit f2d_detector(cv::Ptr<cv::FeatureDetector> detector,
                           cv::Ptr<cv::DescriptorExtractor> extractor);
 
     void get_descriptor(cv::Mat const &input,
-                        cv::Mat &output);
+                        result_type &output);
 
-    cv::Mat get_descriptor(cv::Mat const &input);
+    result_type get_descriptor(cv::Mat const &input);
 
 private:
     cv::Ptr<cv::FeatureDetector> detector_;
