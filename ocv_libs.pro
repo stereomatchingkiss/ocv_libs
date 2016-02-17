@@ -20,6 +20,7 @@ include(../pri/boost.pri)
 include(../pri/cv.pri)
 include(../pri/dlibs.pri)
 include(../pri/eigen.pri)
+include(../pri/hdf5.pri)
 include(../pri/tbb.pri)
 
 SOURCES += qt/mat_and_qimage.cpp \
@@ -37,7 +38,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/block_binary_pixel_sum.cpp \
     core/augment_data.cpp \
     cbir/color_descriptor.cpp \
-    cbir/f2d_descriptor.cpp
+    cbir/f2d_descriptor.cpp \
+    cbir/features_indexer.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -71,4 +73,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     ml/utility/shuffle_data.hpp \
     tiny_cnn/image_converter.hpp \
     cbir/color_descriptor.hpp \
-    cbir/f2d_descriptor.hpp
+    cbir/f2d_descriptor.hpp \
+    cbir/features_indexer.hpp
