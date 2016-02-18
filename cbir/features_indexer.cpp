@@ -55,7 +55,7 @@ void features_indexer::add_features(const std::string &image_name,
 
     //vconcat is an expensive operations
     if(!features_.empty()){
-        cv::vconcat(features, features_.clone(), features_);
+        cv::vconcat(features_.clone(), features, features_);
     }else{
         cv::vconcat(features, features_);
     }
