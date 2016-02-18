@@ -55,6 +55,9 @@ public:
      */
     explicit features_indexer(std::string const &file_name);
 
+    /**
+     * Destructor, will called flush()
+     */
     ~features_indexer();
 
     /**
@@ -95,9 +98,19 @@ public:
     std::vector<int> get_index_dimension() const;
     std::vector<int> get_names_dimension() const;
 
-    void read_features(cv::Mat &inout, std::string const &image_name) const;
-    void read_features(cv::InputOutputArray &features,
+    void read_data(cv::Mat &inout, std::string const &image_name) const;
+    /**
+     * Read the data of hdf5
+     * @param features store features
+     * @param features_index store featurs index
+     * @param image_names store image_name
+     * @param img_begin the index of begin image
+     * @param img_end the index of last image, img_end must >=
+     * img_begin
+     */
+    void read_data(cv::InputOutputArray &features,
                        cv::InputOutputArray &features_index,
+                       std::vector<std::string> &image_names,
                        int img_begin, int img_end) const;
     void read_image_name(std::vector<std::string> &inout) const;
 
