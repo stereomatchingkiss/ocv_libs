@@ -108,9 +108,9 @@ public:
      * img_begin
      */
     void read_data(cv::InputOutputArray &features,
-                       cv::InputOutputArray &features_index,
-                       std::vector<std::string> &image_names,
-                       int img_begin, int img_end) const;
+                   cv::InputOutputArray &features_index,
+                   std::vector<std::string> &image_names,
+                   int img_begin, int img_end) const;
 
     /**
      * Set the size of the buffer, the size of the buffer

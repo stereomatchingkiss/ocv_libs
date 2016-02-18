@@ -36,6 +36,10 @@ features_indexer::~features_indexer()
 void features_indexer::add_features(const std::string &image_name,
                                     cv::Mat features)
 {
+    if(features.empty()){
+        return;
+    }
+
     if(image_name.size() == name_size_){
         img_names_ += image_name;
     }else{
@@ -145,9 +149,9 @@ std::vector<int> features_indexer::get_names_dimension() const
 }
 
 void features_indexer::read_data(cv::InputOutputArray &features,
-                                     cv::InputOutputArray &features_index,
-                                     std::vector<std::string> &image_names,
-                                     int img_begin, int img_end) const
+                                 cv::InputOutputArray &features_index,
+                                 std::vector<std::string> &image_names,
+                                 int img_begin, int img_end) const
 {
     int const i_offset[] = {img_begin, 0};
     int const i_count[] = {img_end - img_begin + 1, 2};
@@ -180,7 +184,7 @@ void features_indexer::set_buffer_size(size_t value)
 std::vector<int> features_indexer::
 get_dimension(const std::string &label) const
 {
-    if(h5io_->hlexists(label)){
+    if(h5io_->hlexists(label)){        
         return h5io_->dsgetsize(label);
     }
 
