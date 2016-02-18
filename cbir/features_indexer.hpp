@@ -97,8 +97,8 @@ public:
 
     void read_features(cv::Mat &inout, std::string const &image_name) const;
     void read_features(cv::InputOutputArray &features,
-                       cv::InputOutputArray &index,
-                       int begin_index, int end_index) const;
+                       cv::InputOutputArray &features_index,
+                       int img_begin, int img_end) const;
     void read_image_name(std::vector<std::string> &inout) const;
 
     /**

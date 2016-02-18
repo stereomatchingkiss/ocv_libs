@@ -16,11 +16,15 @@ features_indexer::features_indexer(std::string const &file_name)
       name_size_{0}
 {    
     if(h5io_->hlexists("image_name")){
-        image_row_offset_ = h5io_->dsgetsize("image_name")[0];
+        auto const size = h5io_->dsgetsize("image_name");
+        image_row_offset_ = size[0];
+        name_size_ = size[1];
     }
 
     if(h5io_->hlexists("features")){
-        feature_row_offset_ = h5io_->dsgetsize("features")[0];
+        auto const size = h5io_->dsgetsize("features");
+        feature_row_offset_ = size[0];
+        features_size_ = size[1];
     }
 }
 
@@ -147,14 +151,19 @@ read_features(cv::Mat &inout, const std::string &image_name) const
 }
 
 void features_indexer::read_features(cv::InputOutputArray &features,
-                                     cv::InputOutputArray &index,
-                                     int begin_index, int end_index) const
+                                     cv::InputOutputArray &features_index,
+                                     int img_begin, int img_end) const
 {
-    int const i_offset[] = {begin_index, 0};
-    int const i_count[] = {end_index - begin_index, 2};
-    h5io_->dsread(index, "index", i_offset, i_count);
+    int const i_offset[] = {img_begin, 0};
+    int const i_count[] = {img_end - img_begin + 1, 2};
+    h5io_->dsread(features_index, "index", i_offset, i_count);
 
-
+    auto const f_index = features_index.getMat_();
+    int const f_offset[] = {f_index.at<int>(0,0), 0};
+    int const f_count[] = {f_index.at<int>(f_index.rows-1,1) -
+                           f_index.at<int>(0,0),
+                           features_size_};
+    h5io_->dsread(features, "features", f_offset, f_count);
 }
 
 void features_indexer::
