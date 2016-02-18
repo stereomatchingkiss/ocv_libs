@@ -99,6 +99,21 @@ public:
     std::vector<int> get_names_dimension() const;
 
     /**
+     * Read features associated with specific image
+     * @param features features of the image
+     * @param image_index index of the image
+     */
+    void read_features(cv::InputOutputArray &features,
+                       int image_index) const;
+
+    /**
+     * Read the features index associate with specific image
+     * @param features_index feauteres index of specific image
+     * @param image_index index of the image
+     */
+    void read_features_index(cv::InputOutputArray &features_index,
+                             int image_index) const;
+    /**
      * Read the data of hdf5
      * @param features store features
      * @param features_index store featurs index

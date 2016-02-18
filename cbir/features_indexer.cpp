@@ -148,6 +148,27 @@ std::vector<int> features_indexer::get_names_dimension() const
     return get_dimension("image_name");
 }
 
+void features_indexer::
+read_features(cv::InputOutputArray &features, int image_index) const
+{
+    cv::Mat_<int> index;
+    read_features_index(index, image_index);
+
+    int const f_offset[] = {index.at<int>(0,0), 0};
+    int const f_count[] = {index.at<int>(0,1) -
+                           index.at<int>(0,0),
+                           features_size_};
+    h5io_->dsread(features, "features", f_offset, f_count);
+}
+
+void features_indexer::
+read_features_index(cv::InputOutputArray &features_index, int image_index) const
+{
+    int const i_offset[] = {image_index, 0};
+    int const i_count[] = {1, 2};
+    h5io_->dsread(features_index, "index", i_offset, i_count);
+}
+
 void features_indexer::read_data(cv::InputOutputArray &features,
                                  cv::InputOutputArray &features_index,
                                  std::vector<std::string> &image_names,
@@ -173,7 +194,7 @@ void features_indexer::read_data(cv::InputOutputArray &features,
     int const f_count[] = {f_index.at<int>(f_index.rows-1,1) -
                            f_index.at<int>(0,0),
                            features_size_};
-    h5io_->dsread(features, "features", f_offset, f_count);        
+    h5io_->dsread(features, "features", f_offset, f_count);
 }
 
 void features_indexer::set_buffer_size(size_t value)
