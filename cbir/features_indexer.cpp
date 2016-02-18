@@ -144,12 +144,6 @@ std::vector<int> features_indexer::get_names_dimension() const
     return get_dimension("image_name");
 }
 
-void features_indexer::
-read_data(cv::Mat &inout, const std::string &image_name) const
-{
-
-}
-
 void features_indexer::read_data(cv::InputOutputArray &features,
                                      cv::InputOutputArray &features_index,
                                      std::vector<std::string> &image_names,
@@ -176,12 +170,6 @@ void features_indexer::read_data(cv::InputOutputArray &features,
                            f_index.at<int>(0,0),
                            features_size_};
     h5io_->dsread(features, "features", f_offset, f_count);        
-}
-
-void features_indexer::
-read_image_name(std::vector<std::string> &inout) const
-{
-
 }
 
 void features_indexer::set_buffer_size(size_t value)

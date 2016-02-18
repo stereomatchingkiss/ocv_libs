@@ -98,7 +98,6 @@ public:
     std::vector<int> get_index_dimension() const;
     std::vector<int> get_names_dimension() const;
 
-    void read_data(cv::Mat &inout, std::string const &image_name) const;
     /**
      * Read the data of hdf5
      * @param features store features
@@ -112,7 +111,6 @@ public:
                        cv::InputOutputArray &features_index,
                        std::vector<std::string> &image_names,
                        int img_begin, int img_end) const;
-    void read_image_name(std::vector<std::string> &inout) const;
 
     /**
      * Set the size of the buffer, the size of the buffer
