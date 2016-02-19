@@ -99,12 +99,22 @@ public:
     std::vector<int> get_names_dimension() const;
 
     /**
+     * Read features
+     * @param features self explained
+     * @param begin begin index
+     * @param end end index, must >= begin
+     */
+    void read_features(cv::InputOutputArray &features,
+                       int begin,
+                       int end);
+
+    /**
      * Read features associated with specific image
      * @param features features of the image
      * @param image_index index of the image
      */
-    void read_features(cv::InputOutputArray &features,
-                       int image_index) const;
+    void read_image_features(cv::InputOutputArray &features,
+                             int image_index) const;
 
     /**
      * Read the features index associate with specific image
