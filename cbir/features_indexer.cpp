@@ -150,7 +150,7 @@ std::vector<int> features_indexer::get_names_dimension() const
 
 void features_indexer::
 read_features(cv::InputOutputArray &features,
-              int begin, int end)
+              int begin, int end) const
 {
     int const f_offset[] = {begin, 0};
     int const f_count[] = {end - begin + 1,

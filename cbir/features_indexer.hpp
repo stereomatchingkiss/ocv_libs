@@ -106,7 +106,7 @@ public:
      */
     void read_features(cv::InputOutputArray &features,
                        int begin,
-                       int end);
+                       int end) const;
 
     /**
      * Read features associated with specific image
