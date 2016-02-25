@@ -171,7 +171,7 @@ read_features(cv::InputOutputArray &features,
               int begin, int end) const
 {
     int const f_offset[] = {begin, 0};
-    int const f_count[] = {end - begin + 1,
+    int const f_count[] = {end - begin,
                            features_size_};
     h5io_->dsread(features, "features", f_offset, f_count);
 }
@@ -205,11 +205,11 @@ void features_indexer::read_data(cv::InputOutputArray &features,
                                  int img_begin, int img_end) const
 {
     int const i_offset[] = {img_begin, 0};
-    int const i_count[] = {img_end - img_begin + 1, 2};
+    int const i_count[] = {img_end - img_begin, 2};
     h5io_->dsread(features_index, "index", i_offset, i_count);
 
     int const im_offset[] = {img_begin, 0};
-    int const im_count[] = {img_end - img_begin + 1, name_size_};
+    int const im_count[] = {img_end - img_begin, name_size_};
     cv::Mat_<char> names;
     h5io_->dsread(names, "image_name", im_offset, im_count);
     image_names.clear();
