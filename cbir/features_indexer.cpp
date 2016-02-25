@@ -6,12 +6,13 @@ namespace ocv{
 
 namespace cbir{
 
-features_indexer::features_indexer(std::string const &file_name)
+features_indexer::features_indexer(std::string file_name)
     : buffer_size_{20},
       cur_buffer_size_{0},
       feature_row_offset_{0},
       features_size_{0},
-      h5io_(cv::hdf::open(file_name)),
+      file_name_{std::move(file_name)},
+      h5io_(cv::hdf::open(file_name_)),
       image_row_offset_{0},
       name_size_{0}
 {    
@@ -34,7 +35,8 @@ features_indexer::~features_indexer()
 }
 
 void features_indexer::add_features(const std::string &image_name,
-                                    cv::Mat features)
+                                    std::vector<cv::KeyPoint> const &keypoints,
+                                    cv::Mat const &features)
 {
     if(features.empty()){
         return;
@@ -64,6 +66,10 @@ void features_indexer::add_features(const std::string &image_name,
         cv::vconcat(features, features_);
     }
 
+    keypoints_.insert(std::end(keypoints_),
+                      std::begin(keypoints),
+                      std::end(keypoints));
+
     ++cur_buffer_size_;
     if(cur_buffer_size_ >= buffer_size_){
         flush();
@@ -76,7 +82,7 @@ create_dataset(int name_size,
                int features_type)
 {
     if(!h5io_->hlexists("image_name")){
-        int const chunks[] = {10, name_size};
+        int const chunks[] = {100, name_size};
         name_size_ = name_size;
         h5io_->dscreate(cv::hdf::HDF5::H5_UNLIMITED,
                         name_size_,
@@ -101,6 +107,10 @@ create_dataset(int name_size,
                         cv::hdf::HDF5::H5_NONE,
                         chunks);
     }
+    if(!h5io_->hlexists("keypoints")){
+        h5io_->kpcreate(cv::hdf::HDF5::H5_UNLIMITED,
+                        "keypoints");
+    }
 }
 
 void features_indexer::flush()
@@ -113,21 +123,24 @@ void features_indexer::flush()
         cv::Mat_<char> im_name(static_cast<int>(img_names_.size()/name_size_),
                                name_size_,
                                const_cast<char*>(&img_names_[0]),
-                name_size_ * sizeof(char));
+                               name_size_ * sizeof(char));
         h5io_->dsinsert(im_name, "image_name", im_offset);
 
         int const i_offset[] = {image_row_offset_, 0};
         cv::Mat_<int> index(static_cast<int>(index_.size() / 2), 2,
                             &index_[0], 2 * sizeof(int));
-        h5io_->dsinsert(index, "index", i_offset);
+        h5io_->dsinsert(index, "index", i_offset);//*/
+
+        h5io_->kpinsert(keypoints_, "keypoints", feature_row_offset_);
 
         feature_row_offset_ += features_.rows;
         image_row_offset_ += static_cast<int>(index_.size()) / 2;
 
         cur_buffer_size_ = 0;
-        features_ = cv::Mat();
+        features_ = cv::Mat();        
         img_names_.clear();
         index_.clear();
+        keypoints_.clear();
     }else{
         return;
     }
@@ -141,6 +154,11 @@ std::vector<int> features_indexer::get_features_dimension() const
 std::vector<int> features_indexer::get_index_dimension() const
 {
     return get_dimension("index");
+}
+
+std::vector<int> features_indexer::get_key_dimension() const
+{
+    return get_dimension("keypoints");
 }
 
 std::vector<int> features_indexer::get_names_dimension() const
@@ -181,7 +199,8 @@ read_features_index(cv::InputOutputArray &features_index, int image_index) const
 }
 
 void features_indexer::read_data(cv::InputOutputArray &features,
-                                 cv::InputOutputArray &features_index,
+                                 cv::InputOutputArray &features_index,                                                                  
+                                 std::vector<cv::KeyPoint> &keypoints,
                                  std::vector<std::string> &image_names,
                                  int img_begin, int img_end) const
 {
@@ -206,6 +225,8 @@ void features_indexer::read_data(cv::InputOutputArray &features,
                            f_index.at<int>(0,0),
                            features_size_};
     h5io_->dsread(features, "features", f_offset, f_count);
+
+    h5io_->kpread(keypoints, "keypoints", f_offset[0], f_index.rows);
 }
 
 void features_indexer::set_buffer_size(size_t value)

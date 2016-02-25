@@ -38,6 +38,11 @@ namespace cbir{
  * 1 : 45,88,99,.....,11
  * .....................
  *
+ * ---------key points-----------------
+ * 0 : cv::keypoint
+ * 1 : cv::keypoint
+ * ............................
+ *
  * index 0 specify the range of the features of
  * image 0(ukbench03000.jpg) are located from
  * [0 to 594)
@@ -53,7 +58,7 @@ public:
      * Construct hdf5 file with file_name
      * @param file_name name of the hdf5 file
      */
-    explicit features_indexer(std::string const &file_name);
+    explicit features_indexer(std::string file_name);
 
     /**
      * Destructor, will called flush()
@@ -68,12 +73,14 @@ public:
      * call set_buffer_size to adjust the size of the buffer.
      * Destructror will flush the features to hdf5
      * @param image_name name of the image
-     * @param features features of the image
+     * @param keypoints keypoints of the features
+     * @param features features of the image     
      * @warning This function require the cols of every features
      * remain the same.
      */
     void add_features(std::string const &image_name,
-                      cv::Mat features);
+                      std::vector<cv::KeyPoint> const &keypoints,
+                      cv::Mat const &features);
 
     /**
      * Create dataset of the file
@@ -96,6 +103,7 @@ public:
 
     std::vector<int> get_features_dimension() const;
     std::vector<int> get_index_dimension() const;
+    std::vector<int> get_key_dimension() const;
     std::vector<int> get_names_dimension() const;
 
     /**
@@ -126,16 +134,18 @@ public:
     /**
      * Read the data of hdf5
      * @param features store features
-     * @param features_index store featurs index
+     * @param features_index store featurs index     
      * @param image_names store image_name
+     * @param keypoints keypoints of the features
      * @param img_begin the index of begin image
      * @param img_end the index of last image, img_end must >=
      * img_begin
      */
     void read_data(cv::InputOutputArray &features,
-                   cv::InputOutputArray &features_index,
+                   cv::InputOutputArray &features_index,                                      
+                   std::vector<cv::KeyPoint> &keypoints,
                    std::vector<std::string> &image_names,
-                   int img_begin, int img_end) const;
+                   int img_begin, int img_end) const;    
 
     /**
      * Set the size of the buffer, the size of the buffer
@@ -153,10 +163,12 @@ private:
     cv::Mat features_;
     int feature_row_offset_;
     int features_size_;
-    std::vector<int> index_;
-    cv::Ptr<cv::hdf::HDF5> h5io_;
-    std::string img_names_;
+    std::string file_name_;
+    cv::Ptr<cv::hdf::HDF5> h5io_;    
+    std::string img_names_;    
     int image_row_offset_;
+    std::vector<int> index_;
+    std::vector<cv::KeyPoint> keypoints_;
     int name_size_;
 };
 
