@@ -168,7 +168,7 @@ private:
             //std::copy(fptr, fptr + features.cols, data.colptr(index));
             auto *cptr = data.colptr(index);
             for(int i = 0; i != features.cols; ++i){
-                cptr[i] = fptr[i];
+                cptr[i] = static_cast<T>(fptr[i]);
             }
         }
 
