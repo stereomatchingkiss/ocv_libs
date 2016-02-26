@@ -1,6 +1,8 @@
 #include "features_indexer.hpp"
 
 #include <iostream>
+#include <numeric>
+#include <random>
 
 namespace ocv{
 
@@ -196,6 +198,28 @@ read_features_index(cv::InputOutputArray &features_index, int image_index) const
     int const i_offset[] = {image_index, 0};
     int const i_count[] = {1, 2};
     h5io_->dsread(features_index, "index", i_offset, i_count);
+}
+
+void features_indexer::
+read_random_features(double ratio,
+                     std::function<void(const cv::Mat&,int)> read_func,
+                     unsigned int seed) const
+{
+    auto const feature_dim = get_features_dimension();
+    int const fsize = feature_dim[0];
+    std::vector<int> permu(fsize);
+    std::iota(std::begin(permu), std::end(permu), 0);
+
+    int const train_size = static_cast<int>(fsize * ratio);
+    std::mt19937 gen(seed);
+    std::shuffle(std::begin(permu), std::end(permu), gen);
+    std::sort(std::begin(permu), std::begin(permu) + train_size);
+
+    cv::Mat features;
+    for(int i = 0; i != train_size; ++i){
+        read_features(features, permu[i], permu[i] + 1);
+        read_func(features, i);
+    }
 }
 
 void features_indexer::read_data(cv::InputOutputArray &features,

@@ -4,6 +4,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/hdf.hpp>
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -131,6 +132,27 @@ public:
      */
     void read_features_index(cv::InputOutputArray &features_index,
                              int image_index) const;
+
+    /**
+     * Read features randomly
+     * @param ratio how many percent want to read
+     * @param read_func provide the way to read the features,
+     * first parameter is the Mat with the features, second parameter
+     * is the index of the features
+     * @param seed random seed, easier for users to regenerate the results
+     * @code
+     * fi.read_random_features(0.25,
+     * [&](cv::Mat const &features, int index)
+     * {
+     *     auto *fptr = features.ptr<uchar>(0);
+     *     std::copy(fptr, fptr + features.cols, data.colptr(index));
+     * });
+     * @endcode
+     */
+    void read_random_features(double ratio,
+                              std::function<void(cv::Mat const&, int)> read_func,
+                              unsigned int seed = 0) const;
+
     /**
      * Read the data of hdf5
      * @param features store features
