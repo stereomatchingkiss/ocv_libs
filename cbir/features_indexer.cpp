@@ -207,16 +207,28 @@ read_random_features(double ratio,
 {
     auto const feature_dim = get_features_dimension();
     int const fsize = feature_dim[0];
+    int const sample_size = static_cast<int>(fsize * ratio);
+    read_random_features(sample_size,
+                         read_func, seed);
+}
+
+void features_indexer::
+read_random_features(int feature_size,
+                     std::function<void(const cv::Mat&, int)> read_func,
+                     unsigned int seed) const
+{
+    auto const feature_dim = get_features_dimension();
+    int const fsize = feature_dim[0];
     std::vector<int> permu(fsize);
     std::iota(std::begin(permu), std::end(permu), 0);
 
-    int const train_size = static_cast<int>(fsize * ratio);
+    feature_size = feature_size <= fsize ? feature_size : fsize;
     std::mt19937 gen(seed);
     std::shuffle(std::begin(permu), std::end(permu), gen);
-    std::sort(std::begin(permu), std::begin(permu) + train_size);
+    std::sort(std::begin(permu), std::begin(permu) + feature_size);
 
     cv::Mat features;
-    for(int i = 0; i != train_size; ++i){
+    for(int i = 0; i != feature_size; ++i){
         read_features(features, permu[i], permu[i] + 1);
         read_func(features, i);
     }
