@@ -24,23 +24,37 @@ namespace cbir{
  *build the code book by kmeans, depend on
  *armadillo, opencv, hdf5
  *
- * @tparam T type of code book
- * @tparam U type of the features
+ *@tparam T type of code book
+ *@tparam U type of the features
  */
 template<typename T>
 class code_book_builder
 {
 public:
+    /**
+     * @param fi the feature indexer which store the
+     * hdf5 data
+     * @param sample_size size of the sample
+     * @param feature_type type of the features
+     * @param seed random seed
+     */
     code_book_builder(features_indexer const &fi,
-                      int feature_size,
+                      int sample_size,
                       int feature_type,
                       unsigned int seed = 0) :
         feature_dimension_(fi.get_features_dimension()),
         fi_(fi)
     {
-        read_data(feature_size, feature_type, seed);
+        read_data(sample_size, feature_type, seed);
     }
 
+    /**
+     * @param fi the feature indexer which store the
+     * hdf5 data
+     * @param ratio ratio of the feature you want to sample
+     * @param feature_type type of the features
+     * @param seed random seed
+     */
     code_book_builder(features_indexer const &fi,
                       double ratio,
                       int feature_type,
@@ -51,14 +65,26 @@ public:
         read_data(ratio, feature_type, seed);
     }
 
+    /**
+     * create code book
+     * @param cluster cluster size, it should << than feature size
+     * @param n_iter number of iteration, 10 is default number
+     * @param print_mode true will print the else and vice versa
+     */
     void create_code_book(arma::uword cluster,
-                          arma::uword n_iter,
+                          arma::uword n_iter = 10,
                           bool print_mode = false)
     {
         arma::kmeans(code_book_, data_, cluster,
                      arma::random_subset, n_iter, print_mode);
     }
 
+    /**
+     * read features from hdf5
+     * @param sample_size how many sample want to read
+     * @param feature_type type of the features
+     * @param seed random seed
+     */
     void read_data(int sample_size, int feature_type,
                    unsigned int seed = 0)
     {
@@ -105,6 +131,12 @@ public:
         }
     }
 
+    /**
+     * read features from hdf5
+     * @param ratio ratio of the feature you want to sample
+     * @param feature_type type of the features
+     * @param seed random seed
+     */
     void read_data(double ratio, int feature_type,
                    unsigned int seed = 0)
     {
@@ -113,6 +145,10 @@ public:
         read_data(feature_size, feature_type, seed);
     }
 
+    /**
+     * get the code book
+     * @return code book
+     */
     arma::Mat<T> const& get_code_book() const
     {
         return code_book_;
