@@ -1,5 +1,5 @@
-#ifndef ATTRIBUTE_HPP
-#define ATTRIBUTE_HPP
+#ifndef OCV_CORE_ATTRIBUTE_HPP
+#define OCV_CORE_ATTRIBUTE_HPP
 
 #include <opencv2/imgproc.hpp>
 
@@ -77,5 +77,5 @@ void print_contour_attribute_name(std::ostream &out);
 
 } /*! @} End of Doxygen Groups*/
 
-#endif // ATTRIBUTE_HPP
+#endif // OCV_CORE_ATTRIBUTE_HPP
 
