@@ -16,6 +16,7 @@ gcc:QMAKE_CXXFLAGS_RELEASE += -fopenmp
 
 INCLUDEPATH += ..
 
+include(../pri/arma.pri)
 include(../pri/boost.pri)
 include(../pri/cv.pri)
 include(../pri/dlibs.pri)
@@ -74,4 +75,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     tiny_cnn/image_converter.hpp \
     cbir/color_descriptor.hpp \
     cbir/f2d_descriptor.hpp \
-    cbir/features_indexer.hpp
+    cbir/features_indexer.hpp \
+    cbir/code_book_builder.hpp
