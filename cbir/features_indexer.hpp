@@ -51,6 +51,23 @@ namespace cbir{
  * index 1 specify the range of the features of
  * image 1(ukbench03001.jpg) are located from
  * [594 to 1027)
+ * @code
+ * features_indexer fi("ukbench.h5");
+ * //largest size of the file, feature size, type of the feature
+ * fi.create_dataset(16, 61, CV_8U);
+ * fi.set_buffer_size(1000);
+ * cv::Ptr<cv::AKAZE> detector = cv::AKAZE::create();
+ * cv::Ptr<cv::AKAZE> descriptor = detector;
+ * ocv::cbir::f2d_detector f2d(detector, descriptor);
+ * for(auto &pair : files){
+ *   //pair : first is cv::Mat, second is image name
+ *   //result : first is keypoints, second is feature
+ *   auto result = f2d.get_descriptor(pair.first);
+ *   fi.add_features(pair.second, result.first,
+ *                   result.second);
+ * }
+ * fi.flush();
+ * @endcode
  */
 class features_indexer
 {
