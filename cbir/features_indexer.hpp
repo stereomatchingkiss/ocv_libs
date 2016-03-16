@@ -128,7 +128,7 @@ public:
      * Read features
      * @param features self explained
      * @param begin begin index
-     * @param end end index, must >= begin
+     * @param end end index, must > begin
      */
     void read_features(cv::InputOutputArray &features,
                        int begin,
@@ -197,7 +197,7 @@ public:
      * @param image_names store image_name
      * @param keypoints keypoints of the features
      * @param img_begin the index of begin image
-     * @param img_end the index of last image, img_end must >=
+     * @param img_end the index of last image, img_end must >
      * img_begin
      */
     void read_data(cv::InputOutputArray &features,
