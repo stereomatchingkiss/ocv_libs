@@ -26,8 +26,9 @@ namespace cbir{
 /**
  *visualize the features of BOVW
  *@tparam T Features type of hdf5
+ *@tparam U Type of code book(vocab)
  */
-template<typename T>
+template<typename T, typename U = double>
 class visualize_features
 {
 public:    
@@ -37,7 +38,7 @@ public:
             dist_{std::numeric_limits<double>::max()}
         {}
 
-        vis_point(T dist, std::string img_name,
+        vis_point(U dist, std::string img_name,
                   cv::KeyPoint kp) :
             dist_{dist},
             img_name_(std::move(img_name)),
@@ -56,14 +57,13 @@ public:
             return !(lhs < rhs);
         }
 
-        double dist_;
+        U dist_;
         std::string img_name_;
         cv::KeyPoint kp_;
     };
 
     using vis_points = std::vector<vis_point>;
 
-    template<typename U>
     std::vector<vis_points>
     find_top_results(features_indexer const &fi,
                      arma::Mat<U> const &vocab) const
@@ -84,7 +84,7 @@ public:
                 }
                 auto const distances = euclidean_dist(arma_features,
                                                       vocab);
-                for(size_t m = 0; m != vocab.n_cols; ++m){
+                for(arma::uword m = 0; m != vocab.n_cols; ++m){
                     update_vis(distances[m], img_names[i],
                                keypoints[i], results[m]);
                 }
@@ -99,8 +99,7 @@ public:
         return results;
     }
 
-private:
-    template<typename U>
+private:    
     arma::Mat<U> euclidean_dist(arma::Col<U> const &x,
                                 arma::Mat<U> const &y) const
     {
@@ -125,7 +124,6 @@ private:
         }
     }
 
-    template<typename U>
     void update_vis(U distance, std::string const &img_name,
                     cv::KeyPoint kp, vis_points &vis) const
     {
@@ -142,7 +140,7 @@ private:
                 return val.dist_ > distance;
             });
             if(it != std::end(vis)){
-                it->dist_ = static_cast<double>(distance);
+                it->dist_ = static_cast<U>(distance);
             }
         }
     }
