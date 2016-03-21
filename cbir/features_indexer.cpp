@@ -179,6 +179,29 @@ read_features(cv::InputOutputArray &features,
 }
 
 void features_indexer::
+read_image_name(std::vector<std::string> &img_names) const
+{
+    read_image_name(img_names, 0, image_row_offset_);
+}
+
+void features_indexer::
+read_image_name(std::vector<std::string> &img_names,
+                int begin, int end) const
+{
+    img_names.clear();
+    int const im_offset[] = {begin, 0};
+    int const im_count[] = {end - begin, name_size_};
+    cv::Mat_<char> names;
+    h5io_->dsread(names, "image_name", im_offset, im_count);
+    img_names.clear();
+    for(int row = 0; row != names.rows; ++row){
+        auto *ptr = names.ptr<char>(row);
+        std::string name(ptr, ptr + name_size_);
+        img_names.emplace_back(std::move(name));
+    }
+}
+
+void features_indexer::
 read_image_features(cv::InputOutputArray &features,
                     int image_index) const
 {
@@ -244,16 +267,7 @@ void features_indexer::read_data(cv::InputOutputArray &features,
     int const i_count[] = {img_end - img_begin, 2};
     h5io_->dsread(features_index, "index", i_offset, i_count);
 
-    int const im_offset[] = {img_begin, 0};
-    int const im_count[] = {img_end - img_begin, name_size_};
-    cv::Mat_<char> names;
-    h5io_->dsread(names, "image_name", im_offset, im_count);
-    image_names.clear();
-    for(int row = 0; row != names.rows; ++row){
-        auto *ptr = names.ptr<char>(row);
-        std::string name(ptr, ptr + name_size_);
-        image_names.emplace_back(std::move(name));
-    }
+    read_image_name(image_names, img_begin, img_end);
 
     auto const f_index = features_index.getMat_();
     int const f_offset[] = {f_index.at<int>(0,0), 0};

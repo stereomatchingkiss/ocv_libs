@@ -135,6 +135,21 @@ public:
                        int end) const;
 
     /**
+     * Read all of the image names
+     * @param img_names store the name of the images
+     */
+    void read_image_name(std::vector<std::string> &img_names) const;
+
+    /**
+     * Read the name of the images
+     * @param img_names name of the images
+     * @param begin begin index
+     * @param end end index, must > begin
+     */
+    void read_image_name(std::vector<std::string> &img_names,
+                         int begin, int end) const;
+
+    /**
      * Read features associated with specific image
      * @param features features of the image
      * @param image_index index of the image
