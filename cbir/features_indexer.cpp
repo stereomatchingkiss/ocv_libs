@@ -223,6 +223,18 @@ read_features_index(cv::InputOutputArray &features_index, int image_index) const
     h5io_->dsread(features_index, "index", i_offset, i_count);
 }
 
+/*void features_indexer::
+read_keypoints(std::vector<cv::KeyPoint> &keypoints,
+               int image_index) const
+{
+    cv::Mat findex;
+    read_features_index(findex, image_index);
+    h5io_->kpread(keypoints, "keypoints",
+                  findex.at<int>(0,0),
+                  findex.at<int>(0,1) -
+                  findex.at<int>(0,0));
+}*/
+
 void features_indexer::
 read_random_features(double ratio,
                      std::function<void(const cv::Mat&,int)> read_func,
@@ -269,14 +281,14 @@ void features_indexer::read_data(cv::InputOutputArray &features,
 
     read_image_name(image_names, img_begin, img_end);
 
-    auto const f_index = features_index.getMat_();
+    auto const f_index = features_index.getMat();
     int const f_offset[] = {f_index.at<int>(0,0), 0};
     int const f_count[] = {f_index.at<int>(f_index.rows-1,1) -
                            f_index.at<int>(0,0),
                            features_size_};
     h5io_->dsread(features, "features", f_offset, f_count);
 
-    h5io_->kpread(keypoints, "keypoints", f_offset[0], f_index.rows);
+    h5io_->kpread(keypoints, "keypoints", f_offset[0], f_count[0]);
 }
 
 void features_indexer::set_buffer_size(size_t value)

@@ -135,6 +135,22 @@ public:
                        int end) const;
 
     /**
+     * Read the features index associate with specific image
+     * @param features_index feauteres index of specific image
+     * @param image_index index of the image
+     */
+    void read_features_index(cv::InputOutputArray &features_index,
+                             int image_index) const;
+
+    /**
+     * Read the keypoints associate with specific image
+     * @param keypoints keypoints of the image
+     * @param image_index index of the image
+     */
+    //void read_keypoints(std::vector<cv::KeyPoint> &keypoints,
+    //                    int image_index) const;
+
+    /**
      * Read all of the image names
      * @param img_names store the name of the images
      */
@@ -155,15 +171,7 @@ public:
      * @param image_index index of the image
      */
     void read_image_features(cv::InputOutputArray &features,
-                             int image_index) const;
-
-    /**
-     * Read the features index associate with specific image
-     * @param features_index feauteres index of specific image
-     * @param image_index index of the image
-     */
-    void read_features_index(cv::InputOutputArray &features_index,
-                             int image_index) const;
+                             int image_index) const;    
 
     /**
      * Read features randomly
