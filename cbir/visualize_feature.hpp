@@ -70,14 +70,14 @@ public:
     {
         std::vector<std::string> img_names;
         fi.read_image_name(img_names);
-        std::cout<<"img size : "<<img_names.size()<<"\n";
+        //std::cout<<"img size : "<<img_names.size()<<"\n";
         std::vector<vis_points> results(vocab.n_cols);
         for(size_t i = 0; i != img_names.size(); ++i){
             cv::Mat img_features;
             std::vector<cv::KeyPoint> keypoints;
             fi.read_image_features(img_features, static_cast<int>(i));
             fi.read_keypoints(keypoints, static_cast<int>(i));
-            std::cout<<i<<" : "<<keypoints.size()<<"\n";
+            //std::cout<<i<<" : "<<keypoints.size()<<"\n";
             for(int j = 0; j != img_features.rows; ++j){
                 arma::Col<U> arma_features(img_features.cols);
                 auto *ptr = img_features.ptr<T>(j);
