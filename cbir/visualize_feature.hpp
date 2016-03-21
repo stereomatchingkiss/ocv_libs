@@ -93,12 +93,6 @@ public:
             }
         }
 
-        for(auto &vis : results){
-            if(!std::is_sorted(std::begin(vis), std::end(vis))){
-                std::sort(std::begin(vis), std::end(vis));
-            }
-        }
-
         return results;
     }
 
@@ -133,8 +127,7 @@ private:
         if(vis.size() < 16){
             vis.emplace_back(distance, img_name, kp);
             if(vis.size() == 16){
-                std::sort(std::begin(vis), std::end(vis),
-                          std::greater<vis_point>());
+                std::sort(std::begin(vis), std::end(vis));
             }
         }else{
             auto it = std::find_if(std::begin(vis), std::end(vis),
