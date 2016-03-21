@@ -147,8 +147,8 @@ public:
      * @param keypoints keypoints of the image
      * @param image_index index of the image
      */
-    //void read_keypoints(std::vector<cv::KeyPoint> &keypoints,
-    //                    int image_index) const;
+    void read_keypoints(std::vector<cv::KeyPoint> &keypoints,
+                        int image_index) const;
 
     /**
      * Read all of the image names

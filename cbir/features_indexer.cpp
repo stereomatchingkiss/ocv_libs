@@ -223,17 +223,18 @@ read_features_index(cv::InputOutputArray &features_index, int image_index) const
     h5io_->dsread(features_index, "index", i_offset, i_count);
 }
 
-/*void features_indexer::
+void features_indexer::
 read_keypoints(std::vector<cv::KeyPoint> &keypoints,
                int image_index) const
 {
     cv::Mat findex;
     read_features_index(findex, image_index);
+    keypoints.clear();
     h5io_->kpread(keypoints, "keypoints",
                   findex.at<int>(0,0),
                   findex.at<int>(0,1) -
                   findex.at<int>(0,0));
-}*/
+}
 
 void features_indexer::
 read_random_features(double ratio,
