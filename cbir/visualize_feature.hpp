@@ -56,7 +56,7 @@ public:
             return !(lhs < rhs);
         }
 
-        T dist_;
+        double dist_;
         std::string img_name_;
         cv::KeyPoint kp_;
     };
@@ -74,8 +74,8 @@ public:
         for(size_t i = 0; i != img_names.size(); ++i){
             cv::Mat img_features;
             std::vector<cv::KeyPoint> keypoints;
-            fi.read_image_features(img_features, i);
-            fi.read_keypoints(keypoints, i);
+            fi.read_image_features(img_features, static_cast<int>(i));
+            fi.read_keypoints(keypoints, static_cast<int>(i));
             for(int j = 0; j != img_features.rows; ++j){
                 arma::Col<U> arma_features(img_features.cols);
                 auto *ptr = img_features.ptr<T>(j);
@@ -102,7 +102,7 @@ public:
 private:
     template<typename U>
     arma::Mat<U> euclidean_dist(arma::Col<U> const &x,
-                                arma::Mat<U> const &y)
+                                arma::Mat<U> const &y) const
     {
         return arma::sqrt(arma::sum
                           (arma::square(y.each_col() - x)));
@@ -133,7 +133,7 @@ private:
             vis.emplace_back(distance, img_name, kp);
             if(vis.size() == 16){
                 std::sort(std::begin(vis), std::end(vis),
-                          std::greater<vis>());
+                          std::greater<vis_point>());
             }
         }else{
             auto it = std::find_if(std::begin(vis), std::end(vis),
@@ -142,7 +142,7 @@ private:
                 return val.dist_ > distance;
             });
             if(it != std::end(vis)){
-                it->dist_ = distance;
+                it->dist_ = static_cast<double>(distance);
             }
         }
     }
