@@ -89,13 +89,14 @@ public:
                 for(arma::uword m = 0; m != vocab.n_cols; ++m){
                     update_vis(distances[m], img_names[i],
                                keypoints[j], results[m]);
-                }//*/
+                }
             }
         }
 
-        for(size_t i = 0; i != results.size(); ++i){
-            auto &vis = results[i];
-            std::reverse(std::begin(vis), std::end(vis));
+        for(auto &vis : results){
+            if(!std::is_sorted(std::begin(vis), std::end(vis))){
+                std::sort(std::begin(vis), std::end(vis));
+            }
         }
 
         return results;
