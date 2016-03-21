@@ -76,4 +76,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cbir/color_descriptor.hpp \
     cbir/f2d_descriptor.hpp \
     cbir/features_indexer.hpp \
-    cbir/code_book_builder.hpp
+    cbir/code_book_builder.hpp \
+    cbir/visualize_feature.hpp
