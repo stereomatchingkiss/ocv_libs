@@ -37,26 +37,26 @@ public:
             dist_{std::numeric_limits<double>::max()}
         {}
 
-        vis_point(double dist, std::string img_name,
+        vis_point(T dist, std::string img_name,
                   cv::KeyPoint kp) :
             dist_{dist},
             img_name_(std::move(img_name)),
             kp_(kp)
         {}
 
-        bool operator<(vis_point const &lhs,
-                       vis_point const &rhs) const
+        friend bool operator<(vis_point const &lhs,
+                              vis_point const &rhs)
         {
             return lhs.dist_ < rhs.dist_;
         }
 
-        bool operator>(vis_point const &lhs,
-                       vis_point const &rhs) const
+        friend bool operator>(vis_point const &lhs,
+                              vis_point const &rhs)
         {
             return !(lhs < rhs);
         }
 
-        double dist_;
+        T dist_;
         std::string img_name_;
         cv::KeyPoint kp_;
     };
@@ -124,9 +124,6 @@ private:
             }
         }
     }
-
-    update_vis(distances[m], img_names[i],
-               keypoints[i], results[m]);
 
     template<typename U>
     void update_vis(U distance, std::string const &img_name,
