@@ -119,23 +119,6 @@ private:
                           (arma::square(y.each_col() - x)));
     }
 
-    void tile(std::vector<cv::Mat> const &src, cv::Mat &dst,
-              int grid_x, int grid_y) const
-    {
-        // patch size
-        int const width  = dst.cols/grid_x;
-        int const height = dst.rows/grid_y;
-        // iterate through grid
-        int k = 0;
-        for(int i = 0; i < grid_y; i++) {
-            for(int j = 0; j < grid_x; j++) {
-                Mat s = src[k++];
-                cv::resize(s,s,Size(width,height));
-                s.copyTo(dst(cv::Rect(j*width,i*height,width,height)));
-            }
-        }
-    }
-
     void update_vis(U distance, std::string const &img_name,
                     cv::KeyPoint kp, vis_points &vis) const
     {
