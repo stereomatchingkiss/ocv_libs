@@ -81,8 +81,8 @@ public:
         std::vector<std::string> img_names;
         fi.read_image_name(img_names);
         //std::cout<<"img size : "<<img_names.size()<<"\n";
-        std::cout<<"vocab size : "<<vocab.n_rows<<", "
-                <<vocab.n_cols<<"\n";
+        //std::cout<<"vocab size : "<<vocab.n_rows<<", "
+        //        <<vocab.n_cols<<"\n";
         std::vector<vis_points> results(vocab.n_cols);
         for(size_t i = 0; i != img_names.size(); ++i){
             cv::Mat img_features;
