@@ -1,5 +1,5 @@
-#ifndef BASICIMAGEALGO_HPP
-#define BASICIMAGEALGO_HPP
+#ifndef OCV_CORE_UTILITY_HPP
+#define OCV_CORE_UTILITY_HPP
 
 #include <cmath>
 #include <functional>
@@ -207,4 +207,4 @@ void generate_random_value(cv::Mat &inout, T epsillon,
 
 }
 
-#endif // BASIC_HPP
+#endif // OCV_CORE_UTILITY_HPP
