@@ -81,6 +81,8 @@ public:
         std::vector<std::string> img_names;
         fi.read_image_name(img_names);
         //std::cout<<"img size : "<<img_names.size()<<"\n";
+        std::cout<<"vocab size : "<<vocab.n_rows<<", "
+                <<vocab.n_cols<<"\n";
         std::vector<vis_points> results(vocab.n_cols);
         for(size_t i = 0; i != img_names.size(); ++i){
             cv::Mat img_features;
@@ -88,6 +90,8 @@ public:
             fi.read_image_features(img_features, static_cast<int>(i));
             fi.read_keypoints(keypoints, static_cast<int>(i));
             //std::cout<<img_names[i]<<" : "<<keypoints.size()<<"\n";
+            //std::cout<<"img features size : "<<img_features.rows
+            //        <<":"<<img_features.cols<<"\n";
             for(int j = 0; j != img_features.rows; ++j){
                 arma::Col<U> arma_features(img_features.cols);
                 auto *ptr = img_features.ptr<T>(j);
@@ -96,6 +100,7 @@ public:
                 }
                 auto const distances = euclidean_dist(arma_features,
                                                       vocab);
+                //std::cout<<"distances : "<<distances<<std::endl;
                 for(arma::uword m = 0; m != vocab.n_cols; ++m){
                     update_vis(distances[m], img_names[i],
                                keypoints[j], results[m]);
@@ -146,9 +151,8 @@ private:
                 return val.dist_ > distance;
             });
             if(it != std::end(vis)){
-                it->dist_ = distance;
-                it->img_name_ = img_name;
-                it->kp_ = kp;
+                vis.emplace(it, distance, img_name, kp);
+                vis.pop_back();
             }
         }
     }
