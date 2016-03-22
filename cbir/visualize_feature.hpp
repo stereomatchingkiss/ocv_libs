@@ -77,7 +77,7 @@ public:
             std::vector<cv::KeyPoint> keypoints;
             fi.read_image_features(img_features, static_cast<int>(i));
             fi.read_keypoints(keypoints, static_cast<int>(i));
-            //std::cout<<i<<" : "<<keypoints.size()<<"\n";
+            //std::cout<<img_names[i]<<" : "<<keypoints.size()<<"\n";
             for(int j = 0; j != img_features.rows; ++j){
                 arma::Col<U> arma_features(img_features.cols);
                 auto *ptr = img_features.ptr<T>(j);
@@ -137,6 +137,8 @@ private:
             });
             if(it != std::end(vis)){
                 it->dist_ = distance;
+                it->img_name_ = img_name;
+                it->kp_ = kp;
             }
         }
     }
