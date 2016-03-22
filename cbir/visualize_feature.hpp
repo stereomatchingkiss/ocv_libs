@@ -57,6 +57,16 @@ public:
             return !(lhs < rhs);
         }
 
+        friend std::ostream& operator<<(std::ostream &out,
+                                        vis_point const &input)
+        {
+            out<<input.img_name_<<" : "
+              <<input.dist_<<" : "
+             <<input.kp_.pt;
+
+            return out;
+        }
+
         U dist_;
         std::string img_name_;
         cv::KeyPoint kp_;
