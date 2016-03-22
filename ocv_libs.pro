@@ -40,7 +40,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     core/augment_data.cpp \
     cbir/color_descriptor.cpp \
     cbir/f2d_descriptor.cpp \
-    cbir/features_indexer.cpp
+    cbir/features_indexer.cpp \
+    core/montage.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -77,4 +78,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cbir/f2d_descriptor.hpp \
     cbir/features_indexer.hpp \
     cbir/code_book_builder.hpp \
-    cbir/visualize_feature.hpp
+    cbir/visualize_feature.hpp \
+    core/montage.hpp
