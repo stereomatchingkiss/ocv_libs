@@ -1,5 +1,5 @@
-#ifndef OCV_FOREACH_HPP
-#define OCV_FOREACH_HPP
+#ifndef OCV_CORE_FOREACH_HPP
+#define OCV_CORE_FOREACH_HPP
 
 #include <cmath>
 #include <functional>
@@ -298,4 +298,4 @@ Func for_each(MatA &&inout_1, MatB &&inout_2,
 
 } /*! @} End of Doxygen Groups*/
 
-#endif // GENERICFOREACH_HPP
+#endif // OCV_CORE_FOREACH_HPP
