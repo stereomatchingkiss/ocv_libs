@@ -72,8 +72,7 @@ private:
         using type = typename std::is_same<Hist,
         arma::SpMat<typename Hist::elem_type>>::type;
 
-        enum{value = std::is_same<Hist,
-             arma::SpMat<typename Hist::elem_type>>::value};
+        enum{value = std::is_same<type, std::true_type>::value};
     };
 
     struct is_mat
