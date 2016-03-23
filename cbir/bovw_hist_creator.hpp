@@ -101,7 +101,7 @@ private:
       //do not use std::copy because it may generate warning
       auto *ptr = features.ptr<Feature>(0);
       for(size_t i = 0; i != features.total(); ++i){
-          result(i) = ptr[i];
+          result(i) = static_cast<CodeBook>(ptr[i]);
       }
 
       return result;
