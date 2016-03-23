@@ -80,4 +80,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cbir/code_book_builder.hpp \
     cbir/visualize_feature.hpp \
     core/montage.hpp \
-    cbir/bovw.hpp
+    cbir/bovw.hpp \
+    cbir/bovw_hist_creator.hpp
