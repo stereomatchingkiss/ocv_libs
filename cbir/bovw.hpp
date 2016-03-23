@@ -32,6 +32,9 @@ public:
     explicit bovw(arma::Mat<T> code_book) :
         code_book_(std::move(code_book))
     {
+        static_assert(std::is_arithmetic<T>::value,
+                      "T should be arithmetic type");
+
         static_assert(is_arma::value,
                       "Hist should be arma::SpMat, arma::Mat,"
                       "arma::Col or arma::Row");
