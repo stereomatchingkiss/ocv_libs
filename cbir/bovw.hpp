@@ -22,7 +22,12 @@ namespace cbir{
  *@tparam T type of the code_book and features
  *@tparam Hist type of histogram
  *@code
- *
+ *arma::Mat<float> code_book;
+ *code_book.load("ukbench.h5", arma::hdf5_binary);
+ *bovw<float> bv(std::move(code_book));
+ *arma::Mat<float> features;
+ *features.load("uk3000", arma::raw_ascii);
+ *auto const hist = bv.describe(features);
  *@endcode
  */
 template<typename T, typename Hist = arma::SpMat<arma::uword>>
