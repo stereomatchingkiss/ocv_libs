@@ -52,7 +52,7 @@ public:
         //dist.print("dist");
 
         Hist hist = create_hist(dist.n_cols,
-                                is_spmat::type());
+                                is_two_dim::type());
         for(arma::uword i = 0; i != dist.n_rows; ++i){
             arma::uword min_idx;
             dist.row(i).min(min_idx);
@@ -78,8 +78,15 @@ private:
         using type = typename std::is_same<Hist,
         arma::Mat<typename Hist::elem_type>>::type;
 
-        enum{value = std::is_same<Hist,
-             arma::Mat<typename Hist::elem_type>>::value};
+        enum{value = std::is_same<type, std::true_type>::value};
+    };
+
+    struct is_two_dim
+    {
+        using type  = typename std::conditional<is_spmat::value ||
+        is_mat::value, std::true_type, std::false_type>::type;
+
+        enum{value = std::is_same<type, std::true_type>::value};
     };
 
     struct is_col
@@ -87,8 +94,7 @@ private:
         using type = typename std::is_same<Hist,
         arma::Col<typename Hist::elem_type>>::type;
 
-        enum{value = std::is_same<Hist,
-             arma::Col<typename Hist::elem_type>>::value};
+        enum{value = std::is_same<type, std::true_type>::value};
     };
 
     struct is_row
@@ -96,8 +102,7 @@ private:
         using type = typename std::is_same<Hist,
         arma::Row<typename Hist::elem_type>>::type;
 
-        enum{value = std::is_same<Hist,
-             arma::Row<typename Hist::elem_type>>::value};
+        enum{value = std::is_same<type, std::true_type>::value};
     };
 
     struct is_arma
