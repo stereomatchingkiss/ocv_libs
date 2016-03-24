@@ -8,6 +8,9 @@
 
 #include <armadillo>
 
+#include <omp.h>
+#include <mutex>
+
 /*!
  *  \addtogroup ocv
  *  @{
@@ -65,16 +68,25 @@ public:
     Hist create(arma::Mat<CodeBook> const &vocab) const
     {
         auto const img_size =
-                static_cast<arma::uword>(fi_.get_names_dimension()[0]);
+                (fi_.get_names_dimension()[0]);
         Hist hist(vocab.n_cols, img_size);
         bovw<CodeBook, Hist> bv;
-        cv::Mat features;
-        for(arma::uword i = 0; i != img_size; ++i){
-            fi_.read_image_features(features, i);
+
+#pragma omp parallel for
+        for(int i = 0; i < img_size; ++i){
+            cv::Mat features;
+            {
+                std::lock_guard<std::mutex> guard(mutex_);
+                fi_.read_image_features(features, i);
+            }
             arma::Mat<CodeBook> const vocab_features =
                     to_arma(features,
                             typename std::is_same<CodeBook, Feature>::type());
-            hist.col(i) = bv.describe(vocab_features, vocab);
+            auto const shist = bv.describe(vocab_features, vocab);
+            {
+                std::lock_guard<std::mutex> guard(mutex_);
+                hist.col(i) = shist;
+            }
         }
 
         return hist;
@@ -93,18 +105,19 @@ private:
     arma::Mat<CodeBook>
     to_arma(cv::Mat const &features, std::false_type) const
     {
-      arma::Mat<CodeBook> result(features.cols, features.rows);
-      //do not use std::copy because it may generate warning
-      auto *ptr = features.ptr<Feature>(0);
-      arma::uword const total = features.cols * features.rows;
-      for(arma::uword i = 0; i != total; ++i){
-          result(i) = static_cast<CodeBook>(ptr[i]);
-      }
+        arma::Mat<CodeBook> result(features.cols, features.rows);
+        //do not use std::copy because it may generate warning
+        auto *ptr = features.ptr<Feature>(0);
+        arma::uword const total = features.cols * features.rows;
+        for(arma::uword i = 0; i != total; ++i){
+            result(i) = static_cast<CodeBook>(ptr[i]);
+        }
 
-      return result;
+        return result;
     }
 
     features_indexer const &fi_;
+    mutable std::mutex mutex_;
 };
 
 } /*! @} End of Doxygen Groups*/
