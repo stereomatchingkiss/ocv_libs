@@ -32,10 +32,9 @@ namespace cbir{
  */
 template<typename T, typename Hist = arma::SpMat<arma::uword>>
 class bovw
-{
+{    
 public:
-    explicit bovw(arma::Mat<T> code_book) :
-        code_book_(std::move(code_book))
+    bovw()
     {
         static_assert(std::is_arithmetic<T>::value,
                       "T should be arithmetic type");
@@ -50,12 +49,13 @@ public:
      * @param features features of the image
      * @return histogram of bovw
      */
-    Hist describe(arma::Mat<T> &features) const
+    Hist describe(arma::Mat<T> const &features,
+                  arma::Mat<T> const &code_book) const
     {
-        arma::Mat<T> dist(features.n_cols, code_book_.n_cols);
+        arma::Mat<T> dist(features.n_cols, code_book.n_cols);
         for(arma::uword i = 0; i != features.n_cols; ++i){
             dist.row(i) = euclidean_dist(features.col(i),
-                                         code_book_);
+                                         code_book);
         }
         //dist.print("dist");
 
@@ -134,8 +134,6 @@ private:
         return arma::sqrt(arma::sum
                           (arma::square(y.each_col() - x)));
     }
-
-    arma::Mat<T> code_book_;
 };
 
 } /*! @} End of Doxygen Groups*/
