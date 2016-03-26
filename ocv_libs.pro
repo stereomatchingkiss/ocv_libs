@@ -81,4 +81,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cbir/visualize_feature.hpp \
     core/montage.hpp \
     cbir/bovw.hpp \
-    cbir/bovw_hist_creator.hpp
+    cbir/bovw_hist_creator.hpp \
+    core/inverted_index.hpp
