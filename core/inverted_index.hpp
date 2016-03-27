@@ -128,7 +128,7 @@ private:
     friend void serialize(Archive &ar, inverted_index &val,
                           const unsigned int)
     {
-        ar & val;
+        ar & val.index_;
     }
 
     std::map<Key, doc_type> index_;
