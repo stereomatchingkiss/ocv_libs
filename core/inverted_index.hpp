@@ -44,6 +44,11 @@ public:
         return index_.begin();
     }
 
+    bool empty() const
+    {
+        return index_.empty();
+    }
+
     typename map_type::const_iterator
     end() const
     {
@@ -119,6 +124,11 @@ public:
         std::ofstream of(name);
         boost::archive::text_oarchive oa(of);
         serialize(oa, *this, 0);
+    }
+
+    size_t size() const
+    {
+        return index_.size();
     }
 
 private:
