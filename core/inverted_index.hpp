@@ -30,6 +30,30 @@ public:
     using doc_type = std::vector<Value>;
     using map_type = std::map<Key, doc_type>;
 
+    typename map_type::const_iterator
+    begin() const
+    {
+        return index_.begin();
+    }
+
+    typename map_type::iterator
+    begin()
+    {
+        return index_.begin();
+    }
+
+    typename map_type::const_iterator
+    end() const
+    {
+        return index_.end();
+    }
+
+    typename map_type::iterator
+    end()
+    {
+        return index_.end();
+    }
+
     void erase_key(Key const &key)
     {
         index_.erase(key);
@@ -49,13 +73,13 @@ public:
         }
     }
 
-    map_type::const_iterator
+    typename map_type::const_iterator
     find(Key const &key) const
     {
         return index_.find(key);
     }
 
-    map_type::iterator
+    typename map_type::iterator
     find(Key const &key)
     {
         return index_.find(key);
@@ -64,8 +88,8 @@ public:
     void insert(Key const &key, Value const &val)
     {
         auto it = index_.find(key);
-        if(it != std::end(index_)){
-            it = index_.insert({val}).first;
+        if(it == std::end(index_)){
+            it = index_.insert({key, {}}).first;
         }
         (it->second).emplace_back(val);
     }
