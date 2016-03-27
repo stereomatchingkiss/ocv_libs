@@ -107,9 +107,10 @@ public:
     {
         auto it = index_.find(key);
         if(it == std::end(index_)){
-            it = index_.insert({key, {begin, end}}).first;
+            it = index_.insert({key, {}}).first;
         }
-        (it->second).insert(it, beg, end);
+        (it->second).insert(std::end(it->second),
+                            beg, end);
     }
 
     void load(std::string const &name)
