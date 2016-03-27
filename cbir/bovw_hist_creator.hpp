@@ -39,7 +39,7 @@ namespace cbir{
  *@endcode
  */
 template<typename CodeBook, typename Feature,
-         typename Hist = arma::SpMat<CodeBook>>
+         typename Hist = arma::SpMat<arma::uword>>
 class bovw_hist_creator
 {
 public:
