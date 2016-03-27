@@ -9,7 +9,9 @@
 #include <boost/serialization/vector.hpp>
 
 #include <fstream>
+#include <iterator>
 #include <map>
+#include <type_traits>
 #include <vector>
 
 /*!
@@ -94,6 +96,17 @@ public:
         (it->second).emplace_back(val);
     }
 
+    template<typename InputIter>
+    void insert(Key const &key, InputIter beg,
+                InputIter end)
+    {
+        auto it = index_.find(key);
+        if(it == std::end(index_)){
+            it = index_.insert({key, {begin, end}}).first;
+        }
+        (it->second).insert(it, beg, end);
+    }
+
     void load(std::string const &name)
     {
         std::ifstream in_f(name);
@@ -101,7 +114,7 @@ public:
         serialize(ia, *this, 0);
     }
 
-    void save(std::string const &name) const
+    void save(std::string const &name)
     {
         std::ofstream of(name);
         boost::archive::text_oarchive oa(of);
