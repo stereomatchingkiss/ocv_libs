@@ -27,7 +27,8 @@ namespace cbir{
  *Create histogram of the images associate with the codebook
  *@tparam CodeBook type of the codebook
  *@tparam Feature type of the feature
- *@tparam Hist type of the histogram
+ *@tparam HistType value type of the histogram
+ *@tparam Hist Container type of the histogram
  *@code
  *features_indexer fi("ukbench.h5");
  *arma::Mat<float> code_book;
@@ -39,7 +40,8 @@ namespace cbir{
  *@endcode
  */
 template<typename CodeBook, typename Feature,
-         typename Hist = arma::SpMat<arma::uword>>
+         typename HistType = arma::uword,
+         template <typename> class Hist = arma::SpMat>
 class bovw_hist_creator
 {
 public:
@@ -51,8 +53,10 @@ public:
         static_assert(std::is_arithmetic<Feature>::value,
                       "Feature should be arithmetic type");
 
-        enum {is_spmat = std::is_same<Hist, arma::SpMat<CodeBook>>::value};
-        enum {is_mat = std::is_same<Hist, arma::Mat<CodeBook>>::value};
+        enum {is_spmat = std::is_same<Hist<HistType>,
+              arma::SpMat<HistType>>::value};
+        enum {is_mat = std::is_same<Hist<HistType>,
+              arma::Mat<CodeBook>>::value};
 
         static_assert(is_spmat || is_mat,
                       "Hist should be arma::Mat or "
@@ -65,12 +69,12 @@ public:
      * @param vocab the code book(vocab)
      * @return histogram of each image(one col per image)
      */
-    Hist create(arma::Mat<CodeBook> const &vocab) const
+    Hist<HistType> create(arma::Mat<CodeBook> const &vocab) const
     {
         auto const img_size =
                 (fi_.get_names_dimension()[0]);
-        Hist hist(vocab.n_cols, img_size);
-        bovw<CodeBook, Hist> bv;
+        Hist<HistType> hist(vocab.n_cols, img_size);
+        bovw<CodeBook, Hist<HistType>> bv;
 
 #pragma omp parallel for
         for(int i = 0; i < img_size; ++i){
