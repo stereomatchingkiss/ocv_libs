@@ -29,12 +29,30 @@ struct chi_square{
                    Hist2 const &datahist,
                    Index const &index) const
     {
+        static_assert(std::is_same<typename Hist1::elem_type,
+                      typename Hist2::elem_type>::value,
+                      "elem type of Hist1 and Hist2 "
+                      "should be the same one");
         static_assert(std::is_integral<Index>::value,
                       "Index should be integral");
         static_assert(is_two_dim<Hist2>::value,
                       "Hist2 should be arma::Mat or "
                       "arma::SpMat");
 
+        return compare_impl(query_hist, datahist, index);
+    }
+
+private:
+    template<typename Hist1,
+             typename Hist2,
+             typename Index>
+    typename std::enable_if<
+    !std::is_same<typename Hist1::elem_type, double>::value,
+    double>::type
+    compare_impl(Hist1 const &query_hist,
+                 Hist2 const &datahist,
+                 Index const &index) const
+    {
         using colvec = arma::Col<double>;
 
         auto const &dhist_view = datahist.col(index);
@@ -46,7 +64,27 @@ struct chi_square{
         }
 
         return 0.5 * arma::sum(arma::square(qhist - dhist) /
-                (qhist + dhist + 1e-10));
+                               (qhist + dhist + 1e-10));
+    }
+
+    template<typename Hist1,
+             typename Hist2,
+             typename Index>
+    typename std::enable_if<
+    std::is_same<typename Hist1::elem_type, double>::value,
+    double>::type
+    compare_impl(Hist1 const &query_hist,
+                 Hist2 const &datahist,
+                 Index const &index) const
+    {
+        using colvec = arma::Col<double>;
+
+        auto const &dhist_view = datahist.col(index);
+        colvec qhist(query_hist.memptr(), query_hist.n_elem);
+        colvec dhist(dhist_view.memptr(), dhist_view.n_elem);
+
+        return 0.5 * arma::sum(arma::square(qhist - dhist) /
+                               (qhist + dhist + 1e-10));
     }
 
 };
