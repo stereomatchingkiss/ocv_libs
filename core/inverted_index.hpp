@@ -31,6 +31,7 @@ class inverted_index
 public:
     using doc_type = std::vector<Value>;
     using map_type = std::map<Key, doc_type>;
+    using value_type = Value;
 
     typename map_type::const_iterator
     begin() const
