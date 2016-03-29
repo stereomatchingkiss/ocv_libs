@@ -47,6 +47,7 @@ public:
     /**
      * Convert the features of images into histogram
      * @param features features of the image
+     * @param code_book code book of the data sets
      * @return histogram of bovw
      */
     Hist describe(arma::Mat<T> const &features,
