@@ -1,6 +1,8 @@
 #ifndef OCV_CBIR_SEARCHER_HPP
 #define OCV_CBIR_SEARCHER_HPP
 
+#include "../arma/type_traits.hpp"
+
 #include <armadillo>
 
 #include <boost/container/small_vector.hpp>
@@ -74,6 +76,9 @@ private:
                                  QueryHist const &query_hist,
                                  DataHist const &dataset_hist) const
     {
+        static_assert(armd::is_two_dim<DataHist>::value,
+                      "DataHist should be arma::Mat or arma::SpMat");
+
         using namespace boost::container;
 
         using dist_type = typename DistMetric::result_type;
