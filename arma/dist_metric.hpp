@@ -45,7 +45,7 @@ struct chi_square{
             dhist(i) = dhist_view(i);
         }
 
-        return arma::sum(arma::square(qhist - dhist) /
+        return 0.5 * arma::sum(arma::square(qhist - dhist) /
                 (qhist + dhist + 1e-10));
     }
 
