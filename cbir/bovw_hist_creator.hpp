@@ -3,6 +3,7 @@
 
 #include "bovw.hpp"
 #include "features_indexer.hpp"
+#include "../arma/type_traits.hpp"
 
 #include <opencv2/core.hpp>
 
@@ -53,14 +54,12 @@ public:
         static_assert(std::is_arithmetic<Feature>::value,
                       "Feature should be arithmetic type");
 
-        enum {is_spmat = std::is_same<Hist<HistType>,
-              arma::SpMat<HistType>>::value};
-        enum {is_mat = std::is_same<Hist<HistType>,
-              arma::Mat<CodeBook>>::value};
+        enum {is_spmat = armd::is_mat<Hist<HistType>>::value};
+        enum {is_mat = armd::is_spmat<Hist<HistType>>::value};
 
         static_assert(is_spmat || is_mat,
-                      "Hist should be arma::Mat or "
-                      "arma::SpMat");
+                      "Hist should be arma::Mat<CodeBook> or "
+                      "arma::SpMat<CodeBook>");
     }
 
     /**

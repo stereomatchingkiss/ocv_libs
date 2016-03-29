@@ -1,6 +1,8 @@
 #ifndef OCV_CBIR_BOVW_HPP
 #define OCV_CBIR_BOVW_HPP
 
+#include "../arma/type_traits.hpp"
+
 #include <opencv2/core.hpp>
 
 #include <armadillo>
@@ -39,7 +41,7 @@ public:
         static_assert(std::is_arithmetic<T>::value,
                       "T should be arithmetic type");
 
-        static_assert(is_arma::value,
+        static_assert(armd::is_arma_matrix<Hist>::value,
                       "Hist should be arma::SpMat, arma::Mat,"
                       "arma::Col or arma::Row");
     }
@@ -61,7 +63,7 @@ public:
         //dist.print("dist");
 
         Hist hist = create_hist(dist.n_cols,
-                                is_two_dim::type());
+                                armd::is_two_dim<Hist>::type());
         for(arma::uword i = 0; i != dist.n_rows; ++i){
             arma::uword min_idx;
             dist.row(i).min(min_idx);
@@ -72,53 +74,7 @@ public:
         return hist;
     }
 
-private:
-    struct is_spmat
-    {
-        using type = typename std::is_same<Hist,
-        arma::SpMat<typename Hist::elem_type>>::type;
-
-        enum{value = std::is_same<type, std::true_type>::value};
-    };
-
-    struct is_mat
-    {
-        using type = typename std::is_same<Hist,
-        arma::Mat<typename Hist::elem_type>>::type;
-
-        enum{value = std::is_same<type, std::true_type>::value};
-    };
-
-    struct is_two_dim
-    {
-        using type  = typename std::conditional<is_spmat::value ||
-        is_mat::value, std::true_type, std::false_type>::type;
-
-        enum{value = std::is_same<type, std::true_type>::value};
-    };
-
-    struct is_col
-    {
-        using type = typename std::is_same<Hist,
-        arma::Col<typename Hist::elem_type>>::type;
-
-        enum{value = std::is_same<type, std::true_type>::value};
-    };
-
-    struct is_row
-    {
-        using type = typename std::is_same<Hist,
-        arma::Row<typename Hist::elem_type>>::type;
-
-        enum{value = std::is_same<type, std::true_type>::value};
-    };
-
-    struct is_arma
-    {
-        enum {value = is_spmat::value || is_mat::value ||
-             is_row::value || is_col::value};
-    };
-
+private:    
     Hist create_hist(arma::uword size, std::true_type) const
     {
         return arma::zeros<Hist>(size,1);
