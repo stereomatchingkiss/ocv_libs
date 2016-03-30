@@ -63,4 +63,26 @@ std::vector<cv::Mat> crop_directory_images(std::string const &directory,
     return result;
 }
 
+cv::Mat crop_image(const cv::Mat &input,
+                   int x_center, int y_center,
+                   int x_extend, int y_extend)
+{
+    int const start_x = std::max(0, x_center-x_extend);
+    int const end_x = std::min(input.cols-1, x_center+x_extend);
+    int const start_y = std::max(0, y_center-y_extend);
+    int const end_y = std::min(input.rows-1, y_center+y_extend);
+
+    return input(cv::Rect(cv::Point(start_x, start_y),
+                          cv::Point(end_x, end_y)));
+}
+
+cv::Mat crop_image(const cv::Mat &input,
+                   float x_center, float y_center,
+                   int x_extend, int y_extend)
+{
+    return crop_image(input, static_cast<int>(x_center),
+                      static_cast<int>(y_center),
+                      x_extend, y_extend);
+}
+
 }
