@@ -1,6 +1,7 @@
 #ifndef OCV_CBIR_SEARCHER_HPP
 #define OCV_CBIR_SEARCHER_HPP
 
+#include "../arma/dist_metric.hpp"
 #include "../arma/type_traits.hpp"
 
 #include <armadillo>
@@ -28,7 +29,8 @@ namespace cbir{
  *@tparam DistMetric policy to measure similarity of
  * histograms
  */
-template<typename InvertIndex, typename DistMetric>
+template<typename InvertIndex,
+         typename DistMetric = armd::chi_square>
 class searcher{
 public:
     using invert_value_type = typename InvertIndex::value_type;
@@ -44,7 +46,7 @@ public:
      * @param candidate_size of the histograms contains most features
      */
     explicit searcher(InvertIndex index,
-                      DistMetric dist_metric,
+                      DistMetric dist_metric = DistMetric(),
                       size_t result_size = 16,
                       size_t candidate_size = 200) :
         candidate_size_{candidate_size},
