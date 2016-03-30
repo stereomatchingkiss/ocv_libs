@@ -17,27 +17,27 @@ namespace ocv{
 namespace cbir{
 
 /**
- *build inverted index based on the vocabulary(code book)
- *@param vocab vocabulary(code book)
- *@param index invert index associate with the vocab
+ *build inverted index based on the histograms
+ *@param hist histogram of the dataset
+ *@param index invert index associate with the histogram
  *@code
- *arma::SpMat<arma::uword> vocab;
+ *arma::SpMat<arma::uword> hist;
  *vocab.load("ukbench_hist");
  *ocv::inverted_index<arma::uword, arma::uword> invert;
- *ocv::cbir::build_inverted_index(vocab, invert);
+ *ocv::cbir::build_inverted_index(hist, invert);
  *@endcode
  */
-template<typename Key, typename Value, typename Vocab>
-void build_inverted_index(Vocab const &vocab,
+template<typename Key, typename Value, typename Hist>
+void build_inverted_index(Hist const &hist,
                           inverted_index<Key, Value> &index)
 {
-    static_assert(armd::is_two_dim<Vocab>::value,
+    static_assert(armd::is_two_dim<Hist>::value,
                   "Vocab should be arma::Mat or "
                   "arma::SpMat");
 
     index.clear();
-    for(arma::uword i = 0; i != vocab.n_cols; ++i){
-        auto const &vcol = vocab.col(i);
+    for(arma::uword i = 0; i != hist.n_cols; ++i){
+        auto const &vcol = hist.col(i);
         for(auto it = vcol.begin();
             it != vcol.end(); ++it){
             if(*it != 0){
