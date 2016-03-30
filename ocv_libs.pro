@@ -85,4 +85,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     core/inverted_index.hpp \
     cbir/searcher.hpp \
     arma/type_traits.hpp \
-    arma/dist_metric.hpp
+    arma/dist_metric.hpp \
+    cbir/build_inverted_index.hpp
