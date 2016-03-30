@@ -22,12 +22,14 @@ namespace armd{
  */
 struct chi_square{
 
+    using result_type = double;
+
     template<typename Hist1,
              typename Hist2,
              typename Index>
-    double compare(Hist1 const &query_hist,
-                   Hist2 const &datahist,
-                   Index const &index) const
+    result_type compare(Hist1 const &query_hist,
+                        Hist2 const &datahist,
+                        Index const &index) const
     {
         static_assert(std::is_same<typename Hist1::elem_type,
                       typename Hist2::elem_type>::value,
