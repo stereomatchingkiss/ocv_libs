@@ -127,9 +127,7 @@ private:
             result.push_back(val.second);
         }
 
-        return result;//*/
-
-        return {};
+        return result;
     }
 
     template<typename QueryHist>
