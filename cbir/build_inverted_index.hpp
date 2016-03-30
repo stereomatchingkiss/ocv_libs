@@ -16,6 +16,17 @@ namespace ocv{
  */
 namespace cbir{
 
+/**
+ *build inverted index based on the vocabulary(code book)
+ *@param vocab vocabulary(code book)
+ *@param index invert index associate with the vocab
+ *@code
+ *arma::SpMat<arma::uword> vocab;
+ *vocab.load("ukbench_hist");
+ *ocv::inverted_index<arma::uword, arma::uword> invert;
+ *ocv::cbir::build_inverted_index(vocab, invert);
+ *@endcode
+ */
 template<typename Key, typename Value, typename Vocab>
 void build_inverted_index(Vocab const &vocab,
                           inverted_index<Key, Value> &index)
