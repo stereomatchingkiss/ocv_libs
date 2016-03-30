@@ -27,6 +27,25 @@ namespace cbir{
  *visualize the features of BOVW
  *@tparam T Features type of hdf5
  *@tparam U Type of code book(vocab)
+ *@code
+ *arma::Mat<float> vocab;
+ *vocab.load("ukbench_code_book", arma::arma_ascii);
+ *ocv::cbir::visualize_features<float, T> vf;
+ *auto result = vf.find_top_results(fi, vocab);
+ *std::string const folder = "ukbench_quiz/";
+ *size_t index = 0;
+ *for(auto const &vecs : result){
+ *    ocv::montage montage({64,64}, 4, 4);
+ *    for(auto const &res : vecs){
+ *        auto img = cv::imread(folder + res.img_name_);
+ *        auto const pt = res.kp_.pt;
+ *        montage.add_image(ocv::crop_image(img, pt.x,
+ *                                          pt.y, 32, 32));
+ *    }
+ *    cv::imwrite("vocab/img" + std::to_string(index++) + ".jpg",
+ *                 montage.get_montage());
+ *}
+ *@endcode
  */
 template<typename T, typename U = double>
 class visualize_features
