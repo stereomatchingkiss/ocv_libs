@@ -43,6 +43,14 @@ struct chi_square{
     }
 
 private:
+    template<typename T>
+    double chi_square_compute(arma::Col<T> const &lhs,
+                              arma::Col<T> const &rhs) const
+    {
+        return 0.5 * arma::sum(arma::square(lhs - rhs) /
+                               (lhs + rhs + 1e-10));
+    }
+
     template<typename Hist1,
              typename Hist2,
              typename Index>
@@ -63,8 +71,7 @@ private:
             dhist(i) = dhist_view(i);
         }
 
-        return 0.5 * arma::sum(arma::square(qhist - dhist) /
-                               (qhist + dhist + 1e-10));
+        return chi_square_compute(qhist, dhist);
     }
 
     template<typename Hist1,
@@ -83,8 +90,7 @@ private:
         colvec qhist(query_hist.memptr(), query_hist.n_elem);
         colvec dhist(dhist_view.memptr(), dhist_view.n_elem);
 
-        return 0.5 * arma::sum(arma::square(qhist - dhist) /
-                               (qhist + dhist + 1e-10));
+        return chi_square_compute(qhist, dhist);
     }
 
 };
