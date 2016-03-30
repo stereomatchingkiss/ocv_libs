@@ -43,7 +43,8 @@ public:
      * @param dist_metric distance metric to measure the similarity
      * of histograms
      * @param result_size determine the size of the results
-     * @param candidate_size of the histograms contains most features
+     * @param candidate_size determine the size of the histograms
+     * contains most features
      */
     explicit searcher(InvertIndex index,
                       DistMetric dist_metric = DistMetric(),
@@ -66,15 +67,21 @@ public:
     {
         return filter_candidate(find_candidate(query_hist),
                                 query_hist, dataset_hist);
+
+        return {};
     }
 
 private:
     using candidate_type = std::map<invert_value_type, size_t>;
-    using candidate_value_type = typename candidate_type::value_type;
+    using candidate_value_type =
+    std::pair<
+    typename std::remove_const<typename candidate_type::key_type>::type,
+    typename candidate_type::mapped_type
+    >;
     using cvt = candidate_value_type;
 
     template<typename QueryHist, typename DataHist>
-    result_type filter_candidate(candidate_type const &candidate,
+    result_type filter_candidate(std::vector<cvt> const &candidate,
                                  QueryHist const &query_hist,
                                  DataHist const &dataset_hist) const
     {
@@ -106,10 +113,10 @@ private:
                 auto it = std::find_if(std::begin(sm), std::end(sm),
                                        [=](sm_vtype const &a)
                 {
-                    dist < a.first;
+                    return dist < a.first;
                 });
                 if(it != std::end(sm)){
-                    sm.insert(it, dist);
+                    sm.insert(it, {dist, val.first});
                     sm.pop_back();
                 }
             }
@@ -119,6 +126,10 @@ private:
         for(auto const &val : sm){
             result.push_back(val.second);
         }
+
+        return result;//*/
+
+        return {};
     }
 
     template<typename QueryHist>
@@ -153,7 +164,8 @@ private:
         {
             return lhs.second > rhs.second;
         };
-        std::sort(sorted, sorted, sort_criteria);
+        std::sort(std::begin(sorted),
+                  std::end(sorted), sort_criteria);
         size_t const size = candidate_size_ <= candidate.size() ?
                     candidate_size_ : candidate.size();
         sorted.resize(size);
