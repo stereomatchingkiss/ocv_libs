@@ -45,6 +45,11 @@ public:
         return index_.begin();
     }
 
+    void clear()
+    {
+        index_.clear();
+    }
+
     bool empty() const
     {
         return index_.empty();
