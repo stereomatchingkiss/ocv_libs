@@ -67,8 +67,6 @@ public:
     {
         return filter_candidate(find_candidate(query_hist),
                                 query_hist, dataset_hist);
-
-        return {};
     }
 
 private:
@@ -164,9 +162,7 @@ private:
         };
         std::sort(std::begin(sorted),
                   std::end(sorted), sort_criteria);
-        size_t const size = candidate_size_ <= candidate.size() ?
-                    candidate_size_ : candidate.size();
-        sorted.resize(size);
+        sorted.resize(std::min(candidate_size_, candidate.size()));
 
         return sorted;
     }
