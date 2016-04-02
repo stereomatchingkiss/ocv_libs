@@ -56,6 +56,26 @@ public:
         result_size_{result_size}
     {}
 
+    size_t get_candidate_size() const
+    {
+        return candidate_size_;
+    }
+
+    size_t get_result_size() const
+    {
+        return result_size_;
+    }
+
+    void set_candidate_size(size_t value)
+    {
+        candidate_size_ = value;
+    }
+
+    void set_result_size(size_t value)
+    {
+        result_size_ = value;
+    }
+
     /**
      *search the histogram closest to the query histogram
      *@param query_hist self explain
@@ -166,7 +186,6 @@ private:
 
         return sorted;
     }
-
 
     size_t candidate_size_;
     DistMetric dist_metric_;
