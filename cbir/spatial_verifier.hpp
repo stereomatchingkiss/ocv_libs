@@ -80,20 +80,23 @@ public:
     result_type
     rerank(std::vector<cv::KeyPoint> const &query_kp,
            cv::Mat const &query_features,
-           T const &search_results)
+           T &&search_results) const
     {
-        using value_type = typename T::value_type;
+        using decay_type = typename std::decay<T>::type;
+        using value_type = typename decay_type::value_type;
         using rerank_type =
         boost::container::small_vector<std::pair<size_t, value_type>, 16>;
+        using rerank_vtype = typename rerank_type::value_type;
 
-        static_assert(std::is_class<T>::value,
+        static_assert(std::is_class<decay_type>::value,
                       "T should be class or struct");
-        static_assert(std::is_copy_assignable<T>::value,
+        static_assert(std::is_copy_assignable<decay_type>::value ||
+                      std::is_move_assignable<T>::value,
                       "T should be copy assignable");
         static_assert(std::is_integral<value_type>::value,
                       "The value_type of T should be intergral");
 
-        T sort_results = search_results;
+        decay_type sort_results = std::forward<T>(search_results);
         std::sort(std::begin(sort_results), std::end(sort_results));
 
         std::vector<cv::KeyPoint> kp;
@@ -103,21 +106,21 @@ public:
         for(auto const val : sort_results){
             fi_.read_keypoints(kp, val);
             fi_.read_image_features(features, val);
-            auto const match_pt =
+            auto const match_pt_size =
                     match(query_kp, query_features,
                           kp, features);
-            rerank.emplace_back(match_pt, val);
+            rerank.emplace_back(match_pt_size, val);
         }
 
         std::sort(std::begin(rerank), std::end(rerank),
-                  [](rerank_type const &lhs, rerank_type const &rhs)
+                  [](rerank_vtype const &lhs, rerank_vtype const &rhs)
         {
-            return lhs.second > rhs.second;
+            return lhs.first > rhs.first;
         });
         result_type result;
         result.reserve(rerank.size());
         for(auto const &val : rerank){
-            result.emplace_back(val.first);
+            result.emplace_back(val.second);
         }
 
         return result;
@@ -147,13 +150,14 @@ private:
     size_t match(std::vector<cv::KeyPoint> const &query_kp,
                  cv::Mat const &query_features,
                  std::vector<cv::KeyPoint> const &target_kp,
-                 cv::Mat const &target_features)
+                 cv::Mat const &target_features) const
     {
-        cv::BFMatcher matcher(cv::NORM_HAMMING);
+        cv::BFMatcher matcher(cv::NORM_L2);
         std::vector<std::vector<cv::DMatch>> nn_matches;
-        matcher.knnMatch(query_features, target_features, nn_matches, 2);
+        matcher.knnMatch(query_features, target_features,
+                         nn_matches, 2);
 
-        std::vector<cv::KeyPoint> matched1, matched2;
+        std::vector<cv::Point2f> matched1, matched2;
         for(size_t i = 0; i < nn_matches.size(); i++){
             if(nn_matches[i].size() == 2){
                 float const dist1 = nn_matches[i][0].distance;
@@ -161,34 +165,36 @@ private:
 
                 if(dist1 < ratio_ * dist2) {
                     cv::DMatch const &first = nn_matches[i][0];
-                    matched1.push_back(query_kp[first.queryIdx]);
-                    matched2.push_back(target_kp[first.trainIdx]);
+                    matched1.push_back(query_kp[first.queryIdx].pt);
+                    matched2.push_back(target_kp[first.trainIdx].pt);
                 }
             }
         }
 
         if(matched1.size() >= min_matches_){
             auto const homo =
-                    cv::findHomography(matched1, matched2, cv::RANSAC,
+                    cv::findHomography(matched1, matched2,
+                                       cv::RANSAC,
                                        reproj_thresh_);
-            size_t sum = 0;
-            for(size_t i = 0; i != matched1.size(); ++i){
-                cv::Mat col = cv::Mat::ones(3, 1, CV_64F);
-                col.at<double>(0) = matched1[i].pt.x;
-                col.at<double>(1) = matched1[i].pt.y;
-                col = homo * col;
-                col /= (col.at<double>(2) + 1e-10);
-                double const dist =
-                        std::sqrt(std::pow(col.at<double>(0)
-                                           - matched2[i].pt.x, 2) +
-                                  std::pow(col.at<double>(1) -
-                                           matched2[i].pt.y, 2));
-                if(dist < reproj_thresh_) {
-                    ++sum;
+            if(!homo.empty()){
+                size_t sum = 0;
+                for(size_t i = 0; i != matched1.size(); ++i){
+                    cv::Mat col = cv::Mat::ones(3, 1, CV_64F);
+                    col.at<double>(0) = matched1[i].x;
+                    col.at<double>(1) = matched1[i].y;
+                    col = homo * col;
+                    col /= (col.at<double>(2) + 1e-10);
+                    double const dist =
+                            std::sqrt(std::pow(col.at<double>(0)
+                                               - matched2[i].x, 2) +
+                                      std::pow(col.at<double>(1) -
+                                               matched2[i].y, 2));
+                    if(dist < reproj_thresh_) {
+                        ++sum;
+                    }
                 }
+                return sum;
             }
-
-            return sum;
         }
 
         return 0;
