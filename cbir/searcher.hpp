@@ -30,7 +30,8 @@ namespace cbir{
  * histograms
  */
 template<typename InvertIndex,
-         typename DistMetric = armd::chi_square<>>
+         typename DistMetric = armd::chi_square<>,
+         typename Compare = std::less<typename DistMetric::result_type>>
 class searcher{
 public:
     using invert_value_type = typename InvertIndex::value_type;
@@ -133,7 +134,7 @@ private:
                 if(sm.size() == result_size_){
                     auto func = [](sm_vtype const &lhs, sm_vtype const &rhs)
                     {
-                        return lhs.first < rhs.first;
+                        return Compare()(lhs.first,rhs.first);
                     };
                     std::sort(std::begin(sm), std::end(sm),
                               func);
@@ -141,8 +142,8 @@ private:
             }else{
                 auto it = std::find_if(std::begin(sm), std::end(sm),
                                        [=](sm_vtype const &a)
-                {
-                    return dist < a.first;
+                {                    
+                    return Compare()(dist,a.first);
                 });
                 if(it != std::end(sm)){
                     sm.insert(it, {dist, val.first});
