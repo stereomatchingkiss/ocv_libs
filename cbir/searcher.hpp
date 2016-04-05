@@ -30,7 +30,7 @@ namespace cbir{
  * histograms
  */
 template<typename InvertIndex,
-         typename DistMetric = armd::chi_square>
+         typename DistMetric = armd::chi_square<>>
 class searcher{
 public:
     using invert_value_type = typename InvertIndex::value_type;
