@@ -92,7 +92,7 @@ void convert_to_idf(inverted_index<Key, Value> const &index,
         auto const fre_size =
                 static_cast<mapped_type>(val.second.size());
         idf.insert({val.first,
-                    std::max(std::log(total/(fre_size+1)), 0.0)});
+                    std::max(std::log(total/(fre_size+1)), mapped_type(0))});
     }
 }
 
