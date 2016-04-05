@@ -56,6 +56,17 @@ public:
         result_size_{result_size}
     {}
 
+    /**
+     * Overload of constructor
+     */
+    explicit searcher(InvertIndex index,
+                      size_t result_size = 16,
+                      size_t candidate_size = 200) :
+        candidate_size_{candidate_size},
+        index_(std::move(index)),
+        result_size_{result_size}
+    {}
+
     size_t get_candidate_size() const
     {
         return candidate_size_;
