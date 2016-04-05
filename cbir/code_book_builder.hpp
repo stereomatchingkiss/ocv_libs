@@ -8,6 +8,8 @@
 
 #include <armadillo>
 
+#include <type_traits>
+
 /*!
  *  \addtogroup ocv
  *  @{
@@ -45,6 +47,8 @@ public:
         feature_dimension_(fi.get_features_dimension()),
         fi_(fi)
     {
+        static_assert(std::is_arithmetic<T>::value,
+                      "T should be arithmetic");
         read_data(sample_size, feature_type, seed);
     }
 

@@ -51,6 +51,14 @@ template<typename T, typename U = double>
 class visualize_features
 {
 public:    
+    visualize_features()
+    {
+        static_assert(std::is_arithmetic<T>::value,
+                      "T should be arithmetic");
+        static_assert(std::is_arithmetic<U>::value,
+                      "U should be arithmetic");
+    }
+
     struct vis_point
     {
         vis_point() :
