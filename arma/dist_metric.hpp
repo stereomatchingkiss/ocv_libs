@@ -17,8 +17,100 @@ namespace ocv{
  */
 namespace armd{
 
+namespace details{
+
+template<typename T,
+         typename Hist1,
+         typename Hist2,
+         typename Index>
+struct type_constraint
+{
+    static_assert(std::is_floating_point<T>::value,
+                  "T should be floating point");
+    static_assert(std::is_same<typename Hist1::elem_type,
+                  typename Hist2::elem_type>::value,
+                  "elem type of Hist1 and Hist2 "
+                  "should be the same one");
+    static_assert(std::is_floating_point<typename Hist1::elem_type>::value,
+                  "elem type of Hist1 and Hist2 should "
+                  "be floating point");
+    static_assert(std::is_integral<Index>::value,
+                  "Index should be integral");
+    static_assert(is_two_dim<Hist2>::value,
+                  "Hist2 should be arma::Mat or "
+                  "arma::SpMat");
+};
+
+template<typename T, typename U>
+typename std::enable_if<
+arma::is_arma_sparse_type<U>::value ||
+(arma::is_arma_type<U>::value &&
+ !std::is_same<T, typename U::elem_type>::value),
+arma::Col<T>>::type
+to_colvec(U const &input)
+{
+    arma::Col<T> result(input.n_elem);
+    for(arma::uword i = 0; i != input.n_elem; ++i){
+        result(i) = input(i);
+    }
+
+    return result;
+}
+
+template<typename T, typename U>
+inline
+typename std::enable_if<
+arma::is_arma_type<U>::value &&
+std::is_same<T, typename U::elem_type>::value,
+arma::Col<T>>::type
+to_colvec(U const &input)
+{
+    return colvec(input.memptr(), input.n_elem, false);
+}
+
+}
+
 /**
  * measure chi square distance
+ * @tparam T return type of compare
+ */
+template<typename T = float>
+struct cosine_similarity
+{
+    using result_type = T;
+
+    template<typename Hist1,
+             typename Hist2,
+             typename Index>
+    T compare(Hist1 const &query_hist,
+              Hist2 const &datahist,
+              Index const &index) const
+    {
+        using namespace details;
+        details::type_constraint<T,Hist1,Hist2,Index>();
+
+        return similarity_compute(to_colvec<T>(query_hist),
+                                  to_colvec<T>(datahist.col(index)));
+    }
+
+private:
+    using colvec = arma::Col<T>;
+
+    T similarity_compute(colvec const &lhs,
+                         colvec const &rhs) const
+    {
+        auto const denom =
+                std::sqrt(arma::sum(lhs % lhs)) *
+                std::sqrt(arma::sum(rhs % rhs)) +
+                T(1e-10);
+
+        return arma::sum((lhs % rhs)) / (denom);
+    }
+};
+
+/**
+ * measure chi square distance
+ * @tparam T return type of compare
  */
 template<typename T = float>
 struct chi_square{
@@ -32,22 +124,11 @@ struct chi_square{
               Hist2 const &datahist,
               Index const &index) const
     {
-        static_assert(std::is_floating_point<T>::value,
-                      "T should be floating point");
-        static_assert(std::is_same<typename Hist1::elem_type,
-                      typename Hist2::elem_type>::value,
-                      "elem type of Hist1 and Hist2 "
-                      "should be the same one");
-        static_assert(std::is_floating_point<typename Hist1::elem_type>::value,
-                      "elem type of Hist1 and Hist2 should "
-                      "be floating point");
-        static_assert(std::is_integral<Index>::value,
-                      "Index should be integral");
-        static_assert(is_two_dim<Hist2>::value,
-                      "Hist2 should be arma::Mat or "
-                      "arma::SpMat");
+        using namespace details;
+        type_constraint<T,Hist1,Hist2,Index>();
 
-        return compare_impl(query_hist, datahist, index);
+        return chi_square_compute(to_colvec<T>(query_hist),
+                                  to_colvec<T>(datahist.col(index)));
     }
 
 private:
@@ -58,46 +139,6 @@ private:
     {
         return arma::sum(arma::square(lhs - rhs) /
                          (lhs + rhs + T(1e-10)));
-    }
-
-    template<typename Hist1,
-             typename Hist2,
-             typename Index>
-    typename std::enable_if<
-    !std::is_same<typename Hist1::elem_type, result_type>::value ||
-    armd::is_spmat<Hist2>::value,
-    T>::type
-    compare_impl(Hist1 const &query_hist,
-                 Hist2 const &datahist,
-                 Index const &index) const
-    {
-        auto const &dhist_view = datahist.col(index);
-        colvec qhist(query_hist.n_elem);
-        colvec dhist(dhist_view.n_elem);
-        for(arma::uword i = 0; i != query_hist.n_elem; ++i){
-            qhist(i) = query_hist(i);
-            dhist(i) = dhist_view(i);
-        }
-
-        return chi_square_compute(qhist, dhist);
-    }
-
-    template<typename Hist1,
-             typename Hist2,
-             typename Index>
-    typename std::enable_if<
-    std::is_same<typename Hist1::elem_type, result_type>::value &&
-    armd::is_mat<Hist2>::value,
-    T>::type
-    compare_impl(Hist1 const &query_hist,
-                 Hist2 const &datahist,
-                 Index const &index) const
-    {
-        auto const &dhist_view = datahist.col(index);
-        colvec qhist(query_hist.memptr(), query_hist.n_elem);
-        colvec dhist(dhist_view.memptr(), dhist_view.n_elem);
-
-        return chi_square_compute(qhist, dhist);
     }
 
 };
