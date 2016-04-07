@@ -42,19 +42,15 @@ struct type_constraint
 };
 
 template<typename T, typename U>
+inline
 typename std::enable_if<
 arma::is_arma_sparse_type<U>::value ||
 (arma::is_arma_type<U>::value &&
  !std::is_same<T, typename U::elem_type>::value),
 arma::Col<T>>::type
 to_colvec(U const &input)
-{
-    arma::Col<T> result(input.n_elem);
-    for(arma::uword i = 0; i != input.n_elem; ++i){
-        result(i) = input(i);
-    }
-
-    return result;
+{    
+    return arma::Col<T>(input);
 }
 
 template<typename T, typename U>
