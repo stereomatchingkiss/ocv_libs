@@ -85,7 +85,8 @@ private:
         return arma::zeros<Hist>(size);
     }
 
-    arma::Mat<T> euclidean_dist(arma::Col<T> const &x,
+    template<typename U>
+    arma::Mat<T> euclidean_dist(U const &x,
                                 arma::Mat<T> const &y) const
     {
         return arma::sqrt(arma::sum
