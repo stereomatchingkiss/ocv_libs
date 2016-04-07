@@ -21,6 +21,15 @@ namespace cbir{
 /**
  * Encapsulate the cv::calcHist api, make it easier to extract
  * the histogram from image
+ * ocv::cbir::color_descriptor cd;
+ * cv::cvtColor(img, img, CV_BGR2HSV);
+ * @code
+ * cd.set_channels({0,1});
+ * cd.set_dim(2);
+ * cd.set_hist_size({30,32});
+ * cd.set_ranges({{0,180}, {0,256}});
+ * cd.get_descriptor(img);
+ * @endcode
  */
 class color_descriptor
 {
