@@ -4,7 +4,7 @@ Purpose of this library are
 
 1 : Wrap up some chores to facilitate my daily programming tasks/research
 
-2 : machine learning part is only for practice, in real case I use mlpack, mxnet and tiny-cc
+2 : Machine learning part is only for practice, in real case I use mlpack, caffe and tiny-cnn
 to do the machine learning(and contribute to those projects too)
 
 
