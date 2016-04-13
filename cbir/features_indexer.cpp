@@ -8,27 +8,21 @@ namespace ocv{
 
 namespace cbir{
 
-features_indexer::features_indexer(std::string file_name)
-    : buffer_size_{20},
-      cur_buffer_size_{0},
-      feature_row_offset_{0},
-      features_size_{0},
-      file_name_{std::move(file_name)},
-      h5io_(cv::hdf::open(file_name_)),
-      image_row_offset_{0},
-      name_size_{0}
-{    
-    if(h5io_->hlexists("image_name")){
-        auto const size = h5io_->dsgetsize("image_name");
-        image_row_offset_ = size[0];
-        name_size_ = size[1];
-    }
+features_indexer::features_indexer() :
+    buffer_size_{20},
+    cur_buffer_size_{0},
+    feature_row_offset_{0},
+    features_size_{0},
+    image_row_offset_{0},
+    name_size_{0}
+{
 
-    if(h5io_->hlexists("features")){
-        auto const size = h5io_->dsgetsize("features");
-        feature_row_offset_ = size[0];
-        features_size_ = size[1];
-    }
+}
+
+features_indexer::features_indexer(std::string const &file_name)
+    : features_indexer()
+{    
+    open(file_name);
 }
 
 features_indexer::~features_indexer()
@@ -166,6 +160,23 @@ std::vector<int> features_indexer::get_key_dimension() const
 std::vector<int> features_indexer::get_names_dimension() const
 {
     return get_dimension("image_name");
+}
+
+void features_indexer::open(std::string const &file_name)
+{
+    file_name_ = file_name;
+    h5io_ = cv::hdf::open(file_name_);
+    if(h5io_->hlexists("image_name")){
+        auto const size = h5io_->dsgetsize("image_name");
+        image_row_offset_ = size[0];
+        name_size_ = size[1];
+    }
+
+    if(h5io_->hlexists("features")){
+        auto const size = h5io_->dsgetsize("features");
+        feature_row_offset_ = size[0];
+        features_size_ = size[1];
+    }
 }
 
 void features_indexer::

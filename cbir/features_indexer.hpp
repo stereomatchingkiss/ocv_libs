@@ -73,10 +73,16 @@ class features_indexer
 {
 public:
     /**
+     * Overload of constructor, allow to open/create
+     * the hdf5 later on
+     */
+    features_indexer();
+
+    /**
      * Construct hdf5 file with file_name
      * @param file_name name of the hdf5 file
      */
-    explicit features_indexer(std::string file_name);
+    explicit features_indexer(std::string const &file_name);
 
     /**
      * Destructor, will called flush()
@@ -123,6 +129,8 @@ public:
     std::vector<int> get_index_dimension() const;
     std::vector<int> get_key_dimension() const;
     std::vector<int> get_names_dimension() const;
+
+    void open(std::string const &file_name);
 
     /**
      * Read features
