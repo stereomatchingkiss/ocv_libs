@@ -58,10 +58,10 @@ inline
 typename std::enable_if<
 arma::is_arma_type<U>::value &&
 std::is_same<T, typename U::elem_type>::value,
-arma::Col<T>>::type
+U>::type
 to_colvec(U const &input)
-{
-    return colvec(input.memptr(), input.n_elem, false);
+{    
+    return input;
 }
 
 }
@@ -89,11 +89,10 @@ struct cosine_similarity
                                   to_colvec<T>(datahist.col(index)));
     }
 
-private:
-    using colvec = arma::Col<T>;
-
-    T similarity_compute(colvec const &lhs,
-                         colvec const &rhs) const
+private:    
+    template<typename U, typename V>
+    T similarity_compute(U const &lhs,
+                         V const &rhs) const
     {
         auto const denom =
                 std::sqrt(arma::sum(lhs % lhs)) *
@@ -127,11 +126,10 @@ struct chi_square{
                                   to_colvec<T>(datahist.col(index)));
     }
 
-private:
-    using colvec = arma::Col<T>;
-
-    T chi_square_compute(colvec const &lhs,
-                         colvec const &rhs) const
+private:    
+    template<typename U, typename V>
+    T chi_square_compute(U const &lhs,
+                         V const &rhs) const
     {
         return arma::sum(arma::square(lhs - rhs) /
                          (lhs + rhs + T(1e-10)));
