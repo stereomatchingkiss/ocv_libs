@@ -37,13 +37,9 @@ namespace cbir{
  *@endcode
  */
 template<typename Key, typename Value, typename Hist>
-void build_inverted_index(Hist const &hist,
+void build_inverted_index(arma::SpMat<Hist> const &hist,
                           inverted_index<Key, Value> &index)
-{
-    static_assert(armd::is_two_dim<Hist>::value,
-                  "Vocab should be arma::Mat or "
-                  "arma::SpMat");
-
+{    
     index.clear();
     for(arma::uword i = 0; i != hist.n_cols; ++i){
         auto const &vcol = hist.col(i);
@@ -51,6 +47,24 @@ void build_inverted_index(Hist const &hist,
             it != vcol.end(); ++it){
             if(*it != 0){
                 index.insert(it.row(), i);
+            }
+        }
+    }
+}
+
+/**
+ *overload of arma::Mat
+ */
+template<typename Key, typename Value, typename Hist>
+void build_inverted_index(arma::Mat<Hist> const &hist,
+                          inverted_index<Key, Value> &index)
+{
+    index.clear();
+    for(arma::uword i = 0; i != hist.n_cols; ++i){
+        auto const &vcol = hist.col(i);
+        for(arma::uword r = 0; r != vcol.n_rows; ++r){
+            if(vcol(r) != 0){
+                index.insert(r, i);
             }
         }
     }
