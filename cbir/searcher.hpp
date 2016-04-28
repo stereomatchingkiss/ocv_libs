@@ -128,7 +128,7 @@ private:
             auto const dist =
                     dist_metric_.compare(query_hist,
                                          dataset_hist,
-                                         val.first);
+                                         val.first);//*/
             if(sm.size() < result_size_){
                 sm.emplace_back(dist, val.first);
                 if(sm.size() == result_size_){
@@ -158,6 +158,29 @@ private:
         }
 
         return result;
+    }
+
+    template<typename T>
+    std::vector<cvt>
+    find_candidate(arma::Mat<T> const &query_hist) const
+    {
+        candidate_type candidate;
+        for(arma::uword i = 0; i != query_hist.n_rows; ++i){
+            auto inv_it = index_.find(query_hist(i));
+            if(inv_it != std::end(index_)){
+                auto const &words = inv_it->second;
+                for(auto const &val : words){
+                    auto m_it = candidate.find(val);
+                    if(m_it != std::end(candidate)){
+                        ++(m_it->second);
+                    }else{
+                        candidate.insert({val, 1});
+                    }
+                }
+            }
+        }
+
+        return sort_candidate(candidate);
     }
 
     template<typename QueryHist>
