@@ -29,6 +29,7 @@ template<typename Key, typename Value>
 class inverted_index
 {
 public:
+    using key_type = Key;
     using doc_type = std::vector<Value>;
     using map_type = std::map<Key, doc_type>;
     using value_type = Value;
