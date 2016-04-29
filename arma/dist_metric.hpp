@@ -58,7 +58,7 @@ inline
 typename std::enable_if<
 arma::is_arma_type<U>::value &&
 std::is_same<T, typename U::elem_type>::value,
-U>::type
+U>::type const&
 to_colvec(U const &input)
 {    
     return input;
@@ -93,9 +93,9 @@ private:
     template<typename U, typename V>
     T similarity_compute(U const &lhs,
                          V const &rhs) const
-    {
+    {       
         auto const denom =
-                std::sqrt(arma::sum(lhs % lhs)) *
+                std::sqrt(arma::sum(lhs.col(0) % lhs.col(0))) *
                 std::sqrt(arma::sum(rhs % rhs)) +
                 T(1e-10);
 
