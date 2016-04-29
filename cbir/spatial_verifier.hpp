@@ -28,12 +28,13 @@ namespace ocv{
  */
 namespace cbir{
 
-template<typename CodeBook, typename FeaturesType>
+template<typename CodeBook, typename FeaturesType,
+         int BufSize = 20>
 class spatial_verifier
 {
 public:
     using result_type =
-    boost::container::small_vector<size_t, 16>;
+    boost::container::small_vector<size_t, BufSize>;
 
     explicit
     spatial_verifier(features_indexer const &fi,
