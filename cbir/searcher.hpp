@@ -216,9 +216,12 @@ private:
     {
       return lhs.second > rhs.second;
     };
-    std::sort(std::begin(sorted),
-              std::end(sorted), sort_criteria);
-    sorted.resize(std::min(candidate_size_, candidate.size()));
+    auto const dsize =
+        std::min(candidate_size_, candidate.size());
+    std::partial_sort(std::begin(sorted),
+                      std::begin(sorted) + dsize,
+                      std::end(sorted), sort_criteria);
+    sorted.resize(dsize);
 
     return sorted;
   }
