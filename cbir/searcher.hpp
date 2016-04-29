@@ -31,13 +31,14 @@ namespace cbir{
  */
 template<typename InvertIndex,
          typename DistMetric = armd::chi_square<>,
-         typename Compare = std::less<typename DistMetric::result_type>>
+         typename Compare = std::less<typename DistMetric::result_type>,
+         int BufSize = 20>
 class searcher{
 public:
   using invert_value_type = typename InvertIndex::value_type;
 
   using result_type =
-  boost::container::small_vector<invert_value_type, 16>;
+  boost::container::small_vector<invert_value_type, BufSize>;
 
   /**
      * @param index inverted index of the dataset
@@ -123,18 +124,19 @@ private:
     using dist_type = typename DistMetric::result_type;
     using sm_vtype = std::pair<dist_type, invert_value_type>;
 
-    small_vector<sm_vtype, 16> sm;
+    small_vector<sm_vtype, BufSize> sm;
+    Compare cp;
     for(auto const &val : candidate){
       auto const dist =
           dist_metric_.compare(query_hist,
                                dataset_hist,
-                               val.first);//*/
+                               val.first);
       if(sm.size() < result_size_){
         sm.emplace_back(dist, val.first);
         if(sm.size() == result_size_){
-          auto func = [](sm_vtype const &lhs, sm_vtype const &rhs)
+          auto func = [=](sm_vtype const &lhs, sm_vtype const &rhs)
           {
-            return Compare()(lhs.first,rhs.first);
+            return cp(lhs.first,rhs.first);
           };
           std::sort(std::begin(sm), std::end(sm),
                     func);
@@ -143,7 +145,7 @@ private:
         auto it = std::find_if(std::begin(sm), std::end(sm),
                                [=](sm_vtype const &a)
         {
-          return Compare()(dist,a.first);
+          return cp(dist,a.first);
         });
         if(it != std::end(sm)){
           sm.insert(it, {dist, val.first});
