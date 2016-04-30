@@ -41,7 +41,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     cbir/color_descriptor.cpp \
     cbir/f2d_descriptor.cpp \
     cbir/features_indexer.cpp \
-    core/montage.cpp
+    core/montage.cpp \
+    saliency/edge_boxes.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -87,4 +88,6 @@ HEADERS += qt/mat_and_qimage.hpp \
     arma/type_traits.hpp \
     arma/dist_metric.hpp \
     cbir/build_inverted_index.hpp \
-    cbir/spatial_verifier.hpp
+    cbir/spatial_verifier.hpp \
+    saliency/edge_boxes.hpp \
+    saliency/utility.hpp
