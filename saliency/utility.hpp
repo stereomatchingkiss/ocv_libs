@@ -108,6 +108,25 @@ U calculate_iou(cv::Vec<T, 4> const &box1,
                                        cv::Vec<U,4>(box2));
 }
 
+template<typename T,typename U = float>
+inline
+U calculate_iou(cv::Rect_<T> const &box1,
+                cv::Rect_<T> const &box2)
+{
+    static_assert(std::is_floating_point<U>::value,
+                  "U should be floating point");
+
+    cv::Rect_<U> const b1 = box1;
+    cv::Rect_<U> const b2 = box2;
+
+    return calculate_iou(cv::Vec<U,4>(b1.y, b1.x,
+                                      b1.y + b1.height,
+                                      b1.x + b1.width),
+                         cv::Vec<U,4>(b2.y, b2.x,
+                                      b2.y + b2.height,
+                                      b2.x + b2.width));
+}
+
 
 } /*! @} End of Doxygen Groups*/
 
