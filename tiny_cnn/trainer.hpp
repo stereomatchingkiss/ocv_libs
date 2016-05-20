@@ -28,7 +28,7 @@ public:
     {}
 
     trainer(std::string output_file,
-            int minibatch_size, int num_epochs) :
+            size_t minibatch_size, int num_epochs) :
         minibatch_size_{minibatch_size},
         num_epochs_{num_epochs},
         output_file_(std::move(output_file))
