@@ -65,6 +65,29 @@ Img cvmat_to_img(cv::Mat const& input,
     return img;
 }
 
+template<typename Img>
+void cvmat_to_img(std::vector<cv::Mat> const &input,
+                  std::vector<Img> &output,
+                  float_t scale_min = -1,
+                  float_t scale_max = 1)
+{
+    for(size_t i = 0; i != input.size(); ++i){
+      output.emplace_back(cvmat_to_img<Img>(input[i], scale_min,
+                                            scale_max));
+    }
+}
+
+template<typename Img>
+std::vector<Img> cvmat_to_img(std::vector<cv::Mat> const &input,
+                              float_t scale_min = -1,
+                              float_t scale_max = 1)
+{
+    std::vector<Img> result;
+    cvmat_to_img(input, result, scale_min, scale_max);
+
+    return result;
+}
+
 } /*! @} End of Doxygen Groups*/
 
 } /*! @} End of Doxygen Groups*/
