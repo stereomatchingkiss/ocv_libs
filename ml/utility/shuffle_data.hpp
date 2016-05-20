@@ -24,11 +24,13 @@ namespace ml{
  *@param beg1 the begin position of first container
  *@param end1 the end position of first container
  *@param beg2 the begin position of second container
+ *@param seed seed of random engine
  *@warning The range of beg2 must not smaller than beg1
  */
-template<typename ForwardIter1, typename ForwardIter2>
+template<typename ForwardIter1, typename ForwardIter2,
+         typename URNG>
 void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
-              ForwardIter2 beg2)
+              ForwardIter2 beg2, URNG &&g)
 {
     using vtype1 = std::decay<decltype(*beg1)>::type;
     using vtype2 = std::decay<decltype(*beg2)>::type;
@@ -42,8 +44,6 @@ void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
                                 std::move(*beg2_cpy));
     }
 
-    std::random_device rd;
-    std::default_random_engine g(rd());
     std::shuffle(std::begin(key_values), std::end(key_values), g);
     for(auto it = std::begin(key_values);
         it != std::end(key_values); ++it, ++beg1, ++beg2){
@@ -52,16 +52,33 @@ void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
     }
 }
 
+template<typename ForwardIter1, typename ForwardIter2,
+         typename URNG>
+void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
+              ForwardIter2 beg2, unsigned int seed)
+{
+    shuffles(beg1, end1, beg2,
+             std::default_random_engine(seed));
+}
+
 /**
  * Overload version of shuffles, accept containers
  * rather than iterator
  */
-template<typename T, typename U>
+template<typename T, typename U, typename URNG>
 inline
-void shuffles(T &fir, U &sec)
+void shuffles(T &fir, U &sec, URNG &&g)
 {
     shuffles(std::begin(fir), std::end(fir),
-             std::begin(sec));
+             std::begin(sec), g);
+}
+
+template<typename T, typename U>
+inline
+void shuffles(T &fir, U &sec, unsigned int seed = 0)
+{
+    shuffles(std::begin(fir), std::end(fir),
+             std::begin(sec), std::default_random_engine(seed));
 }
 
 } /*! @} End of Doxygen Groups*/
