@@ -26,7 +26,8 @@ void cvmat_to_img(cv::Mat const& input,
                   float_t scale_min = -1,
                   float_t scale_max = 1)
 {
-    CV_Assert(input.type() == CV_8U || input.type() == CV_8UC3);
+    CV_Assert(input.type() == CV_8U || input.type() == CV_8UC3 ||
+              input.type() == CV_64F);
     CV_Assert(scale_min < scale_max);
 
     if(input.type() == CV_8UC3){
@@ -46,10 +47,17 @@ void cvmat_to_img(cv::Mat const& input,
         int const area = input.rows * input.cols;
         output.resize(area);
         size_t index = 0;
-        ocv::for_each_channels<uchar>(input, [&](uchar c)
-        {
-            output[index++] = scale_min + (scale_max - scale_min) * c / 255.0;
-        });
+        if(input.type() == CV_8U){
+            ocv::for_each_channels<uchar>(input, [&](uchar c)
+            {
+                output[index++] = scale_min + (scale_max - scale_min) * c / 255.0;
+            });
+        }else if(input.type() == CV_64F){
+            ocv::for_each_channels<double>(input, [&](double c)
+            {
+                output[index++] = scale_min + (scale_max - scale_min) * c / 255.0;
+            });
+        }
     }
 }
 
@@ -72,8 +80,8 @@ void cvmat_to_img(std::vector<cv::Mat> const &input,
                   float_t scale_max = 1)
 {
     for(size_t i = 0; i != input.size(); ++i){
-      output.emplace_back(cvmat_to_img<Img>(input[i], scale_min,
-                                            scale_max));
+        output.emplace_back(cvmat_to_img<Img>(input[i], scale_min,
+                                              scale_max));
     }
 }
 
