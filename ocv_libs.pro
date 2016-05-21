@@ -90,4 +90,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cbir/build_inverted_index.hpp \
     cbir/spatial_verifier.hpp \
     saliency/edge_boxes.hpp \
-    saliency/utility.hpp
+    saliency/utility.hpp \
+    normalize/mean_cvmat_normalization.hpp
