@@ -38,7 +38,7 @@ public:
     explicit predictor(Net net);
 
     template<typename T>
-    result_type predict(T const &input) const
+    result_type predict(T const &input)
     {
         result_type result;
         predict(input, result);
@@ -47,7 +47,7 @@ public:
     }
 
     template<typename T>
-    void predict(T const &input, result_type &result) const
+    void predict(T const &input, result_type &result)
     {
       auto const prob = nn_.predict(input);
       for(size_t i = 0; i != prob.size(); ++i){
