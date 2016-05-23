@@ -15,10 +15,10 @@
 namespace ocv{
 
 /*!
- *  \addtogroup tiny_cnn
+ *  \addtogroup tcnn
  *  @{
  */
-namespace tiny_cnn{
+namespace tcnn{
 
 template<typename Img>
 void cvmat_to_img(cv::Mat const& input,

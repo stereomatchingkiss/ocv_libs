@@ -15,10 +15,10 @@
 namespace ocv{
 
 /*!
- *  \addtogroup tiny_cnn
+ *  \addtogroup tcnn
  *  @{
  */
-namespace tiny_cnn{
+namespace tcnn{
 
 class trainer
 {
