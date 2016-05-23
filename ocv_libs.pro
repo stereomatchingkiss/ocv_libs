@@ -42,7 +42,8 @@ SOURCES += qt/mat_and_qimage.cpp \
     cbir/f2d_descriptor.cpp \
     cbir/features_indexer.cpp \
     core/montage.cpp \
-    saliency/edge_boxes.cpp
+    saliency/edge_boxes.cpp \
+    utility/hsv_range_observer.cpp
 
 HEADERS += qt/mat_and_qimage.hpp \
     core/histogram.hpp \
@@ -91,4 +92,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     cbir/spatial_verifier.hpp \
     saliency/edge_boxes.hpp \
     saliency/utility.hpp \
-    normalize/mean_cvmat_normalization.hpp
+    normalize/mean_cvmat_normalization.hpp \
+    utility/hsv_range_observer.hpp
