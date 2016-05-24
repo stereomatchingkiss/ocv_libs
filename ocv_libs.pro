@@ -95,4 +95,5 @@ HEADERS += qt/mat_and_qimage.hpp \
     normalize/mean_cvmat_normalization.hpp \
     utility/hsv_range_observer.hpp \
     dlib/cv_to_dlib.hpp \
-    tiny_cnn/predictor.hpp
+    tiny_cnn/predictor.hpp \
+    saliency/pyramid_scan.hpp
