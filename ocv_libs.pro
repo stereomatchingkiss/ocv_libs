@@ -56,10 +56,10 @@ HEADERS += qt/mat_and_qimage.hpp \
     ml/utility/feature_scaling.hpp \
     ml/deep_learning/propagation.hpp \
     ml/utility/activation.hpp \
-    ../3rdLibs/opencv/dev/opencv/modules/core/src/bufferpool.impl.hpp \
-    ../3rdLibs/opencv/dev/opencv/modules/core/src/directx.inc.hpp \
-    ../3rdLibs/opencv/dev/opencv/modules/core/src/gl_core_3_1.hpp \
-    ../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \    
+    #../3rdLibs/opencv/dev/opencv/modules/core/src/bufferpool.impl.hpp \
+    #../3rdLibs/opencv/dev/opencv/modules/core/src/directx.inc.hpp \
+    #../3rdLibs/opencv/dev/opencv/modules/core/src/gl_core_3_1.hpp \
+    #../3rdLibs/opencv/dev/opencv/modules/core/src/precomp.hpp \
     profile/measure.hpp \
     eigen/eigen.hpp \
     ml/deep_learning/softmax.hpp \
