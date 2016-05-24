@@ -24,7 +24,6 @@ namespace saliency{
  *@Scan the image by image pyramids.
  *@tparam type of cv::Mat
  */
-template<typename T>
 class pyramid_scan
 {
 public:
@@ -44,8 +43,8 @@ public:
                  cv::Size2i const &step,
                  double scale);
 
-    template<typename TernaryFunc>
-    void scan(cv::Mat const &input, TernaryFunc func)
+    template<typename WinFunc>
+    void scan(cv::Mat const &input, WinFunc win_func)
     {
         cv::Mat img;
         input.copyTo(img);
@@ -54,11 +53,14 @@ public:
             cur_size.width <= min_size_.width;
             cur_size = img.size()){
 
-            ocv::for_each_block<T>(img, win_size_,
-                                   func, step_);
+            double const wratio = input.cols / cur_size.width;
+            double const hratio = input.rows / cur_size.height;
+            ocv::for_each_block(img, win_size_,
+                                win_func, step_,
+                                wratio, hratio);
 
             cv::resize(img, img,
-            {img.cols * scale_, img.rows * scale_});
+                       cv::Size(img.cols * scale_, img.rows * scale_));
         }
     }
 
@@ -69,8 +71,7 @@ private:
     cv::Size2i win_size_;
 };
 
-template<typename T>
-pyramid_scan<T>::pyramid_scan(cv::Size2i const &min_size,
+pyramid_scan::pyramid_scan(cv::Size2i const &min_size,
                               cv::Size2i const &win_size,
                               cv::Size2i const &step,
                               double scale) :
