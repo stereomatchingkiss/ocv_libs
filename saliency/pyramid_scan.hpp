@@ -50,16 +50,16 @@ public:
         for(auto cur_size = input.size();
             cur_size.height >= min_size_.height &&
             cur_size.width >= min_size_.width;
-            cur_size = img.size()){            
+            cur_size = img.size()){
 
-            double const wratio = input.cols / cur_size.width;
-            double const hratio = input.rows / cur_size.height;
+            double const wratio = input.cols / static_cast<double>(cur_size.width);
+            double const hratio = input.rows / static_cast<double>(cur_size.height);
             ocv::for_each_block(img, win_size_,
                                 win_func, step_,
                                 wratio, hratio);
 
             cv::resize(img, img,
-                       cv::Size(img.cols / scale_, img.rows / scale_));
+                       cv::Size(img.cols / scale_, img.rows / scale_));            
         }
     }
 
