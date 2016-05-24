@@ -22,7 +22,6 @@ namespace saliency{
 
 /**
  *@Scan the image by image pyramids.
- *@tparam type of cv::Mat
  */
 class pyramid_scan
 {
@@ -49,9 +48,9 @@ public:
         cv::Mat img;
         input.copyTo(img);
         for(auto cur_size = input.size();
-            cur_size.height <= min_size_.height &&
-            cur_size.width <= min_size_.width;
-            cur_size = img.size()){
+            cur_size.height >= min_size_.height &&
+            cur_size.width >= min_size_.width;
+            cur_size = img.size()){            
 
             double const wratio = input.cols / cur_size.width;
             double const hratio = input.rows / cur_size.height;
@@ -60,7 +59,7 @@ public:
                                 wratio, hratio);
 
             cv::resize(img, img,
-                       cv::Size(img.cols * scale_, img.rows * scale_));
+                       cv::Size(img.cols / scale_, img.rows / scale_));
         }
     }
 
@@ -84,8 +83,8 @@ pyramid_scan::pyramid_scan(cv::Size2i const &min_size,
     CV_Assert(scale_ > 1.0);
     CV_Assert(step_.width > 0 && step_.height > 0);
     CV_Assert(win_size_.width > 0 && win_size_.height > 0);
-    CV_Assert(win_size_.width < min_size_.width &&
-              win_size_.height < min_size_.height);
+    CV_Assert(win_size_.width <= min_size_.width &&
+              win_size_.height <= min_size_.height);
 }
 
 } /*! @} End of Doxygen Groups*/
