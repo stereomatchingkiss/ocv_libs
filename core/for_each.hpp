@@ -28,13 +28,16 @@ UnaryFunc for_each_channels(Mat &&input, UnaryFunc func);
  * row : y-axis position of the image(not block)\n
  * subimage : the subimage of image
  *@param stride the step when sliding the subimage
+ *@param args variadic params, could pass in zero or
+ * variadic parameters
  */
-template<typename TerFunc>
+template<typename TerFunc, typename... Params>
 TerFunc
 for_each_block(cv::Mat const &input,
                cv::Size2i const &block,
                TerFunc func,
-               cv::Size2i const &stride)
+               cv::Size2i const &stride,
+               Params... args)
 {
     for(int row = 0; row <= input.rows - block.height;
         row += stride.height){
@@ -42,8 +45,9 @@ for_each_block(cv::Mat const &input,
             col += stride.width){
             func(row, col, input(cv::Rect{col, row,
                                           block.width,
-                                          block.height}));
-        }
+                                          block.height}),
+                 std::forward<Params>(args)...);
+        }        
     }
 
     return func;
