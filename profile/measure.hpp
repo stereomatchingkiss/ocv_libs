@@ -1,5 +1,5 @@
-#ifndef MEASURE_HPP
-#define MEASURE_HPP
+#ifndef OCV_TIME_MEASURE_HPP
+#define OCV_TIME_MEASURE_HPP
 
 #include <chrono>
 
@@ -48,5 +48,5 @@ struct measure
 
 } /*! @} End of Doxygen Groups*/
 
-#endif // MEASURE_HPP
+#endif // OCV_LIBS_TIME_MEASURE_HPP
 
