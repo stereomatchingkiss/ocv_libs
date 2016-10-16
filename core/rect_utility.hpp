@@ -38,6 +38,8 @@ template<typename T, typename U>
 inline
 U diagonal_euclidean_dist(cv::Rect_<T> const &p)
 {
+    static_assert(std::is_floating_point<U>::value, "U must be floating point");
+
     return static_cast<U>(std::sqrt(p.width * p.width + p.height * p.height));
 }
 
