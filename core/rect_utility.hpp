@@ -14,7 +14,7 @@ namespace ocv{
 
 template<typename T, typename U = typename std::common_type<T,float>::type>
 inline
-U diagonal_dist(cv::Rect_<T> const &p);
+U diagonal_euclidean_dist(cv::Rect_<T> const &p);
 
 template<typename T, typename U = typename std::common_type<T,float>::type>
 inline
@@ -36,7 +36,7 @@ U center_euclidean_dist(cv::Rect_<T> const &p, cv::Rect_<T> const &q)
 
 template<typename T, typename U>
 inline
-U diagonal_dist(cv::Rect_<T> const &p)
+U diagonal_euclidean_dist(cv::Rect_<T> const &p)
 {
     return static_cast<U>(std::sqrt(p.width * p.width + p.height * p.height));
 }
