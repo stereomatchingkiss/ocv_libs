@@ -34,10 +34,10 @@ void rect_to_cv_rect(InPutIter1 beg1, InPutIter1 end1,
                      OutputIter2 beg2)
 {
     std::transform(beg1, end1, beg2,
-                   [](dlib::rectangle const &lhs)
+                   [](auto const &val)
     {
         using value_type = typename std::iterator_traits<OutputIter2>::value_type;
-        return rect_to_cv_rect<value_type::value_type>(lhs);
+        return rect_to_cv_rect<value_type::value_type>(val);
     });
 }
 
