@@ -64,7 +64,7 @@ public:
                 }
             }
             rect.set_bottom(rect.top() + h);
-            location_.back().emplace_back(rect);//*/
+            location_.back().emplace_back(rect);
         }
     }
 
