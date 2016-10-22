@@ -1,5 +1,7 @@
 #include "get_img_info.hpp"
 
+#include <algorithm>
+
 #include <dlib/xml_parser.h>
 
 namespace ocv{
@@ -31,10 +33,12 @@ public:
             const std::string& name,
             const dlib::attribute_list& atts) override
     {
-        std::cout<<name<<std::endl;
         if(name == "image"){
-            img_name_.emplace_back(name);
-            location_.emplace_back();
+            atts.reset();
+            if(atts.move_next()){
+                img_name_.emplace_back(atts.element().value());
+                location_.emplace_back();
+            }
         }else if(name == "box"){
             atts.reset();
             dlib::rectangle rect;
@@ -43,7 +47,8 @@ public:
             for(size_t index = 0; atts.move_next(); ++index){
                 switch(index){
                 case height :{
-                    h = std::stol(atts.element().value());
+                    h = std::stol(atts.element().value()) - 1;
+                    h = std::max<long>(0, h);
                     break;
                 }
                 case left :{
@@ -55,7 +60,8 @@ public:
                     break;
                 }
                 case width:{
-                    rect.set_right(rect.left() + std::stol(atts.element().value()));
+                    rect.set_right(rect.left() + std::stol(atts.element().value()) - 1);
+                    rect.set_right(std::max<long>(0, rect.right()));
                     break;
                 }
                 default:{
