@@ -20,12 +20,14 @@ namespace ocv{
  */
 namespace odlib{
 
-template<typename T = int>
+template<typename T = int, typename DlibRect>
 inline
-cv::Rect_<T> rect_to_cv_rect(dlib::rectangle const &input)
-{
-    return cv::Rect_<T>(input.left(), input.top(),
-                        input.width(), input.height());
+cv::Rect_<T> rect_to_cv_rect(DlibRect const &input)
+{    
+  static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
+
+  return cv::Rect_<T>(input.left(), input.top(),
+                      input.width(), input.height());
 }
 
 template<typename InPutIter1, typename OutputIter2>
@@ -33,42 +35,49 @@ inline
 void rect_to_cv_rect(InPutIter1 beg1, InPutIter1 end1,
                      OutputIter2 beg2)
 {
-    std::transform(beg1, end1, beg2,
-                   [](auto const &val)
-    {
-        using value_type = typename std::iterator_traits<OutputIter2>::value_type;
-        return rect_to_cv_rect<value_type::value_type>(val);
-    });
+  using value_type = typename std::iterator_traits<OutputIter2>::value_type;
+  static_assert(std::is_arithmetic<value_type>::value, "value_type of "
+                                                       "OutputIter2 must be arithmetic");
+
+  std::transform(beg1, end1, beg2,
+                 [](auto const &val)
+  {
+    return rect_to_cv_rect<value_type::value_type>(val);
+  });
 }
 
-template<typename T>
+template<typename T, typename DlibRect>
 inline
-void rect_to_cv_rect(std::vector<dlib::rectangle> const &input,
+void rect_to_cv_rect(std::vector<DlibRect> const &input,
                      std::vector<cv::Rect_<T>> &output)
 {
-    output.resize(input.size());
-    rect_to_cv_rect(std::begin(input), std::end(input),
-                    std::begin(output));
+  static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
+
+  output.resize(input.size());
+  rect_to_cv_rect(std::begin(input), std::end(input),
+                  std::begin(output));
 }
 
 template<typename T = int, typename InputIter>
 inline
 std::vector<cv::Rect_<T>> rect_to_cv_rect(InputIter beg, InputIter end)
 {
-    std::vector<cv::Rect_<T>> results;
-    results.resize(std::distance(beg, end));
+  static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
 
-    return rect_to_cv_rect(beg, end, std::begin(results));
+  std::vector<cv::Rect_<T>> results;
+  results.resize(std::distance(beg, end));
+
+  return rect_to_cv_rect(beg, end, std::begin(results));
 }
 
-template<typename T = int>
+template<typename T = int, typename DlibRect>
 inline
-std::vector<cv::Rect_<T>> rect_to_cv_rect(std::vector<dlib::rectangle> const &input)
+std::vector<cv::Rect_<T>> rect_to_cv_rect(std::vector<DlibRect> const &input)
 {
-    std::vector<cv::Rect_<T>> results;
-    rect_to_cv_rect<T>(input, results);
+  std::vector<cv::Rect_<T>> results;
+  rect_to_cv_rect<T>(input, results);
 
-    return results;
+  return results;
 }
 
 } /*! @} End of Doxygen Groups*/
