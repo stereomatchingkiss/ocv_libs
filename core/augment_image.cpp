@@ -59,6 +59,11 @@ float augment_image::get_vertical_shift_range() const noexcept
     return vertical_shift_range_;
 }
 
+void augment_image::set_border_type(int value) noexcept
+{
+    border_type_ = value;
+}
+
 void augment_image::set_flip_horizontal(bool value) noexcept
 {
     flip_horizontal_ = value;
