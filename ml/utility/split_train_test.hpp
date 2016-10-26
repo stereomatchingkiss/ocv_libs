@@ -24,6 +24,26 @@ namespace ocv{
 namespace ml{
 
 /**
+ * split input data to two sets of data, this function
+ * may clear the content of input they can be moved.
+ * @param input_data input data want to split
+ * @param train_data training data split from input data
+ * @param test_data test data split from input data
+ * @param test_ratio determine the ratio of the input data
+ * split to test data
+ */
+template<typename Data>
+void split_train_test_inplace(Data &input, Data &train_data, Data &test_data, double test_ratio)
+{
+    size_t const test_size = input.size() * test_ratio;
+    std::move(std::begin(input), std::begin(input) + test_size,
+              std::back_inserter(test_data));
+    std::move(std::begin(input) + test_size, std::end(input),
+              std::back_inserter(train_data));
+    input.clear();
+}
+
+/**
  * split input data and input label to two sets of data, this function
  * may change the content of input_data and input_label if they can be
  * swapped, this way it could avoid expensive copy operation
@@ -71,12 +91,12 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     size_t train_index = 0;
     for(size_t i = 0; i != seed.size(); ++i){
         if(seed[i] == tag::train_tag){
-            details::swap(train_label[train_index], input_label[i]);
-            details::swap(train_data[train_index], input_data[i]);
+            std::swap(train_label[train_index], input_label[i]);
+            std::swap(train_data[train_index], input_data[i]);
             ++train_index;
         }else{
-            details::swap(test_label[test_index], input_label[i]);
-            details::swap(test_data[test_index], input_data[i]);
+            std::swap(test_label[test_index], input_label[i]);
+            std::swap(test_data[test_index], input_data[i]);
             ++test_index;
         }
     }
