@@ -7,10 +7,6 @@
 
 #include <opencv2/core.hpp>
 
-#ifdef OCV_SUPPORT_DLIB
-#include <dlib/image_processing.h>
-#endif
-
 #include <random>
 #include <tuple>
 #include <vector>
@@ -26,39 +22,6 @@ namespace ocv{
  *  @{
  */
 namespace ml{
-
-namespace details{
-
-inline
-void swap(cv::Mat &lhs, cv::Mat &rhs)
-{
-    cv::swap(lhs, rhs);
-}
-
-template<typename T>
-inline
-void swap(cv::Mat_<T> &lhs, cv::Mat_<T> &rhs)
-{
-    cv::swap(lhs, rhs);
-}
-
-#ifdef OCV_SUPPORT_DLIB
-template<typename T>
-inline
-void swap(dlib::array2d<T> &lhs, dlib::array2d<T> &rhs)
-{
-    lhs.swap(rhs);
-}
-#endif
-
-template<typename T>
-inline
-void swap(T &lhs, T &rhs)
-{
-    std::swap(lhs, rhs);
-}
-
-}
 
 /**
  * split input data and input label to two sets of data, this function
