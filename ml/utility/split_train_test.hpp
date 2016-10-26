@@ -1,5 +1,5 @@
-#ifndef OCV_SPLIT_TRAIN_TEST_HPP
-#define OCV_SPLIT_TRAIN_TEST_HPP
+#ifndef OCV_ML_SPLIT_TRAIN_TEST_HPP
+#define OCV_ML_SPLIT_TRAIN_TEST_HPP
 
 /*! \file split_train_test.hpp
     \brief split input data to two sets of data
@@ -144,5 +144,5 @@ split_train_test_inplace(Data &input_data, Label &input_label,
 
 } /*! @} End of Doxygen Groups*/
 
-#endif // SPLIT_TRAIN_TEST_HPP
+#endif // OCV_ML_SPLIT_TRAIN_TEST_HPP
 
