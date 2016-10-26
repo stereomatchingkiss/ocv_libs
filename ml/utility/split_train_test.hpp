@@ -39,8 +39,7 @@ void split_train_test_inplace(Data &input, Data &train_data, Data &test_data, do
     std::move(std::begin(input), std::begin(input) + test_size,
               std::back_inserter(test_data));
     std::move(std::begin(input) + test_size, std::end(input),
-              std::back_inserter(train_data));
-    input.clear();
+              std::back_inserter(train_data));    
 }
 
 /**
