@@ -1,5 +1,5 @@
-#ifndef OCV_SHUFFLE_DATA_HPP
-#define OCV_SHUFFLE_DATA_HPP
+#ifndef OCV_ML_SHUFFLE_DATA_HPP
+#define OCV_ML_SHUFFLE_DATA_HPP
 
 #include <iterator>
 #include <random>
