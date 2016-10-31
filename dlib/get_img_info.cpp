@@ -99,10 +99,10 @@ private:
 };
 
 void get_imglab_xml_info(std::vector<std::string> &img_name,
-                    std::vector<std::vector<dlib::rectangle>> &location,
+                    std::vector<std::vector<dlib::rectangle>> &roi,
                     const std::string &file_name)
 {
-    doc_handler handler(img_name, location);
+    doc_handler handler(img_name, roi);
     dlib::parse_xml(file_name, handler);
 }
 
