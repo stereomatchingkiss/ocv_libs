@@ -98,7 +98,7 @@ private:
     std::vector<std::vector<dlib::rectangle>> &location_;
 };
 
-void get_image_info(std::vector<std::string> &img_name,
+void get_imglab_xml_info(std::vector<std::string> &img_name,
                     std::vector<std::vector<dlib::rectangle>> &location,
                     const std::string &file_name)
 {
