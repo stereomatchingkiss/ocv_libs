@@ -54,6 +54,7 @@ void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
 
 template<typename ForwardIter1, typename ForwardIter2,
          typename URNG>
+inline
 void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
               ForwardIter2 beg2, unsigned int seed)
 {
