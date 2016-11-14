@@ -5,9 +5,9 @@
     \brief split input data to two sets of data
 */
 
-#include <opencv2/core.hpp>
-
+#include <map>
 #include <random>
+#include <set>
 #include <tuple>
 #include <vector>
 
@@ -24,8 +24,96 @@ namespace ocv{
 namespace ml{
 
 /**
+ * split input data and input label to two sets of data, this function
+ * may change the content of input_data and input_label if they can be
+ * swapped, this way it could avoid expensive copy operation. Difference
+ * part with "split_train_test_inplace" is this function will guarantee
+ * the data being split are balanced.
+ * @param input_data input data want to split
+ * @param input_label input label want to split
+ * @param train_data training data split from input data
+ * @param train_label training label split from input data
+ * @param test_data test data split from input data
+ * @param test_label test label split from input data
+ * @param test_ratio determine the ratio of the input data
+ * split to test data
+ * @param shuffle if true, shuffle the train data and label;
+ * else do not shuffle.Default value is true
+ * @code
+ * vector<string> input_list;
+ * vector<string> input_label;
+ * //read 1000 dogs and 1000 cats
+ * std::tie(input_list, input_label) = read_data();
+ * vector<string> train_list;
+ * vector<string> train_label;
+ * vector<string> test_list;
+ * vector<string> test_label;
+ * //after split, it will make sure train_list got 75% dog and cat,
+ * //test list got 25% dog and cat
+ * split_train_test_inplace_balance(input_list, input_label,
+ * train_list, train_label, test_list, test_label, 0.25);
+ * @endcode
+ */
+template<typename Data, typename Label>
+split_train_test_inplace_balance(Data &input_data, Label &input_label,
+                                 Data &train_data, Label &train_label,
+                                 Data &test_data, Label &test_label,
+                                 double test_ratio)
+{
+    static_assert((std::is_copy_constructible<Data>::value &&
+                   std::is_copy_constructible<Label>::value) ||
+                  (std::is_move_constructible<Data>::value &&
+                   std::is_move_constructible<Label>::value),
+                  "type Data and type Label must be copy constructible or "
+                  "move constructible");
+
+    using label_type = std::decay<decltype(input_label[0])>::type;
+    using data_type = std::decay<decltype(input_data[0])>::type;
+
+    std::map<label_type, std::vector<data_type>> category;
+    for(size_t i = 0; i != input_data.size(); ++i){
+        auto it = category.find(input_label[i]);
+        if(it != std::end(category)){
+            (it->second).emplace_back(std::move(input_data[i]));
+        }else{
+            category.insert({input_label[i], {}});
+        }
+    }
+
+    for(auto &pair : category){
+        size_t const test_size =
+                static_cast<size_t>(pair.second.size() * test_ratio);
+        for(size_t i = 0; i != test_size; ++i){
+            test_data.emplace_back(pair.second[i]);
+            test_label.emplace_back(pair.first);
+        }
+        for(size_t i = test_size; i != pair.second.size(); ++i){
+            train_data.emplace_back(pair.second[i]);
+            train_label.emplace_back(pair.first);
+        }
+    }
+}
+
+template<typename Data, typename Label>
+std::tuple<Data, Label, Data, Label>
+split_train_test_inplace_balance(Data &input_data, Label &input_label,
+                                 double test_ratio)
+{
+    Data test_data;
+    Label test_label;
+    Data train_data;
+    Label train_label;
+
+    split_train_test_inplace_balance(input_data, input_label, train_data, train_label,
+                                     test_data, test_label, test_ratio);
+
+    return std::make_tuple(train_data, train_label,
+                           test_data, test_label);
+}
+
+/**
  * split input data to two sets of data, this function
- * may clear the content of input they can be moved.
+ * may clear the content of input can be moved.
  * @param input_data input data want to split
  * @param train_data training data split from input data
  * @param test_data test data split from input data
@@ -39,7 +127,7 @@ void split_train_test_inplace(Data &input, Data &train_data, Data &test_data, do
     std::move(std::begin(input), std::begin(input) + test_size,
               std::back_inserter(test_data));
     std::move(std::begin(input) + test_size, std::end(input),
-              std::back_inserter(train_data));    
+              std::back_inserter(train_data));
 }
 
 /**
@@ -65,16 +153,23 @@ split_train_test_inplace(Data &input_data, Label &input_label,
                          double test_ratio,
                          bool shuffle = true)
 {
+    static_assert((std::is_copy_constructible<Data>::value &&
+                   std::is_copy_constructible<Label>::value) ||
+                  (std::is_move_constructible<Data>::value &&
+                   std::is_move_constructible<Label>::value),
+                  "type Data and type Label must be copy constructible or "
+                  "move constructible");
+
     size_t const train_size = input_data.size() -
             static_cast<size_t>(input_data.size() * test_ratio);
     enum class tag : unsigned char{
         test_tag,
         train_tag,
     };
-    std::vector<tag> seed(input_data.size(), tag::train_tag);    
+    std::vector<tag> seed(input_data.size(), tag::train_tag);
     for(size_t i = train_size; i != input_data.size(); ++i){
-        seed[i] = tag::test_tag;        
-    }    
+        seed[i] = tag::test_tag;
+    }
     if(shuffle){
         std::random_device rd;
         std::default_random_engine g(rd());
@@ -120,14 +215,7 @@ std::tuple<Data, Label, Data, Label>
 split_train_test_inplace(Data &input_data, Label &input_label,
                          double test_ratio,
                          bool shuffle = true)
-{
-    static_assert((std::is_copy_constructible<Data>::value &&
-                   std::is_copy_constructible<Label>::value) ||
-                  (std::is_move_constructible<Data>::value &&
-                   std::is_move_constructible<Label>::value),
-                  "type Data and type Label must be copy constructible or "
-                  "move constructible");
-
+{    
     Data test_data;
     Label test_label;
     Data train_data;
