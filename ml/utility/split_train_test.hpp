@@ -40,7 +40,7 @@ namespace ml{
  * @endcode
  */
 template<typename Data, typename Label>
-auto split_to_kset_balance(Data &input_data, Label const &input_label, size_t kset)
+auto split_to_kset_balance(Data &input_data, Label &input_label, size_t kset)
 {
     static_assert((std::is_copy_constructible<Data>::value &&
                    std::is_copy_constructible<Label>::value) ||
@@ -120,7 +120,7 @@ auto split_to_kset_balance(Data &input_data, Label const &input_label, size_t ks
  * @endcode
  */
 template<typename Data, typename Label>
-void split_train_test_inplace_balance(Data &input_data, Label const &input_label,
+void split_train_test_inplace_balance(Data &input_data, Label &input_label,
                                       Data &train_data, Label &train_label,
                                       Data &test_data, Label &test_label,
                                       double test_ratio)
@@ -161,7 +161,7 @@ void split_train_test_inplace_balance(Data &input_data, Label const &input_label
 
 template<typename Data, typename Label>
 std::tuple<Data, Label, Data, Label>
-split_train_test_inplace_balance(Data &input_data, Label const &input_label,
+split_train_test_inplace_balance(Data &input_data, Label &input_label,
                                  double test_ratio)
 {
     Data test_data;
