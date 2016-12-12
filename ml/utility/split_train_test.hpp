@@ -8,6 +8,7 @@
 #include <map>
 #include <random>
 #include <set>
+#include <type_traits>
 #include <tuple>
 #include <vector>
 
@@ -49,8 +50,8 @@ auto split_to_kset_balance(Data &input_data, Label &input_label, size_t kset)
                   "type Data and type Label must be copy constructible or "
                   "move constructible");
 
-    using label_type = std::decay<decltype(input_label[0])>::type;
-    using data_type = std::decay<decltype(input_data[0])>::type;
+    using label_type = typename std::decay<decltype(input_label[0])>::type;
+    using data_type = typename std::decay<decltype(input_data[0])>::type;
 
     if(kset < 2){
         return std::map<label_type, std::vector<std::vector<data_type>>>{};
@@ -132,8 +133,8 @@ void split_train_test_inplace_balance(Data &input_data, Label &input_label,
                   "type Data and type Label must be copy constructible or "
                   "move constructible");
 
-    using label_type = std::decay<decltype(input_label[0])>::type;
-    using data_type = std::decay<decltype(input_data[0])>::type;
+    using label_type = typename std::decay<decltype(input_label[0])>::type;
+    using data_type = typename std::decay<decltype(input_data[0])>::type;
 
     std::map<label_type, std::vector<data_type>> category;
     for(size_t i = 0; i != input_data.size(); ++i){
