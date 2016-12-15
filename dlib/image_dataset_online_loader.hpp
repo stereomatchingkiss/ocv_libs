@@ -48,6 +48,7 @@ public:
         min_rects.clear();
         object_locations.clear();
         should_resizes.clear();
+        src_vec.clear();
     }
 
     /**
@@ -59,7 +60,7 @@ public:
         img_type img;
         dlib::rand rnd(std::time(0)+seed);
         int const index = rnd.get_random_32bit_number()%files.size();
-        dlib::load_image(img, files[index]);
+        dlib::load_image(img, files[index].full_name());
 
         if(should_resizes[index]){
             // if shrinking the image would still result in the smallest box being
