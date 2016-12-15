@@ -54,7 +54,7 @@ public:
      * @brief load image randomly, this function is thread safe
      * @return first is the loaded image, second is associate mmod_rect
      */
-    std::pair<img_type, std::vector<dlib::mmod_rect>> load_random_image(std::time_t seed) const
+    auto load_random_image(std::time_t seed) const
     {
         img_type img;
         dlib::rand rnd(std::time(0)+seed);
