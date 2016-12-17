@@ -5,6 +5,7 @@
 #include <dlib/image_processing.h>
 
 #include <deque>
+#include <tuple>
 #include <vector>
 
 /*!
@@ -80,7 +81,7 @@ public:
             }
         }
 
-        return {std::move(img), object_locations[index]};
+        return std::make_tuple(std::move(img), object_locations[index]);
     }
 
 private:   
@@ -150,6 +151,7 @@ private:
             if (!source.should_skip_empty_images() || rects.size() != 0)
             {
                 files.emplace_back(parent + "/" + data.images[i].filename);
+                min_rects.emplace_back(min_rect_size);
                 should_resizes.emplace_back(check_should_resize(source, rects, min_rect_size));
                 object_locations.emplace_back(std::move(rects));
                 src_vec.emplace_back(source);
