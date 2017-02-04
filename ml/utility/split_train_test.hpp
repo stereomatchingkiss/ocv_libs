@@ -34,10 +34,17 @@ namespace ml{
  * std::vector<std::string> input_data;
  * std::vector<std::string> input_label;
  * std::tie(input_data, input_label) = read_data();
- * //Assume there are 2 labels, each label contain 10000 instance.
- * //After split, the result will contain 2 keys(cat, dog), each key
- * //associate with 5 groups of data, every contain 2000 instance.
+ * //split input_data and input_label into 5 sets of data
  * auto result = split_to_k_set_balance(input_data, input_label, 5);
+ * //get instance of label 0
+ * std::vector<std::vector<int>> const &instance = result[0];
+ * //After split, the result will split the data of every labels into 5 sets.
+ * //If label 0 got 10000, after split to 5 sets, every set will contain
+ * //2000 instance.
+ * for(auto const &vec : instance){
+ *   //will print 2000 if original label 0 got 10000 instance
+ *   std::cout<<vec.size()<<std::endl;
+ * }
  * @endcode
  */
 template<typename Data, typename Label>
@@ -53,8 +60,9 @@ auto split_to_kset_balance(Data &input_data, Label &input_label, size_t kset)
     using label_type = typename std::decay<decltype(input_label[0])>::type;
     using data_type = typename std::decay<decltype(input_data[0])>::type;
 
-    if(kset < 2){
-        return std::map<label_type, std::vector<std::vector<data_type>>>{};
+    if(input_data.size() != input_label.size()){
+        throw std::runtime_error("runtime error of " + std::string(__func__) +
+                                 " : input_data.size() != input_label.size()");
     }
 
     std::map<label_type, std::vector<data_type>> category;
