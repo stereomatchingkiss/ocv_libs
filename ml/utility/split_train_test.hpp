@@ -298,8 +298,8 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     split_train_test_inplace(input_data, input_label, train_data, train_label,
                              test_data, test_label, test_ratio, shuffle);
 
-    return std::make_tuple(train_data, train_label,
-                           test_data, test_label);
+    return std::make_tuple(std::move(train_data), std::move(train_label),
+                           std::move(test_data), std::move(test_label));
 }
 
 } /*! @} End of Doxygen Groups*/
