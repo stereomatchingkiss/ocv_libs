@@ -5,6 +5,7 @@
     \brief split input data to two sets of data
 */
 
+#include <algorithm>
 #include <map>
 #include <random>
 #include <set>
@@ -218,6 +219,7 @@ void split_train_test_inplace(Data &input, Data &train_data, Data &test_data, do
  * split to test data
  * @param shuffle if true, shuffle the train data and label;
  * else do not shuffle.Default value is true
+ * @param seed seed for random
  */
 template<typename Data, typename Label>
 void
@@ -225,7 +227,8 @@ split_train_test_inplace(Data &input_data, Label &input_label,
                          Data &train_data, Label &train_label,
                          Data &test_data, Label &test_label,
                          double test_ratio,
-                         bool shuffle = true)
+                         bool shuffle = true,
+                         std::random_device::result_type seed = 0)
 {
     static_assert((std::is_copy_constructible<Data>::value &&
                    std::is_copy_constructible<Label>::value) ||
@@ -240,14 +243,13 @@ split_train_test_inplace(Data &input_data, Label &input_label,
         test_tag,
         train_tag,
     };
-    std::vector<tag> seed(input_data.size(), tag::train_tag);
+    std::vector<tag> tags(input_data.size(), tag::train_tag);
     for(size_t i = train_size; i != input_data.size(); ++i){
-        seed[i] = tag::test_tag;
+        tags[i] = tag::test_tag;
     }
     if(shuffle){
-        std::random_device rd;
-        std::default_random_engine g(rd());
-        std::shuffle(std::begin(seed), std::end(seed), g);
+        std::default_random_engine g(seed);
+        std::shuffle(std::begin(tags), std::end(tags), g);
     }
 
     size_t const test_size = input_data.size() - train_size;
@@ -257,8 +259,8 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     train_label.resize(train_size);
     size_t test_index = 0;
     size_t train_index = 0;
-    for(size_t i = 0; i != seed.size(); ++i){
-        if(seed[i] == tag::train_tag){
+    for(size_t i = 0; i != tags.size(); ++i){
+        if(tags[i] == tag::train_tag){
             std::swap(train_label[train_index], input_label[i]);
             std::swap(train_data[train_index], input_data[i]);
             ++train_index;
@@ -281,6 +283,7 @@ split_train_test_inplace(Data &input_data, Label &input_label,
  * @return train_data, train_label, test_data, test_label
  * @param shuffle if true, shuffle the train data and label;
  * else do not shuffle.Default value is true
+ * @param seed seed for random
  * @warning cannot compile if type Data and Label are not copy constructible
  * or move constructible
  */
@@ -288,7 +291,8 @@ template<typename Data, typename Label>
 std::tuple<Data, Label, Data, Label>
 split_train_test_inplace(Data &input_data, Label &input_label,
                          double test_ratio,
-                         bool shuffle = true)
+                         bool shuffle = true,
+                         std::random_device::result_type seed = 0)
 {    
     Data test_data;
     Label test_label;
@@ -296,10 +300,48 @@ split_train_test_inplace(Data &input_data, Label &input_label,
     Label train_label;
 
     split_train_test_inplace(input_data, input_label, train_data, train_label,
-                             test_data, test_label, test_ratio, shuffle);
+                             test_data, test_label, test_ratio, shuffle, seed);
 
     return std::make_tuple(std::move(train_data), std::move(train_label),
                            std::move(test_data), std::move(test_label));
+}
+
+/**
+ * split input data and input label to train, validate and test, this function
+ * may change the content of input_data and input_label if they can be
+ * swapped, this way it could avoid expensive copy operation
+ * @param input_data input data want to split
+ * @param input_label input label want to split
+ * @param train_data training data split from input data
+ * @param train_label training label split from input data
+ * @param validate_data validate data split from input data
+ * @param validate_label validate label split from input data
+ * @param test_data test data split from input data
+ * @param test_label test label split from input data
+ * @param validate_ratio determine the ratio of the validate data
+ * @param test_ratio determine the ratio of the test data
+ * @param shuffle if true, shuffle the train data and label;
+ * else do not shuffle.Default value is true
+ * @param seed seed for random
+ */
+template<typename Data, typename Label>
+void
+split_train_validate_test_inplace(Data &input_data, Label &input_label,
+                                  Data &train_data, Label &train_label,
+                                  Data &validate_data, Label &validate_label,
+                                  Data &test_data, Label &test_label,
+                                  double validate_ratio, double test_ratio,
+                                  bool shuffle = true, std::random_device::result_type seed = 0)
+{
+    split_train_test_inplace(input_data, input_label, train_data, train_label,
+                             validate_data, validate_label,
+                             test_ratio + validate_ratio, shuffle, seed);
+
+    input_data.swap(validate_data); input_label.swap(validate_label);
+
+    split_train_test_inplace(input_data, input_label, test_data, test_label,
+                             validate_data, validate_label,
+                             test_ratio/(test_ratio+validate_ratio), shuffle, seed);
 }
 
 } /*! @} End of Doxygen Groups*/
