@@ -9,6 +9,8 @@ namespace ocv{
 
 namespace odlib{
 
+namespace{
+
 template<typename rect_type = dlib::mmod_rect>
 class doc_handler : public dlib::document_handler
 {
@@ -21,15 +23,15 @@ public:
 
     }
 
-    virtual void start_document () override
+    void start_document () override
     {
     }
 
-    virtual void end_document () override
+    void end_document () override
     {
     }
 
-    virtual void start_element (
+    void start_element (
             const unsigned long,
             const std::string& name,
             const dlib::attribute_list& atts) override
@@ -55,22 +57,22 @@ public:
         }
     }
 
-    virtual void end_element (
+    void end_element (
             const unsigned long,
             const std::string&
             ) override
     {
     }
 
-    virtual void characters (
+    void characters (
             const std::string&
             ) override
     {
     }
 
-    virtual void processing_instruction (const unsigned long, const std::string&,
-                                         const std::string&
-                                         ) override
+    void processing_instruction (const unsigned long, const std::string&,
+                                 const std::string&
+                                 ) override
     {
     }
 
@@ -116,6 +118,8 @@ private:
     std::vector<std::string> &img_name_;
     std::vector<std::vector<rect_type>> &location_;
 };
+
+} //nameless namespace
 
 void get_imglab_xml_info(std::vector<std::string> &img_name,
                          std::vector<std::vector<dlib::rectangle>> &roi,
