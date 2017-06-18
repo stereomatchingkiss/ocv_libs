@@ -28,7 +28,7 @@ void write_dlib_xml(const std::vector<std::string> &image_location, const std::v
     declarationNode.append_attribute("encoding") = "ISO-8859-1";
     auto xml_style_node = doc.append_child(pugi::xml_node_type::node_pi);
     xml_style_node.set_name("xml-stylesheet");
-    xml_style_node.set_value("type=\"text/xsl\" href=\"browser_view.xslt\"");
+    xml_style_node.set_value("type=\"text/xsl\" href=\"image_metadata_stylesheet.xsl\"");
 
     pugi::xml_node node = doc.append_child("dataset");
     node.append_child("name").append_child(pugi::node_pcdata).set_value("imglab dataset");
