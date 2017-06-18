@@ -26,7 +26,7 @@ void write_dlib_xml(const std::vector<std::string> &image_location, const std::v
     auto declarationNode = doc.append_child(pugi::node_declaration);
     declarationNode.append_attribute("version")  = "1.0";
     declarationNode.append_attribute("encoding") = "ISO-8859-1";
-    auto xml_style_node = doc.prepend_child(pugi::xml_node_type::node_pi);
+    auto xml_style_node = doc.append_child(pugi::xml_node_type::node_pi);
     xml_style_node.set_name("xml-stylesheet");
     xml_style_node.set_value("type=\"text/xsl\" href=\"browser_view.xslt\"");
 
