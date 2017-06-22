@@ -83,9 +83,9 @@ private:
     {
         if(name == "ignore"){
             rect.ignore = true;
-        }else{
-            process_attr(name, atts, rect.rect, h);
         }
+
+        process_attr(name, atts, rect.rect, h);
     }
 
     void process_attr(std::string const &name,
