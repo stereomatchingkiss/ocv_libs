@@ -27,7 +27,7 @@ namespace odlib{
  * @param prepend_folder <image file="[prepend_folder]/mov_001_007585.jpeg">
  * @param output_name name of the output xml
  */
-void write_dlib_xml(std::vector<std::string> const &image_location,
+void write_imglab_xml(std::vector<std::string> const &image_location,
                     std::vector<std::vector<dlib::rectangle>> const &rects,
                     std::string const &prepend_folder,
                     std::string const &output_name);
@@ -36,7 +36,7 @@ void write_dlib_xml(std::vector<std::string> const &image_location,
  * @brief overload of write_dlib_xml, everything are same except this one
  * accept mmod_rect but not rect
  */
-void write_dlib_xml(std::vector<std::string> const &image_location,
+void write_imglab_xml(std::vector<std::string> const &image_location,
                     std::vector<std::vector<dlib::mmod_rect>> const &rects,
                     std::string const &prepend_folder,
                     std::string const &output_name);
