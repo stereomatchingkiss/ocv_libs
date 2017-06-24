@@ -1,4 +1,4 @@
-#include "write_dlib_xml_info.hpp"
+#include "write_imglab_xml_info.hpp"
 
 #include <pugixml.hpp>
 

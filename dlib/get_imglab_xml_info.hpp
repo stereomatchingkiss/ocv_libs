@@ -1,5 +1,5 @@
-#ifndef OCV_DLIB_GET_IMG_INFO_HPP
-#define OCV_DLIB_GET_IMG_INFO_HPP
+#ifndef OCV_DLIB_GET_IMGLAB_XML_INFO_HPP
+#define OCV_DLIB_GET_IMGLAB_XML_INFO_HPP
 
 #include <dlib/geometry.h>
 #include <dlib/image_processing.h>
@@ -46,4 +46,4 @@ void get_imglab_xml_info(std::vector<std::string> &img_name,
 
 } /*! @} End of Doxygen Groups*/
 
-#endif // OCV_DLIB_GET_IMG_NAME_AND_POSITION_HPP
+#endif // OCV_DLIB_GET_IMGLAB_XML_INFO_HPP

@@ -1,5 +1,5 @@
-#ifndef WRITE_DLIB_XML_INFO_HPP
-#define WRITE_DLIB_XML_INFO_HPP
+#ifndef WRITE_DLIB_IMGLAB_XML_INFO_HPP
+#define WRITE_DLIB_IMGLAB_XML_INFO_HPP
 
 #include <dlib/geometry.h>
 #include <dlib/image_processing.h>
@@ -45,4 +45,4 @@ void write_imglab_xml(std::vector<std::string> const &image_location,
 
 } /*! @} End of Doxygen Groups*/
 
-#endif // WRITE_DLIB_XML_INFO_HPP
+#endif // WRITE_DLIB_IMGLAB_XML_INFO_HPP

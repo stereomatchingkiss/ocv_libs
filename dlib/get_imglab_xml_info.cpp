@@ -1,4 +1,4 @@
-#include "get_img_info.hpp"
+#include "get_imglab_xml_info.hpp"
 
 #include <algorithm>
 
