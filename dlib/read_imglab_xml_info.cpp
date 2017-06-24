@@ -1,4 +1,4 @@
-#include "get_imglab_xml_info.hpp"
+#include "read_imglab_xml_info.hpp"
 
 #include <algorithm>
 
@@ -121,17 +121,17 @@ private:
 
 } //nameless namespace
 
-void get_imglab_xml_info(std::vector<std::string> &img_name,
-                         std::vector<std::vector<dlib::rectangle>> &roi,
-                         const std::string &file_name)
+void read_imglab_xml_info(std::string const &file_name,
+                          std::vector<std::string> &img_name,
+                          std::vector<std::vector<dlib::rectangle>> &roi)
 {
     doc_handler<dlib::rectangle> handler(img_name, roi);
     dlib::parse_xml(file_name, handler);
 }
 
-void get_imglab_xml_info(std::vector<std::string> &img_name,
-                         std::vector<std::vector<dlib::mmod_rect>> &roi,
-                         std::string const &file_name)
+void read_imglab_xml_info(std::string const &file_name,
+                          std::vector<std::string> &img_name,
+                          std::vector<std::vector<dlib::mmod_rect>> &roi)
 {
     doc_handler<dlib::mmod_rect> handler(img_name, roi);
     dlib::parse_xml(file_name, handler);
