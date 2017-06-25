@@ -61,7 +61,7 @@ void add_image_info(pugi::xml_node &image, std::vector<dlib::mmod_rect> const &r
         box.append_attribute("width") = rect.width();
         box.append_attribute("height") = rect.height();
         if(mrect.ignore){
-            box.append_attribute("height") = "1";
+            box.append_attribute("ignore") = "1";
         }
     }
 }
