@@ -5,6 +5,7 @@
 #include <dlib/image_processing.h>
 
 #include <string>
+#include <tuple>
 #include <vector>
 
 /*!
@@ -41,6 +42,43 @@ void read_imglab_xml_info(std::string const &file_name,
                           std::vector<std::string> &img_name,
                           std::vector<std::vector<dlib::mmod_rect>> &roi);
 
+/**
+ *@overload of read_imglab_xml_info, this function zip img_name and roi together
+ */
+template<typename T>
+void read_imglab_xml_info(std::string const &file_name,
+                          std::vector<std::pair<std::string, std::vector<T>>> &output)
+{
+    static_assert(std::is_same<T, dlib::mmod_rect>::value || std::is_same<T, dlib::rectangle>::value,
+                  "T == dlib::mmod_rect || T == dlib::rectangle");
+
+    std::vector<std::string> img_name;
+    std::vector<std::vector<T>> roi;
+
+    read_imglab_xml_info(file_name, img_name, roi);
+    for(size_t i = 0; i != img_name.size(); ++i){
+        output.emplace_back(std::make_pair(std::move(img_name[i]), std::move(roi[i])));
+    }
+}
+
+/**
+ *@overload of read_imglab_xml_info, this function zip img_name and roi together
+ */
+template<typename T>
+void read_imglab_xml_info(std::string const &file_name,
+                          std::vector<std::tuple<std::string, std::vector<T>>> &output)
+{
+    static_assert(std::is_same<T, dlib::mmod_rect>::value || std::is_same<T, dlib::rectangle>::value,
+                  "T == dlib::mmod_rect || T == dlib::rectangle");
+
+    std::vector<std::string> img_name;
+    std::vector<std::vector<T>> roi;
+
+    read_imglab_xml_info(file_name, img_name, roi);
+    for(size_t i = 0; i != img_name.size(); ++i){
+        output.emplace_back(std::make_tuple(std::move(img_name[i]), std::move(roi[i])));
+    }
+}
 
 } /*! @} End of Doxygen Groups*/
 
