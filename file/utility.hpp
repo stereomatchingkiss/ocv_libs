@@ -36,7 +36,23 @@ get_directory_files(std::string const &dir, bool recursive = false);
  * @return paths under the directory
  */
 std::vector<boost::filesystem::path>
-get_directory_path(const std::string &dir, bool recursive = false);
+get_directory_path(std::string const &dir, bool recursive = false);
+
+/**
+ * Overload of get_directory_path
+ * @param dir directory want to get files
+ * @param valid_extension Type of the files want to get
+ * @param case_sensitive self explain
+ * @param recursive true, get the paths recursive and vice versa
+ * @return paths under the directory
+ * @code
+ * auto const paths = get_directory_path("/home/myHome/fishering_monitor", {".jpg", ".jpeg", ".png", ".bmp"});
+ * @endcode
+ */
+std::vector<boost::filesystem::path>
+get_directory_path(std::string const &dir, std::vector<std::string> const &valid_extension,
+                   bool case_sensitive = false,
+                   bool recursive = false);
 
 /**
  * Get the file size of the directory without recursively get
