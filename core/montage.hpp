@@ -2,6 +2,7 @@
 #define OCV_CORE_MONTAGE_HPP
 
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include <vector>
 
 /*!
@@ -29,8 +30,9 @@ public:
      * @param size size of the image of the montage
      * @param grid_x number of images on x axis
      * @param grid_y number of images on y axis
+     * @param interpolation interpolation method, see cv::InterpolationFlags
      */
-    montage(cv::Size const &size, int grid_x, int grid_y);
+    montage(cv::Size const &size, int grid_x, int grid_y, int interpolation = cv::INTER_LINEAR);
 
     /**
      * Add image into the montage, if the size of the montage
@@ -55,6 +57,7 @@ private:
 
     int grid_x_;
     int grid_y_;
+    int interpolation_;
     std::vector<cv::Mat> montages_;
     cv::Size size_;
 };

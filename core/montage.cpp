@@ -5,17 +5,18 @@
 namespace ocv{
 
 montage::montage(cv::Size const &size,
-                 int grid_x, int grid_y) :
+                 int grid_x, int grid_y, int interpolation) :
     grid_x_(grid_x),
     grid_y_(grid_y),
+    interpolation_(interpolation),
     size_(size)
 {
-
+    CV_Assert(grid_x > 0 && grid_y > 0);
 }
 
 void montage::add_image(cv::Mat const &input)
 {
-    if(montages_.size() < grid_x_ * grid_y_){
+    if(montages_.size() < static_cast<size_t>(grid_x_ * grid_y_)){
         montages_.emplace_back(input);
     }else{
         montages_.emplace(std::begin(montages_),
@@ -54,7 +55,7 @@ void montage::tile(const std::vector<cv::Mat> &src,
     for(int i = 0; i < grid_y; i++) {
         for(int j = 0; j < grid_x; j++) {
             cv::Mat s = src[k++];
-            cv::resize(s,s,cv::Size(width,height));
+            cv::resize(s,s,cv::Size(width,height), interpolation_);
             s.copyTo(dst(cv::Rect(j*width,i*height,width,height)));
         }
     }
