@@ -19,8 +19,7 @@ void montage::add_image(cv::Mat const &input)
     if(montages_.size() < static_cast<size_t>(grid_x_ * grid_y_)){
         montages_.emplace_back(input);
     }else{
-        montages_.emplace(std::begin(montages_),
-                          input);
+        montages_.emplace(std::begin(montages_), input);
         montages_.pop_back();
     }
 }
@@ -35,7 +34,7 @@ cv::Mat montage::get_montage() const
     if(!montages_.empty()){
         cv::Mat dst(size_.height * grid_y_,
                     size_.width * grid_x_,
-                    montages_[0].type());
+                    montages_[0].type());        
         tile(montages_, dst, grid_x_, grid_y_);
 
         return dst;
@@ -49,13 +48,13 @@ void montage::tile(const std::vector<cv::Mat> &src,
 {
     // patch size
     int const width  = dst.cols/grid_x;
-    int const height = dst.rows/grid_y;
+    int const height = dst.rows/grid_y;    
     // iterate through grid
     int k = 0;
     for(int i = 0; i < grid_y; i++) {
         for(int j = 0; j < grid_x; j++) {
-            cv::Mat s = src[k++];
-            cv::resize(s,s,cv::Size(width,height), interpolation_);
+            cv::Mat s = src[k++];            
+            cv::resize(s,s, cv::Size(width,height), 0, 0, interpolation_);
             s.copyTo(dst(cv::Rect(j*width,i*height,width,height)));
         }
     }
