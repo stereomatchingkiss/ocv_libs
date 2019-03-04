@@ -32,8 +32,8 @@ template<typename ForwardIter1, typename ForwardIter2,
 void shuffles(ForwardIter1 beg1, ForwardIter1 end1,
               ForwardIter2 beg2, URNG &&g)
 {
-    using vtype1 = std::decay<decltype(*beg1)>::type;
-    using vtype2 = std::decay<decltype(*beg2)>::type;
+    using vtype1 = typename std::decay<decltype(*beg1)>::type;
+    using vtype2 = typename std::decay<decltype(*beg2)>::type;
     using value_type = std::pair<vtype1, vtype2>;
 
     std::vector<value_type> key_values;

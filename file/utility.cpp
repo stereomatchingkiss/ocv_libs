@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <functional>
+#include <set>
 
 namespace ocv{
 
@@ -11,9 +12,9 @@ namespace file{
 namespace{
 
 std::vector<boost::filesystem::path>
-get_directory_path(const std::string &dir,
-                   std::function<bool(boost::filesystem::path const&)> func,
-                   bool recursive = false)
+get_directory_path_impl(const std::string &dir,
+                        std::function<bool(boost::filesystem::path const&)> func,
+                        bool recursive = false)
 {
     using namespace boost::filesystem;
 
@@ -40,7 +41,22 @@ get_directory_path(const std::string &dir,
     return result;
 }
 
+template<typename T>
+std::vector<boost::filesystem::path> filter_by_extension(T const &filters,
+                                                         std::vector<boost::filesystem::path> &paths)
+{
+    using namespace boost::filesystem;
+    std::vector<path> results;
+    for(path &p : paths){
+        if(filters.find(p.extension().string()) != std::end(filters)){
+            results.emplace_back(std::move(p));
+        }
+    }
+
+    return results;
 }
+
+} //nameless namespace
 
 std::vector<std::string>
 get_directory_files(std::string const &dir, bool recursive)
@@ -52,7 +68,7 @@ get_directory_files(std::string const &dir, bool recursive)
         return is_regular_file(p);
     };
 
-    auto const paths = get_directory_path(dir, func, recursive);
+    auto const paths = get_directory_path_impl(dir, func, recursive);
     std::vector<std::string> result;
     std::transform(std::begin(paths), std::end(paths),
                    std::back_inserter(result), [](path const &p)
@@ -67,9 +83,9 @@ std::vector<std::string> get_directory_folders(std::string const &dir)
 {
     using namespace boost::filesystem;
 
-    auto const paths = get_directory_path(dir, [](path const &p)
+    auto const paths = get_directory_path_impl(dir, [](path const &p)
     {
-        return is_directory(p);
+            return is_directory(p);
     });
 
     std::vector<std::string> result;
@@ -82,7 +98,7 @@ std::vector<std::string> get_directory_folders(std::string const &dir)
     return result;
 }
 
-size_t ocv::file::get_minimum_file_size(const std::string &dir)
+size_t get_minimum_file_size(const std::string &dir)
 {
     auto const folders = get_directory_folders(dir);
     size_t min_data = std::numeric_limits<size_t>::max();
@@ -124,8 +140,34 @@ get_directory_path(const std::string &dir, bool recursive)
 {
     using namespace boost::filesystem;
 
-    auto func = [](path const&){ return true;};
-    return get_directory_path(dir, func, recursive);
+    return get_directory_path_impl(dir, [](path const&){ return true;}, recursive);
+}
+
+std::vector<boost::filesystem::path> get_directory_path(const std::string &dir,
+                                                        const std::vector<std::string> &valid_extension,
+                                                        bool case_sensitive, bool recursive)
+{
+    using namespace boost::filesystem;
+
+    std::vector<path> paths = get_directory_path(dir, recursive);
+    if(case_sensitive){
+        std::set<std::string> const filters(std::begin(valid_extension), std::end(valid_extension));
+        return filter_by_extension(filters, paths);
+    }else{
+        struct icase
+        {
+            //less effective but easier to implement
+            bool operator()(std::string a, std::string b) const
+            {
+                std::transform(std::begin(a), std::begin(a), std::begin(a), [](char c){ return std::tolower(c); });
+                std::transform(std::begin(b), std::begin(b), std::begin(b), [](char c){ return std::tolower(c); });
+                return a < b;
+            }
+        };
+
+        std::set<std::string, icase> const filters(std::begin(valid_extension), std::end(valid_extension));
+        return filter_by_extension(filters, paths);
+    }
 }
 
 }
