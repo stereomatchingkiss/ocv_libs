@@ -1,5 +1,5 @@
-#ifndef OCV_OBJ_DET_MXNET_OBJECT_DETECTOR_FILTER_HPP
-#define OCV_OBJ_DET_MXNET_OBJECT_DETECTOR_FILTER_HPP
+#ifndef OCV_OBJ_DET_MXNET_OBJECT_DETECTOR_OUTPUT_FILTER_HPP
+#define OCV_OBJ_DET_MXNET_OBJECT_DETECTOR_OUTPUT_FILTER_HPP
 
 #include "coco_item_type.hpp"
 
@@ -14,7 +14,7 @@ namespace ocv{
 
 namespace obj_det{
 
-class mxnet_object_detector_filter
+class mxnet_object_detector_output_filter
 {
 public:
     struct result_type
@@ -24,9 +24,9 @@ public:
         cv::Rect roi_;
     };
 
-    explicit mxnet_object_detector_filter(std::vector<coco_item_type> const &items_to_detect,
-                                          cv::Size const &obj_detector_process_size,
-                                          float min_confidence = 0.4f);
+    explicit mxnet_object_detector_output_filter(std::vector<coco_item_type> const &items_to_detect,
+                                                 cv::Size const &obj_detector_process_size,
+                                                 float min_confidence = 0.4f);
 
     std::vector<result_type> filter(std::vector<mxnet::cpp::NDArray> const &input, cv::Size const &image_size) const;
 
@@ -47,4 +47,4 @@ private:
 
 }
 
-#endif // OCV_OBJ_DET_MXNET_OBJECT_DETECTOR_FILTER_HPP
+#endif // OCV_OBJ_DET_MXNET_OBJECT_DETECTOR_OUTPUT_FILTER_HPP
