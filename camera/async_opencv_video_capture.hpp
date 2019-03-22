@@ -6,8 +6,9 @@
 
 #include <atomic>
 #include <functional>
-#include <map>
+#include <memory>
 #include <thread>
+#include <vector>
 
 namespace ocv{
 
@@ -26,6 +27,7 @@ public:
      * @param listener a listener to process exception if the video capture throw exception
      */
     explicit async_opencv_video_capture(std::function<bool(std::exception const &ex)> exception_listener);
+    ~async_opencv_video_capture();
 
     /**
      * Add listener to process frame captured by the videoCapture
@@ -48,8 +50,9 @@ public:
 private:
     std::function<bool(std::exception const &ex)> cam_exception_listener_;
     cv::VideoCapture cap_;
-    std::map<void*, std::function<void(cv::Mat)>> listeners_;
+    std::vector<std::pair<void*, std::function<void(cv::Mat)>>> listeners_;
     std::atomic<bool> stop_;
+    std::unique_ptr<std::thread> thread_;
 };
 
 }

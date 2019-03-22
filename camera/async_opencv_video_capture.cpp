@@ -12,9 +12,14 @@ async_opencv_video_capture::async_opencv_video_capture(std::function<bool (const
 {
 }
 
+async_opencv_video_capture::~async_opencv_video_capture()
+{
+    thread_->join();
+}
+
 void async_opencv_video_capture::add_listener(std::function<void (cv::Mat)> listener, void *key)
 {
-    listeners_.insert(std::make_pair(key, std::move(listener)));
+    listeners_.emplace_back(key, std::move(listener));
 }
 
 bool async_opencv_video_capture::is_stop() const noexcept
@@ -29,7 +34,7 @@ bool async_opencv_video_capture::open_url(const std::string &url)
 
 void async_opencv_video_capture::run()
 {
-    std::thread([this]()
+    thread_ = std::make_unique<std::thread>([this]()
     {
         for(Mat frame; stop_ == false;){
             try{
@@ -41,7 +46,7 @@ void async_opencv_video_capture::run()
                 cam_exception_listener_(ex);
             }
         }
-    }).detach();
+    });
 }
 
 void async_opencv_video_capture::set_video_capture(VideoCapture cap)
