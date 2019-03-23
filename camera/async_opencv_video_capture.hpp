@@ -43,9 +43,8 @@ public:
     /**
      * The thread will start and detach after you call this function.
      * @warning
-     * 1. add all of the listeners before you call this function
+     * 1. add listener(s) before you call this function
      * 2. add video capture before you call this function
-     * 3. do not call this function more than once
      */
     void run();
     void set_video_capture(cv::VideoCapture cap);
@@ -61,6 +60,7 @@ private:
     std::mutex mutex_;
     std::atomic<bool> stop_;
     std::unique_ptr<std::thread> thread_;
+    void create_thread();
 };
 
 }
