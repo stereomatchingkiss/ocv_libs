@@ -31,6 +31,7 @@ bool async_opencv_video_capture::is_stop() const noexcept
 
 bool async_opencv_video_capture::open_url(const std::string &url)
 {
+    unique_lock<mutex> lock(mutex_);
     return cap_.open(url);
 }
 
