@@ -1,7 +1,5 @@
 #include "async_opencv_video_capture.hpp"
 
-#include <iostream>
-
 using namespace cv;
 using namespace std;
 
