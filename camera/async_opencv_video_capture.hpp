@@ -75,16 +75,23 @@ public:
     using listener_key = void const*;
 
     /**
-     * @param listener a listener to process exception if the video capture throw exception
+     * @param cam_exception_listener a listener to process exception if the video capture throw exception
      * @param wait_msec Determine how many milliseconds the videoCapture will wait before capture next frame
+     * @param replay Restart the camera if the frame is empty
+     * @warning Unless the listener do not run in the same thread of videoCapture, else do not call the api
+     * of async_opencv_video_capture in the listener, this may cause dead lock
      */
-    explicit async_opencv_video_capture(std::function<bool(std::exception const &ex)> exception_listener,
-                                        long long wait_msec = 0);
+    explicit async_opencv_video_capture(std::function<bool(std::exception const &ex)> cam_exception_listener,
+                                        long long wait_msec = 0,
+                                        bool replay = true);
     ~async_opencv_video_capture();
 
     /**
      * Add listener to process frame captured by the videoCapture
-     * @warning Must handle exception in the listener
+     * @warning
+     * 1. Must handle exception in the listener
+     * 2. Unless the listener do not run in the same thread of videoCapture, else do not call the api
+     * of async_opencv_video_capture in the listener, this may cause dead lock
      */
     void add_listener(std::function<void(cv::Mat)> listener, listener_key key);
     bool is_stop() const noexcept;
@@ -117,8 +124,10 @@ private:
     cv::VideoCapture cap_;
     listeners_vec listeners_;
     mutable std::mutex mutex_;
+    bool replay_;
     bool stop_;
     std::unique_ptr<std::thread> thread_;
+    std::string url_;
     std::chrono::milliseconds wait_for_;
 };
 

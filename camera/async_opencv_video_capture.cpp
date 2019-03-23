@@ -9,8 +9,10 @@ namespace camera{
 
 async_opencv_video_capture::
 async_opencv_video_capture(std::function<bool (const std::exception &)> exception_listener,
-                           long long wait_msec) :
+                           long long wait_msec,
+                           bool replay) :
     cam_exception_listener_(std::move(exception_listener)),
+    replay_(replay),
     stop_(false),
     wait_for_(chrono::milliseconds(wait_msec))
 {
@@ -37,6 +39,7 @@ bool async_opencv_video_capture::is_stop() const noexcept
 bool async_opencv_video_capture::open_url(const std::string &url)
 {
     unique_lock<mutex> lock(mutex_);
+    url_ = url;
     return cap_.open(url);
 }
 
@@ -56,20 +59,31 @@ void async_opencv_video_capture::create_thread()
 {
     thread_ = std::make_unique<std::thread>([this]()
     {
+        //read the frames in infinite for loop
         for(Mat frame;;){
             unique_lock<mutex> lock(mutex_);
             if(!stop_ && !listeners_.empty()){
                 try{
                     cap_>>frame;
-                    if(!frame.empty()){
-                        for(auto &val : listeners_){
-                            val.second(frame);
-                        }
-                    }
-                    std::this_thread::sleep_for(wait_for_);
                 }catch(std::exception const &ex){
+                    //reopen the camera if exception thrown ,this may happen frequently when you
+                    //receive frames from network
+                    cap_.open(url_);
                     cam_exception_listener_(ex);
                 }
+
+                if(!frame.empty()){
+                    for(auto &val : listeners_){
+                        val.second(frame);
+                    }
+                }else{
+                    if(replay_){
+                        cap_.open(url_);
+                    }else{
+                        break;
+                    }
+                }
+                std::this_thread::sleep_for(wait_for_);
             }else{
                 break;
             }
