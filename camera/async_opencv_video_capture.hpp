@@ -23,6 +23,8 @@ namespace camera{
 class async_opencv_video_capture
 {
 public:
+    using listener_key = void const*;
+
     /**
      * @param listener a listener to process exception if the video capture throw exception
      */
@@ -33,9 +35,11 @@ public:
      * Add listener to process frame captured by the videoCapture
      * @warning Must handle exception in the listener
      */
-    void add_listener(std::function<void(cv::Mat)> listener, void *key);
+    void add_listener(std::function<void(cv::Mat)> listener, listener_key key);
     bool is_stop() const noexcept;
     bool open_url(std::string const &url);
+
+    void remove_listener(listener_key key);
     /**
      * The thread will start and detach after you call this function.
      * @warning
@@ -48,9 +52,13 @@ public:
     void stop();
 
 private:
+    using listener_pair = std::pair<listener_key, std::function<void(cv::Mat)>>;
+    using listeners_vec = std::vector<listener_pair>;
+
     std::function<bool(std::exception const &ex)> cam_exception_listener_;
     cv::VideoCapture cap_;
-    std::vector<std::pair<void*, std::function<void(cv::Mat)>>> listeners_;
+    listeners_vec listeners_;
+    std::mutex mutex_;
     std::atomic<bool> stop_;
     std::unique_ptr<std::thread> thread_;
 };

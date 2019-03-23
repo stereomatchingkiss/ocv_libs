@@ -1,6 +1,7 @@
 #include "async_opencv_video_capture.hpp"
 
 using namespace cv;
+using namespace std;
 
 namespace ocv{
 
@@ -17,8 +18,9 @@ async_opencv_video_capture::~async_opencv_video_capture()
     thread_->join();
 }
 
-void async_opencv_video_capture::add_listener(std::function<void (cv::Mat)> listener, void *key)
+void async_opencv_video_capture::add_listener(std::function<void (cv::Mat)> listener, listener_key key)
 {
+    unique_lock<mutex> lock(mutex_);
     listeners_.emplace_back(key, std::move(listener));
 }
 
@@ -32,6 +34,18 @@ bool async_opencv_video_capture::open_url(const std::string &url)
     return cap_.open(url);
 }
 
+void async_opencv_video_capture::remove_listener(listener_key key)
+{
+    unique_lock<mutex> lock(mutex_);
+    auto it = std::find_if(std::begin(listeners_), std::end(listeners_), [&](auto const &val)
+    {
+        return val.first == key;
+    });
+    if(it != std::end(listeners_)){
+        listeners_.erase(listeners_.begin());
+    }
+}
+
 void async_opencv_video_capture::run()
 {
     thread_ = std::make_unique<std::thread>([this]()
@@ -39,6 +53,7 @@ void async_opencv_video_capture::run()
         for(Mat frame; stop_ == false;){
             try{
                 cap_>>frame;
+                unique_lock<mutex> lock(mutex_);
                 for(auto &val : listeners_){
                     val.second(frame);
                 }
