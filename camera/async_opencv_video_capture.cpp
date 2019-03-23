@@ -1,5 +1,7 @@
 #include "async_opencv_video_capture.hpp"
 
+#include <iostream>
+
 using namespace cv;
 using namespace std;
 
@@ -15,6 +17,7 @@ async_opencv_video_capture::async_opencv_video_capture(std::function<bool (const
 
 async_opencv_video_capture::~async_opencv_video_capture()
 {
+    stop();
     thread_->join();
 }
 
@@ -75,9 +78,9 @@ void async_opencv_video_capture::create_thread()
 void async_opencv_video_capture::run()
 {    
     if(thread_){
-        unique_lock<mutex> lock(mutex_);
-        stop_ = true;
+        stop();
         thread_->join();
+        unique_lock<mutex> lock(mutex_);
         stop_ = false;
     }
 
@@ -92,6 +95,7 @@ void async_opencv_video_capture::set_video_capture(VideoCapture cap)
 
 void async_opencv_video_capture::stop()
 {
+    unique_lock<mutex> lock(mutex_);
     stop_ = true;
 }
 
