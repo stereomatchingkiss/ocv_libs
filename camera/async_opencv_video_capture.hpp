@@ -4,7 +4,6 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <thread>
