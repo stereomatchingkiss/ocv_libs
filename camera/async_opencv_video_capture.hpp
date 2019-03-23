@@ -15,7 +15,7 @@ namespace ocv{
 namespace camera{
 
 /**
- * Read the video asynchronous, this class is thread safe
+ * Read the video asynchronous
  * @code
  * if(argc != 2){
  *       std::cerr<<"must enter url of media\n";
