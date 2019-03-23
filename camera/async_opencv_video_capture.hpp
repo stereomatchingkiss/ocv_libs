@@ -197,7 +197,7 @@ private:
     std::function<bool(std::exception const &ex)> cam_exception_listener_;
     cv::VideoCapture cap_;
     listeners_vec listeners_;
-    mutable std::mutex mutex_;
+    mutable Mutex mutex_;
     bool replay_;
     bool stop_;
     std::unique_ptr<std::thread> thread_;
