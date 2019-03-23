@@ -9,9 +9,12 @@ namespace ocv{
 
 namespace camera{
 
-async_opencv_video_capture::async_opencv_video_capture(std::function<bool (const std::exception &)> exception_listener) :
+async_opencv_video_capture::
+async_opencv_video_capture(std::function<bool (const std::exception &)> exception_listener,
+                           long long wait_msec) :
     cam_exception_listener_(std::move(exception_listener)),
-    stop_(false)
+    stop_(false),
+    wait_for_(chrono::milliseconds(wait_msec))
 {
 }
 
@@ -65,6 +68,7 @@ void async_opencv_video_capture::create_thread()
                             val.second(frame);
                         }
                     }
+                    std::this_thread::sleep_for(wait_for_);
                 }catch(std::exception const &ex){
                     cam_exception_listener_(ex);
                 }
@@ -96,6 +100,12 @@ void async_opencv_video_capture::set_video_capture(VideoCapture cap)
 {
     unique_lock<mutex> lock(mutex_);
     cap_ = cap;
+}
+
+void async_opencv_video_capture::set_wait(long long msec)
+{
+    unique_lock<mutex> lock(mutex_);
+    wait_for_ = chrono::milliseconds(msec);
 }
 
 void async_opencv_video_capture::stop()

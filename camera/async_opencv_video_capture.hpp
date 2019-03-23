@@ -4,6 +4,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <thread>
@@ -58,8 +59,10 @@ public:
 
     /**
      * @param listener a listener to process exception if the video capture throw exception
+     * @param wait_msec Determine how many milliseconds the videoCapture will wait before capture next frame
      */
-    explicit async_opencv_video_capture(std::function<bool(std::exception const &ex)> exception_listener);
+    explicit async_opencv_video_capture(std::function<bool(std::exception const &ex)> exception_listener,
+                                        long long wait_msec = 0);
     ~async_opencv_video_capture();
 
     /**
@@ -79,6 +82,11 @@ public:
      */
     void run();
     void set_video_capture(cv::VideoCapture cap);
+    /**
+     *Determine how many milliseconds the videoCapture will wait before
+     *capture next frame, default value is 0
+     */
+    void set_wait(long long msec);
     void stop();
 
 private:
@@ -93,7 +101,8 @@ private:
     listeners_vec listeners_;
     mutable std::mutex mutex_;
     bool stop_;
-    std::unique_ptr<std::thread> thread_;    
+    std::unique_ptr<std::thread> thread_;
+    std::chrono::milliseconds wait_for_;
 };
 
 }
