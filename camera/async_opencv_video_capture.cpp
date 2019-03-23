@@ -75,13 +75,18 @@ void async_opencv_video_capture::create_thread()
     });
 }
 
+void async_opencv_video_capture::set_stop(bool val)
+{
+    unique_lock<mutex> lock(mutex_);
+    stop_ = val;
+}
+
 void async_opencv_video_capture::run()
 {    
     if(thread_){
-        stop();
+        set_stop(true);
         thread_->join();
-        unique_lock<mutex> lock(mutex_);
-        stop_ = false;
+        set_stop(false);
     }
 
     create_thread();
@@ -95,8 +100,7 @@ void async_opencv_video_capture::set_video_capture(VideoCapture cap)
 
 void async_opencv_video_capture::stop()
 {
-    unique_lock<mutex> lock(mutex_);
-    stop_ = true;
+    set_stop(true);
 }
 
 }

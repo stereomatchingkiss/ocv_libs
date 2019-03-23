@@ -87,6 +87,7 @@ private:
     using listeners_vec = std::vector<listener_pair>;
 
     void create_thread();
+    void set_stop(bool val);
 
     std::function<bool(std::exception const &ex)> cam_exception_listener_;
     cv::VideoCapture cap_;
