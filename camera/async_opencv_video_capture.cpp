@@ -26,6 +26,7 @@ void async_opencv_video_capture::add_listener(std::function<void (cv::Mat)> list
 
 bool async_opencv_video_capture::is_stop() const noexcept
 {
+    unique_lock<mutex> lock(mutex_);
     return stop_;
 }
 
@@ -43,7 +44,7 @@ void async_opencv_video_capture::remove_listener(listener_key key)
         return val.first == key;
     });
     if(it != std::end(listeners_)){
-        listeners_.erase(listeners_.begin());
+        listeners_.erase(it);
     }
 }
 
@@ -51,9 +52,9 @@ void async_opencv_video_capture::create_thread()
 {
     thread_ = std::make_unique<std::thread>([this]()
     {
-        for(Mat frame; stop_ == false;){
+        for(Mat frame;;){
             unique_lock<mutex> lock(mutex_);
-            if(!listeners_.empty()){
+            if(!stop_ && !listeners_.empty()){
                 try{
                     cap_>>frame;
                     if(!frame.empty()){
@@ -65,7 +66,7 @@ void async_opencv_video_capture::create_thread()
                     cam_exception_listener_(ex);
                 }
             }else{
-                stop_ = true;
+                break;
             }
         }
     });
@@ -73,9 +74,14 @@ void async_opencv_video_capture::create_thread()
 
 void async_opencv_video_capture::run()
 {
-    stop_ = false;
-    if(thread_){
-        thread_->join();
+    {
+        unique_lock<mutex> lock(mutex_);
+        if(thread_){
+            stop_ = true;
+            thread_->join();
+        }
+
+        stop_ = false;
     }
 
     create_thread();

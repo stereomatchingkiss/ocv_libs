@@ -86,13 +86,14 @@ private:
     using listener_pair = std::pair<listener_key, std::function<void(cv::Mat)>>;
     using listeners_vec = std::vector<listener_pair>;
 
+    void create_thread();
+
     std::function<bool(std::exception const &ex)> cam_exception_listener_;
     cv::VideoCapture cap_;
     listeners_vec listeners_;
-    std::mutex mutex_;
-    std::atomic<bool> stop_;
-    std::unique_ptr<std::thread> thread_;
-    void create_thread();
+    mutable std::mutex mutex_;
+    bool stop_;
+    std::unique_ptr<std::thread> thread_;    
 };
 
 }
