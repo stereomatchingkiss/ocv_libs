@@ -73,14 +73,11 @@ void async_opencv_video_capture::create_thread()
 }
 
 void async_opencv_video_capture::run()
-{
-    {
+{    
+    if(thread_){
         unique_lock<mutex> lock(mutex_);
-        if(thread_){
-            stop_ = true;
-            thread_->join();
-        }
-
+        stop_ = true;
+        thread_->join();
         stop_ = false;
     }
 
