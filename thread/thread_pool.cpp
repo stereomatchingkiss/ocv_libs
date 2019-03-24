@@ -7,28 +7,26 @@ namespace thread{
 thread_pool::thread_pool(size_t pool_size)
     :   stop_(false)
 {
-    for(size_t i = 0;i < pool_size; ++i)
+    for(size_t i = 0;i < pool_size; ++i){
         workers_.emplace_back(
-                    [this]
+                    [this]()
         {
-            for(;;)
-            {
+            for(;;){
                 std::function<void()> task;
-
                 {
                     std::unique_lock<std::mutex> lock(this->queue_mutex_);
-                    this->condition_.wait(lock,
-                                         [this]{ return this->stop_ || !this->tasks_.empty(); });
-                    if(this->stop_ && this->tasks_.empty())
+                    condition_.wait(lock,
+                                    [this]{ return stop_ || !tasks_.empty(); });
+                    if(stop_ && tasks_.empty())
                         return;
-                    task = std::move(this->tasks_.front());
-                    this->tasks_.pop();
+                    task = std::move(tasks_.front());
+                    tasks_.pop();
                 }
-
                 task();
             }
         }
         );
+    }
 }
 
 thread_pool::~thread_pool()
