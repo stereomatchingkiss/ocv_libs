@@ -14,7 +14,7 @@ thread_pool::thread_pool(size_t pool_size)
             for(;;){
                 std::function<void()> task;
                 {
-                    std::unique_lock<std::mutex> lock(this->queue_mutex_);
+                    std::unique_lock<std::mutex> lock(queue_mutex_);
                     condition_.wait(lock,
                                     [this]{ return stop_ || !tasks_.empty(); });
                     if(stop_ && tasks_.empty())
