@@ -158,7 +158,8 @@ private:
         thread_ = std::make_unique<std::thread>([this]()
         {
             //read the frames in infinite for loop
-            for(cv::Mat frame;;){
+            for(;;){
+                cv::Mat frame;
                 std::lock_guard<Mutex> lock(mutex_);
                 if(!stop_ && !listeners_.empty()){
                     try{
