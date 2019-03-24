@@ -50,7 +50,7 @@ auto thread_pool::enqueue(F&& f, Args&&... args)->std::future<typename std::resu
 
     std::future<return_type> res = task->get_future();
     {
-        std::unique_lock<std::mutex> lock(queue_mutex_);
+        std::lock_guard<std::mutex> lock(queue_mutex_);
 
         if(!stop_){
             tasks_.emplace([task](){ (*task)(); });

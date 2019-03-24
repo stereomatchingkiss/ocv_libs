@@ -32,7 +32,7 @@ thread_pool::thread_pool(size_t pool_size)
 thread_pool::~thread_pool()
 {
     {
-        std::unique_lock<std::mutex> lock(queue_mutex_);
+        std::lock_guard<std::mutex> lock(queue_mutex_);
         stop_ = true;
     }
     condition_.notify_all();
